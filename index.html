@@ -3630,6 +3630,63 @@ Gruppen verwalten
     // ---------- INIT ----------
     updateHeaderForSession();
     window.reloadApprovedGroups();
+
+    // ---------- GETEILTEN GRUPPEN-LINK DIREKT ÖFFNEN ----------
+    // Wenn der Link "?gruppe=<slug>" enthält (siehe shareGroupByTitle), wird nach dem
+    // Laden automatisch das Profil des Erstellers (bzw. die Startseite bei Gast-Einträgen)
+    // geöffnet und direkt die entsprechende Gruppe ausgewählt.
+    (async function openSharedGroupFromUrl() {
+      const params = new URLSearchParams(window.location.search);
+      const sharedSlug = params.get('gruppe');
+      if (!sharedSlug) return;
+
+      // Auf das Laden der Gruppenliste warten (max. ca. 6 Sekunden)
+      let attempts = 0;
+      while (!allApprovedGroups.length && attempts < 30) {
+        await new Promise(function(resolve) { setTimeout(resolve, 200); });
+        attempts++;
+      }
+
+      const match = allApprovedGroups.find(function(item) {
+        const title = item.name || (item.tags ? item.tags.split(' ')[0] : (item.category || 'WhatsApp Gruppe'));
+        return slugify(title) === sharedSlug;
+      });
+      if (!match) return;
+
+      // URL bereinigen, damit ein erneutes Laden/Teilen der Seite nicht wiederholt öffnet
+      window.history.replaceState({}, '', window.location.pathname + window.location.hash);
+
+      const submittedBy = match.submittedBy || '';
+      const isGuest = !submittedBy || submittedBy.toLowerCase().startsWith('gast-');
+
+      if (isGuest) {
+        // Gast-Einträge haben kein Profil: direkt auf der Startseite öffnen
+        const idxAll = allApprovedGroups.findIndex(function(g) { return g.id === match.id; });
+        if (idxAll === -1) return;
+        const page = Math.floor(idxAll / PAGE_SIZE) + 1;
+        renderGrid(page);
+        setTimeout(function() {
+          const card = p1.querySelector('.group-card[data-id="' + match.id + '"]');
+          if (card) { card.scrollIntoView({ behavior: 'smooth', block: 'center' }); card.click(); }
+        }, 80);
+        return;
+      }
+
+      // Zuerst das Profil des Erstellers öffnen ...
+      await window.openCreatorProfile(submittedBy);
+
+      // ... dann innerhalb dieses Profils zur richtigen Seite blättern und die Gruppe öffnen
+      const idxProfile = profileGroupsAll.findIndex(function(g) { return g.id === match.id; });
+      if (idxProfile === -1) return;
+      const profilePage = Math.floor(idxProfile / PROFILE_PAGE_SIZE) + 1;
+      renderProfileGroupsPage(profilePage);
+
+      setTimeout(function() {
+        const grid = document.getElementById('profile-groups-grid');
+        const card = grid && grid.querySelector('.group-card[data-id="' + match.id + '"]');
+        if (card) card.click();
+      }, 80);
+    })();
   </script>
 
   <!-- ===================== PWA: SERVICE WORKER + INSTALL-BANNER ===================== -->
