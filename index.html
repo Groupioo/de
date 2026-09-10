@@ -2086,6 +2086,40 @@ Gruppen verwalten
     function setSession(session) { localStorage.setItem(SESSION_KEY, JSON.stringify(session)); }
     function clearSession() { localStorage.removeItem(SESSION_KEY); }
 
+    // ---------- DEVICE FINGERPRINT (capa extra, no sustituye al uid) ----------
+    // Genera un ID a partir de características del navegador (canvas, fuentes,
+    // hardware, etc.). Es una capa ADICIONAL de fricción, no una solución perfecta:
+    // sobrevive a borrar cookies, pero NO sobrevive a cambiar de navegador, modo
+    // incógnito en algunos navegadores, ni a extensiones anti-fingerprint.
+    async function getDeviceFingerprint() {
+      try {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        ctx.textBaseline = 'top';
+        ctx.font = "14px 'Arial'";
+        ctx.fillText('groupio-fp', 2, 2);
+        const canvasData = canvas.toDataURL();
+
+        const raw = [
+          navigator.userAgent,
+          navigator.language,
+          screen.colorDepth,
+          screen.width + 'x' + screen.height,
+          new Date().getTimezoneOffset(),
+          navigator.hardwareConcurrency || '',
+          canvasData
+        ].join('|||');
+
+        const enc = new TextEncoder().encode(raw);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', enc);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+      } catch (e) {
+        console.error('Fingerprint-Generierung fehlgeschlagen:', e);
+        return null; // si falla, el voto sigue protegido solo por uid + cooldown
+      }
+    }
+
     // ---------- FIREBASE ANONYME AUTHENTIFIZIERUNG ----------
     // Jeder Besucher bekommt automatisch eine stabile, anonyme Firebase-UID
     // (bleibt im selben Browser erhalten). Damit erkennen wir zuverlässiger als
@@ -3870,14 +3904,32 @@ Gruppen verwalten
       if (votedBy.includes(uid)) { refreshUpvoteButtonState(); return; }
       if (cooldownLastVoteAtMs && (now - cooldownLastVoteAtMs) < VOTE_COOLDOWN_MS) { refreshUpvoteButtonState(); return; }
 
+      // Fingerprint del dispositivo: capa extra de fricción (ver comentario arriba
+      // sobre sus límites). Si falla, seguimos solo con uid + cooldown.
+      const fp = await getDeviceFingerprint();
+      let fpBlocked = false;
+      if (fp) {
+        try {
+          const fpSnap = await getDoc(doc(db, 'voteFingerprints', fp));
+          if (fpSnap.exists()) {
+            const fpData = fpSnap.data();
+            const fpLastVoteMs = fpData.lastVoteAt ? fpData.lastVoteAt.toMillis() : 0;
+            if (Date.now() - fpLastVoteMs < VOTE_COOLDOWN_MS) fpBlocked = true;
+          }
+        } catch (e) {
+          console.error('Fehler beim Prüfen des Fingerprint-Cooldowns:', e);
+        }
+      }
+      if (fpBlocked) { refreshUpvoteButtonState(); return; }
+
       if (voteCountdownTimer) { clearInterval(voteCountdownTimer); voteCountdownTimer = null; }
       try {
-        // Beide Schreibvorgänge zusammen in einem Batch: entweder werden BEIDE übernommen,
-        // oder KEINER — jeder für sich wird zusätzlich einzeln von den Firestore-Regeln geprüft
-        // (votedBy darf nur die eigene, neue uid enthalten; Cooldown-Doc nur alle 30 Min neu).
+        // Tres escrituras en el mismo batch: se aplican TODAS o NINGUNA — cada una
+        // además validada individualmente por las Firestore Rules.
         const batch = writeBatch(db);
         batch.update(doc(db, 'groups', currentCardId), { votes: increment(1), votedBy: arrayUnion(uid) });
         batch.set(doc(db, 'voteCooldowns', uid), { lastVoteAt: serverTimestamp() });
+        if (fp) batch.set(doc(db, 'voteFingerprints', fp), { lastVoteAt: serverTimestamp() });
         await batch.commit();
 
         cooldownLastVoteAtMs = now;
