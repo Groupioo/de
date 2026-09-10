@@ -2018,6 +2018,39 @@ Gruppen verwalten
     let allApprovedGroups = [];
     let currentPage = 1;
     let currentQuery = '';
+    // Cache: Benutzername (lowercase) -> photoUrl (oder null, falls kein Foto/kein Konto)
+    const submitterPhotoCache = {};
+
+    function submitterAvatarHtml(item) {
+      const key = (item.submittedBy || '').toLowerCase();
+      const photo = submitterPhotoCache[key];
+      const name = escapeHtml(item.submittedBy || 'Gast');
+      if (photo) {
+        return '<span class="w-6 h-6 rounded-full overflow-hidden border border-slate-200 shadow-xs shrink-0 block" title="Erstellt von ' + name + '">'
+          + '<img alt="Ersteller" class="w-full h-full object-cover" src="' + escapeHtml(photo) + '">'
+          + '</span>';
+      }
+      return '<span class="w-6 h-6 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400 shrink-0" title="Erstellt von ' + name + '">'
+        + '<span class="material-symbols-outlined text-[14px]">person</span>'
+        + '</span>';
+    }
+
+    async function loadSubmitterPhotos(items) {
+      const usernames = [...new Set(
+        items
+          .map(i => (i.submittedBy || '').toLowerCase())
+          .filter(u => u && !u.startsWith('gast-') && !Object.prototype.hasOwnProperty.call(submitterPhotoCache, u))
+      )];
+      if (!usernames.length) return;
+      await Promise.all(usernames.map(async (uname) => {
+        try {
+          const snap = await getDoc(doc(db, 'users', uname));
+          submitterPhotoCache[uname] = (snap.exists() && snap.data().photoUrl) ? snap.data().photoUrl : null;
+        } catch (e) {
+          submitterPhotoCache[uname] = null;
+        }
+      }));
+    }
 
     const p1 = document.getElementById('grid-page-1');
     const p2 = document.getElementById('grid-page-2');
@@ -2043,7 +2076,7 @@ Gruppen verwalten
         + ' data-title="' + escapeHtml(groupTitle) + '" data-votes="' + (item.votes || 0) + '">'
         + '<div class="flex flex-col">'
         + '<div class="flex items-center justify-between min-h-[22px]">'
-        + '<span class="text-[11px] text-slate-400"></span>'
+        + submitterAvatarHtml(item)
         + '<span class="text-xs font-bold text-slate-700 flex items-center gap-0.5"><span class="text-amber-500">★</span> ' + (item.votes || 0) + '</span>'
         + '</div>'
         + '<div class="flex justify-center my-3"><div class="relative">'
@@ -2211,6 +2244,7 @@ Gruppen verwalten
         const items = snap.docs.map(d => Object.assign({ id: d.id }, d.data()));
         items.sort((a, b) => (b.votes || 0) - (a.votes || 0));
         allApprovedGroups = items;
+        await loadSubmitterPhotos(items);
       } catch (err) {
         console.error('Fehler beim Laden der Gruppen:', err);
         allApprovedGroups = [];
