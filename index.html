@@ -682,8 +682,9 @@
 <span class="material-symbols-outlined text-[18px] notranslate" translate="no">close</span>
 </button>
 <div class="flex items-center gap-3 pr-8">
-<div class="w-12 h-12 rounded-full bg-white/15 border border-white/25 text-emerald-200 flex items-center justify-center shrink-0 shadow-inner">
-<span class="material-symbols-outlined text-[26px] notranslate" translate="no">forum</span>
+<div class="w-12 h-12 rounded-full bg-white/15 border border-white/25 text-emerald-200 flex items-center justify-center shrink-0 shadow-inner overflow-hidden">
+<img alt="Gruppenbild" class="w-full h-full object-cover hidden" id="modal-group-photo" src="" onerror="this.classList.add('hidden'); document.getElementById('modal-group-photo-fallback').classList.remove('hidden');">
+<span class="material-symbols-outlined text-[26px] notranslate" id="modal-group-photo-fallback" translate="no">forum</span>
 </div>
 <div class="flex flex-col min-w-0">
 <span class="text-[11px] uppercase tracking-wider font-bold text-emerald-100" id="modal-group-cat">Adult</span>
@@ -723,6 +724,10 @@
 <button class="w-full py-2 rounded-lg bg-white border border-slate-300 hover:bg-slate-50 text-slate-800 font-semibold text-xs flex items-center justify-center gap-1.5 transition-colors" id="modal-upvote-btn">
 <span class="text-amber-500 font-bold">★</span>
 <span class="">Für Gruppe abstimmen (+1 Vote)</span>
+</button>
+<button class="w-full py-2 rounded-lg bg-white border border-slate-300 hover:bg-slate-50 text-slate-800 font-semibold text-xs flex items-center justify-center gap-1.5 transition-colors" id="modal-share-btn" type="button">
+<span class="material-symbols-outlined text-[16px] notranslate" translate="no" id="modal-share-icon">share</span>
+<span id="modal-share-label">Gruppe teilen</span>
 </button>
 </div>
 <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-2 flex-wrap">
@@ -1496,6 +1501,157 @@ Gruppen verwalten
 </script>
 <!-- ===================== FIN KONTAKT MODAL ===================== -->
 
+<!-- ===================== GRUPPENREGELN MODAL ===================== -->
+<div class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center p-3 sm:p-4 overflow-y-auto" id="rules-modal">
+  <div class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl flex flex-col relative animate-in fade-in zoom-in-95 duration-150 my-auto max-h-[92vh]">
+    <!-- Close Button -->
+    <button class="absolute top-4 right-4 p-1.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 transition-colors" id="rules-modal-close" onclick="closeRulesModal()" title="Schließen">
+      <span class="material-symbols-outlined text-[20px] block notranslate" translate="no">close</span>
+    </button>
+
+    <!-- Modal Header -->
+    <div class="flex items-center gap-3 px-5 sm:px-7 pt-6 pb-4 border-b border-slate-100 shrink-0">
+      <div class="w-11 h-11 rounded-xl bg-[#00a884]/15 text-[#006b53] flex items-center justify-center shrink-0 border border-[#00a884]/30">
+        <span class="material-symbols-outlined text-[24px] notranslate" translate="no">checklist</span>
+      </div>
+      <div class="flex flex-col">
+        <h2 class="font-bold text-slate-900 text-lg leading-tight font-display">Gruppenregeln</h2>
+        <span class="text-xs text-slate-500">Was beim Erstellen und Teilen von WhatsApp-Gruppen gilt</span>
+      </div>
+    </div>
+
+    <!-- Modal Body (scrollable) -->
+    <div class="flex flex-col gap-5 px-5 sm:px-7 py-5 overflow-y-auto custom-scroll text-sm leading-relaxed text-slate-600">
+
+      <p>Damit Groupio.app für alle ein sicherer und verlässlicher Ort bleibt, um WhatsApp-Gruppen zu finden und zu teilen, gelten für jede eingereichte Gruppe die folgenden Regeln. Verstöße können zur Entfernung der Gruppe und zur Sperrung des Kontos führen — ohne Vorwarnung.</p>
+
+      <!-- ERLAUBT -->
+      <div>
+        <div class="flex items-center gap-2 mb-2.5">
+          <span class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+            <span class="material-symbols-outlined text-[16px] notranslate" translate="no">check</span>
+          </span>
+          <h3 class="font-bold text-slate-900 text-sm">Das solltest du tun</h3>
+        </div>
+        <div class="flex flex-col gap-2">
+          <div class="flex items-start gap-2.5 p-3 rounded-xl bg-emerald-50/60 border border-emerald-100">
+            <span class="material-symbols-outlined text-[18px] text-emerald-600 mt-0.5 shrink-0 notranslate" translate="no">task_alt</span>
+            <p class="text-[13px]"><strong class="text-slate-800">Einen gültigen, aktiven Einladungslink</strong> verwenden (chat.whatsapp.com), der weder abgelaufen noch voll ist.</p>
+          </div>
+          <div class="flex items-start gap-2.5 p-3 rounded-xl bg-emerald-50/60 border border-emerald-100">
+            <span class="material-symbols-outlined text-[18px] text-emerald-600 mt-0.5 shrink-0 notranslate" translate="no">task_alt</span>
+            <p class="text-[13px]"><strong class="text-slate-800">Einen ehrlichen Namen, ein passendes Bild und die richtige Kategorie</strong> wählen, die den tatsächlichen Inhalt der Gruppe widerspiegeln.</p>
+          </div>
+          <div class="flex items-start gap-2.5 p-3 rounded-xl bg-emerald-50/60 border border-emerald-100">
+            <span class="material-symbols-outlined text-[18px] text-emerald-600 mt-0.5 shrink-0 notranslate" translate="no">task_alt</span>
+            <p class="text-[13px]"><strong class="text-slate-800">Gruppen mit Erwachseneninhalten korrekt als „Adult (18+)“ kennzeichnen</strong> und sicherstellen, dass nur volljährige Personen beitreten.</p>
+          </div>
+          <div class="flex items-start gap-2.5 p-3 rounded-xl bg-emerald-50/60 border border-emerald-100">
+            <span class="material-symbols-outlined text-[18px] text-emerald-600 mt-0.5 shrink-0 notranslate" translate="no">task_alt</span>
+            <p class="text-[13px]"><strong class="text-slate-800">Die Gruppe aktiv moderieren</strong> und dafür sorgen, dass sich Mitglieder respektvoll verhalten und sich Spam sowie Belästigung nicht ausbreiten.</p>
+          </div>
+          <div class="flex items-start gap-2.5 p-3 rounded-xl bg-emerald-50/60 border border-emerald-100">
+            <span class="material-symbols-outlined text-[18px] text-emerald-600 mt-0.5 shrink-0 notranslate" translate="no">task_alt</span>
+            <p class="text-[13px]"><strong class="text-slate-800">Abgelaufene oder volle Links zeitnah aktualisieren</strong> bzw. die Gruppe entfernen, wenn sie nicht mehr existiert.</p>
+          </div>
+          <div class="flex items-start gap-2.5 p-3 rounded-xl bg-emerald-50/60 border border-emerald-100">
+            <span class="material-symbols-outlined text-[18px] text-emerald-600 mt-0.5 shrink-0 notranslate" translate="no">task_alt</span>
+            <p class="text-[13px]"><strong class="text-slate-800">Verstöße anderer Nutzer melden</strong>, damit wir schnell reagieren und die Community sicher bleibt.</p>
+          </div>
+          <div class="flex items-start gap-2.5 p-3 rounded-xl bg-emerald-50/60 border border-emerald-100">
+            <span class="material-symbols-outlined text-[18px] text-emerald-600 mt-0.5 shrink-0 notranslate" translate="no">task_alt</span>
+            <p class="text-[13px]"><strong class="text-slate-800">Zusätzlich zu diesen Regeln</strong> die offiziellen WhatsApp-Nutzungsbedingungen sowie unsere allgemeinen Nutzungsbedingungen beachten.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- VERBOTEN -->
+      <div>
+        <div class="flex items-center gap-2 mb-2.5">
+          <span class="w-6 h-6 rounded-full bg-red-100 text-red-700 flex items-center justify-center shrink-0">
+            <span class="material-symbols-outlined text-[16px] notranslate" translate="no">close</span>
+          </span>
+          <h3 class="font-bold text-slate-900 text-sm">Das ist nicht erlaubt</h3>
+        </div>
+        <div class="flex flex-col gap-2">
+          <div class="flex items-start gap-2.5 p-3 rounded-xl bg-red-50/60 border border-red-100">
+            <span class="material-symbols-outlined text-[18px] text-red-600 mt-0.5 shrink-0 notranslate" translate="no">block</span>
+            <p class="text-[13px]"><strong class="text-slate-800">Nacktheit oder pornografisches Material</strong> außerhalb der Kategorie „Adult (18+)“ sowie sexuelle Belästigung oder anzügliche Anfragen jeglicher Art.</p>
+          </div>
+          <div class="flex items-start gap-2.5 p-3 rounded-xl bg-red-50/60 border border-red-100">
+            <span class="material-symbols-outlined text-[18px] text-red-600 mt-0.5 shrink-0 notranslate" translate="no">block</span>
+            <p class="text-[13px]"><strong class="text-slate-800">Hassrede, Rassismus, Gewaltverherrlichung</strong> oder Diskriminierung aufgrund von Herkunft, Religion, Geschlecht, Behinderung, Alter oder sexueller Orientierung.</p>
+          </div>
+          <div class="flex items-start gap-2.5 p-3 rounded-xl bg-red-50/60 border border-red-100">
+            <span class="material-symbols-outlined text-[18px] text-red-600 mt-0.5 shrink-0 notranslate" translate="no">block</span>
+            <p class="text-[13px]"><strong class="text-slate-800">Jegliche sexuell anzügliche oder gewalttätige Inhalte mit Bezug zu Minderjährigen</strong> sowie das Schikanieren oder Mobben von Minderjährigen — auch unter minderjährigen Nutzern.</p>
+          </div>
+          <div class="flex items-start gap-2.5 p-3 rounded-xl bg-red-50/60 border border-red-100">
+            <span class="material-symbols-outlined text-[18px] text-red-600 mt-0.5 shrink-0 notranslate" translate="no">block</span>
+            <p class="text-[13px]"><strong class="text-slate-800">Förderung von Selbstverletzung, Essstörungen oder Suizid</strong> sowie Inhalte, die andere dazu ermutigen oder drängen.</p>
+          </div>
+          <div class="flex items-start gap-2.5 p-3 rounded-xl bg-red-50/60 border border-red-100">
+            <span class="material-symbols-outlined text-[18px] text-red-600 mt-0.5 shrink-0 notranslate" translate="no">block</span>
+            <p class="text-[13px]"><strong class="text-slate-800">Mehrfaches Einreichen derselben Gruppe, Reflinks oder reine Werbe-/Spam-Gruppen.</strong></p>
+          </div>
+          <div class="flex items-start gap-2.5 p-3 rounded-xl bg-red-50/60 border border-red-100">
+            <span class="material-symbols-outlined text-[18px] text-red-600 mt-0.5 shrink-0 notranslate" translate="no">block</span>
+            <p class="text-[13px]"><strong class="text-slate-800">Automatisiertes, systematisches oder botgestütztes Erstellen von Gruppen</strong> bzw. Massenregistrierungen.</p>
+          </div>
+          <div class="flex items-start gap-2.5 p-3 rounded-xl bg-red-50/60 border border-red-100">
+            <span class="material-symbols-outlined text-[18px] text-red-600 mt-0.5 shrink-0 notranslate" translate="no">block</span>
+            <p class="text-[13px]"><strong class="text-slate-800">Verletzung von Urheber- oder Markenrechten</strong> Dritter in Name, Beschreibung oder Gruppenbild.</p>
+          </div>
+          <div class="flex items-start gap-2.5 p-3 rounded-xl bg-red-50/60 border border-red-100">
+            <span class="material-symbols-outlined text-[18px] text-red-600 mt-0.5 shrink-0 notranslate" translate="no">block</span>
+            <p class="text-[13px]"><strong class="text-slate-800">Gezieltes Beleidigen, Belästigen oder Stalken</strong> anderer Nutzer innerhalb oder außerhalb der Gruppe.</p>
+          </div>
+          <div class="flex items-start gap-2.5 p-3 rounded-xl bg-red-50/60 border border-red-100">
+            <span class="material-symbols-outlined text-[18px] text-red-600 mt-0.5 shrink-0 notranslate" translate="no">block</span>
+            <p class="text-[13px]"><strong class="text-slate-800">Illegale Aktivitäten</strong> wie Betrug, Phishing, Handel mit illegalen Substanzen, Waffen oder Raubkopien.</p>
+          </div>
+          <div class="flex items-start gap-2.5 p-3 rounded-xl bg-red-50/60 border border-red-100">
+            <span class="material-symbols-outlined text-[18px] text-red-600 mt-0.5 shrink-0 notranslate" translate="no">block</span>
+            <p class="text-[13px]"><strong class="text-slate-800">Preisgabe privater Daten Dritter</strong> wie Telefonnummern, Adressen, Bankdaten oder Social-Media-Profile ohne Einwilligung.</p>
+          </div>
+          <div class="flex items-start gap-2.5 p-3 rounded-xl bg-red-50/60 border border-red-100">
+            <span class="material-symbols-outlined text-[18px] text-red-600 mt-0.5 shrink-0 notranslate" translate="no">block</span>
+            <p class="text-[13px]"><strong class="text-slate-800">Inhalte, die Terrorismus propagieren, unterstützen oder feiern.</strong></p>
+          </div>
+        </div>
+      </div>
+
+      <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex items-start gap-2.5">
+        <span class="material-symbols-outlined text-[18px] text-slate-400 mt-0.5 shrink-0 notranslate" translate="no">info</span>
+        <p class="text-[13px]">Diese Gruppenregeln ergänzen unsere <button class="underline font-semibold text-slate-700 hover:text-emerald-700" onclick="closeRulesModal(); openTermsModal();" type="button">Nutzungsbedingungen</button> und gelten für jede auf Groupio.app veröffentlichte Gruppe. Bei wiederholten oder schwerwiegenden Verstößen behalten wir uns vor, Gruppen dauerhaft zu entfernen und Konten zu sperren.</p>
+      </div>
+
+    </div>
+
+    <!-- Modal Footer -->
+    <div class="px-5 sm:px-7 py-4 border-t border-slate-100 shrink-0">
+      <button class="w-full py-2.5 rounded-xl bg-[#0d5c46] hover:bg-[#0a4736] text-white text-sm font-bold transition-colors" onclick="closeRulesModal()" type="button">Verstanden</button>
+    </div>
+  </div>
+</div>
+<script>
+  window.openRulesModal = function() {
+    const modal = document.getElementById('rules-modal');
+    if (!modal) return;
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    document.body.style.overflow = 'hidden';
+  };
+  window.closeRulesModal = function() {
+    const modal = document.getElementById('rules-modal');
+    if (!modal) return;
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+    document.body.style.overflow = '';
+  };
+</script>
+<!-- ===================== FIN GRUPPENREGELN MODAL ===================== -->
+
 <!-- SIMPLE FOOTER -->
 <footer class="w-full bg-white border-t border-slate-200 mt-10 py-6 text-xs text-slate-500">
 <div class="max-w-[1240px] mx-auto px-4 flex flex-col sm:flex-row items-center justify-center sm:justify-between gap-3 text-center">
@@ -1506,7 +1662,7 @@ Gruppen verwalten
 <div class="flex items-center gap-3 sm:gap-4 flex-wrap justify-center">
 <a class="hover:text-emerald-700" href="#" onclick="openPrivacyModal(); return false;">Datenschutz</a>
 <a class="hover:text-emerald-700" href="#" onclick="openTermsModal(); return false;">Nutzungsbedingungen</a>
-<a class="hover:text-emerald-700" href="#">Gruppenregeln</a>
+<a class="hover:text-emerald-700" href="#" onclick="openRulesModal(); return false;">Gruppenregeln</a>
 <a class="hover:text-emerald-700" href="#" onclick="openContactModal(); return false;">Kontakt</a>
 </div>
 </div>
@@ -2165,7 +2321,8 @@ Gruppen verwalten
       return '<div class="group-card bg-white rounded-xl border border-slate-200/90 shadow-2xs hover:shadow-md hover:border-emerald-300 transition-all p-3.5 flex flex-col justify-between cursor-pointer relative"'
         + ' data-id="' + escapeHtml(item.id) + '" data-link="' + escapeHtml(item.link || '') + '" data-cat="' + escapeHtml(item.category || 'Allgemein') + '"'
         + ' data-date="' + escapeHtml(dateStr) + '" data-desc="' + escapeHtml(desc) + '" data-group="' + escapeHtml(groupTitle) + '"'
-        + ' data-title="' + escapeHtml(groupTitle) + '" data-votes="' + (item.votes || 0) + '" data-submitted-by="' + escapeHtml(item.submittedBy || '') + '">'
+        + ' data-title="' + escapeHtml(groupTitle) + '" data-votes="' + (item.votes || 0) + '" data-submitted-by="' + escapeHtml(item.submittedBy || '') + '"'
+        + ' data-image="' + escapeHtml(item.image || '') + '">'
         + '<div class="flex flex-col">'
         + '<div class="flex items-center justify-end min-h-[22px]">'
         + statusBadge
@@ -2181,7 +2338,10 @@ Gruppen verwalten
         + '</div></div>'
         + '<div class="flex items-center justify-between pt-3 mt-2 border-t border-slate-100 text-[11px]">'
         + '<span class="text-slate-400">' + escapeHtml(dateStr) + '</span>'
-        + (item.category === 'Adult' ? '<span class="px-1.5 py-0.5 bg-red-600 text-white font-bold rounded text-[10px] tracking-wide">Ab 18+</span>' : '<span></span>')
+        + '<div class="flex items-center gap-1.5">'
+        + '<button type="button" class="card-share-btn w-6 h-6 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition-colors" data-share-title="' + escapeHtml(groupTitle) + '" title="Gruppe teilen"><span class="material-symbols-outlined text-[14px] notranslate" translate="no">share</span></button>'
+        + (item.category === 'Adult' ? '<span class="px-1.5 py-0.5 bg-red-600 text-white font-bold rounded text-[10px] tracking-wide">Ab 18+</span>' : '')
+        + '</div>'
         + '</div></div>';
     }
 
@@ -3032,7 +3192,8 @@ Gruppen verwalten
       return '<div class="group-card bg-white rounded-xl border border-slate-200/90 shadow-2xs hover:shadow-md hover:border-emerald-300 transition-all p-3.5 flex flex-col justify-between cursor-pointer relative"'
         + ' data-id="' + escapeHtml(item.id) + '" data-link="' + escapeHtml(item.link || '') + '" data-cat="' + escapeHtml(item.category || 'Allgemein') + '"'
         + ' data-date="' + escapeHtml(dateStr) + '" data-desc="' + escapeHtml(desc) + '" data-group="' + escapeHtml(groupTitle) + '"'
-        + ' data-title="' + escapeHtml(groupTitle) + '" data-votes="' + (item.votes || 0) + '" data-submitted-by="' + escapeHtml(item.submittedBy || '') + '">'
+        + ' data-title="' + escapeHtml(groupTitle) + '" data-votes="' + (item.votes || 0) + '" data-submitted-by="' + escapeHtml(item.submittedBy || '') + '"'
+        + ' data-image="' + escapeHtml(item.image || '') + '">'
         + '<div class="flex flex-col">'
         + '<div class="flex items-center justify-between min-h-[22px]">'
         + submitterAvatarHtml(item)
@@ -3049,7 +3210,10 @@ Gruppen verwalten
         + '</div></div>'
         + '<div class="flex items-center justify-between pt-3 mt-2 border-t border-slate-100 text-[11px]">'
         + '<span class="text-slate-400">' + escapeHtml(dateStr) + '</span>'
-        + (item.category === 'Adult' ? '<span class="px-1.5 py-0.5 bg-red-600 text-white font-bold rounded text-[10px] tracking-wide">Ab 18+</span>' : '<span></span>')
+        + '<div class="flex items-center gap-1.5">'
+        + '<button type="button" class="card-share-btn w-6 h-6 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition-colors" data-share-title="' + escapeHtml(groupTitle) + '" title="Gruppe teilen"><span class="material-symbols-outlined text-[14px] notranslate" translate="no">share</span></button>'
+        + (item.category === 'Adult' ? '<span class="px-1.5 py-0.5 bg-red-600 text-white font-bold rounded text-[10px] tracking-wide">Ab 18+</span>' : '')
+        + '</div>'
         + '</div></div>';
     }
 
@@ -3120,14 +3284,20 @@ Gruppen verwalten
     const mDesc = document.getElementById('modal-group-desc');
     const mVotes = document.getElementById('modal-votes-count');
     const mUpvote = document.getElementById('modal-upvote-btn');
+    const mShareBtn = document.getElementById('modal-share-btn');
+    const mShareIcon = document.getElementById('modal-share-icon');
+    const mShareLabel = document.getElementById('modal-share-label');
     const mJoinLink = document.getElementById('modal-whatsapp-link');
     const mCreatorBtn = document.getElementById('modal-creator-btn');
     const mCreatorLabel = document.getElementById('modal-creator-label');
     const mQrImg = document.getElementById('modal-qr-img');
+    const mGroupPhoto = document.getElementById('modal-group-photo');
+    const mGroupPhotoFallback = document.getElementById('modal-group-photo-fallback');
 
     let currentCardId = null;
     let currentVotes = 0;
     let currentCreatorUsername = null;
+    let currentGroupTitle = '';
 
     // ---------- VOTE-COOLDOWN: alle 30 Minuten, aber nie zweimal hintereinander für dieselbe Gruppe ----------
     const VOTE_COOLDOWN_MS = 30 * 60 * 1000;
@@ -3197,6 +3367,63 @@ Gruppen verwalten
       });
     }
 
+    // ---------- GRUPPE TEILEN (nur Domain + Gruppenname) ----------
+    const SHARE_BASE_URL = 'https://groupioo.github.io/de/';
+
+    function slugify(str) {
+      return (str || '')
+        .toLowerCase()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9\s-]/g, '')
+        .trim()
+        .replace(/\s+/g, '-');
+    }
+
+    function resetShareButtonLabel() {
+      if (mShareLabel) mShareLabel.textContent = 'Gruppe teilen';
+      if (mShareIcon) mShareIcon.textContent = 'share';
+    }
+
+    // Zentrale Teilen-Funktion: wird sowohl vom großen Modal-Button als auch
+    // vom kleinen Share-Icon auf jeder Gruppenkarte verwendet.
+    async function shareGroupByTitle(title, iconEl) {
+      const shareUrl = SHARE_BASE_URL + '?gruppe=' + encodeURIComponent(slugify(title));
+
+      if (navigator.share) {
+        try {
+          await navigator.share({ title: title, text: title, url: shareUrl });
+        } catch (e) {
+          // Nutzer hat den Teilen-Dialog abgebrochen — kein Fehler nötig
+        }
+        return;
+      }
+
+      try {
+        await navigator.clipboard.writeText(shareUrl);
+        if (iconEl) {
+          const original = iconEl.textContent;
+          iconEl.textContent = 'check';
+          setTimeout(function() { iconEl.textContent = original; }, 1500);
+        }
+        if (iconEl === mShareIcon && mShareLabel) {
+          mShareLabel.textContent = 'Link kopiert!';
+          setTimeout(resetShareButtonLabel, 2000);
+        }
+      } catch (e) {
+        if (iconEl === mShareIcon && mShareLabel) {
+          mShareLabel.textContent = 'Kopieren fehlgeschlagen';
+          setTimeout(resetShareButtonLabel, 2000);
+        }
+      }
+    }
+    window.shareGroupByTitle = shareGroupByTitle;
+
+    if (mShareBtn) {
+      mShareBtn.addEventListener('click', function() {
+        shareGroupByTitle(currentGroupTitle, mShareIcon);
+      });
+    }
+
     function attachCardClickDelegation(container) {
       container.addEventListener('click', function(e) {
         // Klick auf den Ersteller-Namen: eigenes Profil öffnen, statt die Gruppe zu öffnen
@@ -3205,6 +3432,16 @@ Gruppen verwalten
           e.stopPropagation();
           const uname = creatorBtn.getAttribute('data-username');
           if (uname) window.openCreatorProfile(uname);
+          return;
+        }
+
+        // Klick auf das Teilen-Icon der Karte: Gruppe teilen, statt die Karte zu öffnen
+        const shareBtn = e.target.closest('.card-share-btn');
+        if (shareBtn) {
+          e.stopPropagation();
+          const shareTitle = shareBtn.getAttribute('data-share-title') || '';
+          const shareIconEl = shareBtn.querySelector('.material-symbols-outlined');
+          window.shareGroupByTitle(shareTitle, shareIconEl);
           return;
         }
 
@@ -3217,14 +3454,29 @@ Gruppen verwalten
         const link = card.getAttribute('data-link') || '#';
         const title = card.getAttribute('data-title') || cat;
         const submittedBy = card.getAttribute('data-submitted-by') || '';
+        const image = card.getAttribute('data-image') || '';
 
         currentVotes = votes;
         currentCreatorUsername = submittedBy;
+        currentGroupTitle = title;
         mTitle.textContent = title;
         mCat.textContent = cat;
         mDesc.textContent = desc;
         mVotes.textContent = votes + ' Stimmen';
         mJoinLink.href = link;
+
+        if (mGroupPhoto && mGroupPhotoFallback) {
+          if (image) {
+            mGroupPhoto.src = image;
+            mGroupPhoto.alt = 'Foto von ' + title;
+            mGroupPhoto.classList.remove('hidden');
+            mGroupPhotoFallback.classList.add('hidden');
+          } else {
+            mGroupPhoto.src = '';
+            mGroupPhoto.classList.add('hidden');
+            mGroupPhotoFallback.classList.remove('hidden');
+          }
+        }
 
         if (mQrImg) {
           mQrImg.src = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&margin=0&color=0d5c46&data=' + encodeURIComponent(link);
