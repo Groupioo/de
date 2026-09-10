@@ -2,6 +2,8 @@
 <meta charset="utf-8">
 <meta content="width=device-width, initial-scale=1.0" name="viewport">
 <title>Groupio - Deutsche Adult WhatsApp Gruppen 2026</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230d5c46'/%3E%3Crect x='14' y='16' width='36' height='24' rx='8' fill='%236ee7b7'/%3E%3Cpolygon points='22,40 20,50 32,40' fill='%236ee7b7'/%3E%3Ccircle cx='24' cy='28' r='2.6' fill='%230d5c46'/%3E%3Ccircle cx='32' cy='28' r='2.6' fill='%230d5c46'/%3E%3Ccircle cx='40' cy='28' r='2.6' fill='%230d5c46'/%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230d5c46'/%3E%3Crect x='14' y='16' width='36' height='24' rx='8' fill='%236ee7b7'/%3E%3Cpolygon points='22,40 20,50 32,40' fill='%236ee7b7'/%3E%3Ccircle cx='24' cy='28' r='2.6' fill='%230d5c46'/%3E%3Ccircle cx='32' cy='28' r='2.6' fill='%230d5c46'/%3E%3Ccircle cx='40' cy='28' r='2.6' fill='%230d5c46'/%3E%3C/svg%3E">
 <link href="https://fonts.googleapis.com" rel="preconnect">
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Plus+Jakarta+Sans:wght@600;700;800&amp;display=swap" rel="stylesheet">
@@ -394,7 +396,7 @@
 </div>
 </div>
 <!-- Categories Scroll Row -->
-<div class="flex items-start justify-center gap-4 sm:gap-6 overflow-x-auto custom-scroll pb-2 pt-1 text-center">
+<div class="flex items-start justify-start sm:justify-center gap-4 sm:gap-6 overflow-x-auto custom-scroll pb-2 pt-1 px-1 text-center">
 <!-- Allgemein -->
 <a class="group flex flex-col items-center gap-1.5 shrink-0 w-16" href="#">
 <div class="w-12 h-12 rounded-full overflow-hidden border-2 border-slate-200 group-hover:border-emerald-500 transition-all shadow-xs bg-slate-100 flex items-center justify-center">
@@ -937,6 +939,15 @@ Gruppen verwalten
   </button>
   <button type="button" class="flex-1 py-1.5 px-3 text-xs font-semibold rounded-lg transition-all text-slate-500 hover:text-slate-800" id="admin-tab-approved-btn" onclick="switchAdminTab('approved')">
     Akzeptiert
+  </button>
+</div>
+
+<!-- Gruppensuche im Admin-Panel -->
+<div class="relative flex items-center">
+  <span class="absolute left-3 text-slate-400 material-symbols-outlined text-[18px]">search</span>
+  <input class="w-full bg-slate-50 border border-slate-200 text-slate-800 placeholder-slate-400 pl-9 pr-8 py-2.5 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:bg-white transition-all" id="admin-search-input" placeholder="Gruppe suchen (Name, Link, Ersteller...)" type="text">
+  <button class="hidden absolute right-2.5 text-slate-400 hover:text-slate-600" id="admin-search-clear" title="Suche löschen" type="button">
+    <span class="material-symbols-outlined text-[18px] block">close</span>
   </button>
 </div>
 
@@ -1946,6 +1957,19 @@ Gruppen verwalten
     });
 
     // ---------- ADMIN PANEL (Gruppen annehmen / ablehnen, Firestore) ----------
+    let adminPendingCache = [];
+    let adminApprovedCache = [];
+    let adminActiveTab = 'pending';
+
+    function matchesAdminSearch(item, term) {
+      if (!term) return true;
+      const haystack = [
+        item.name, item.link, item.description, item.tags,
+        item.category, item.submittedBy, item.country
+      ].map(v => (v || '').toString().toLowerCase()).join(' ');
+      return haystack.includes(term);
+    }
+
     function pendingItemTemplate(item) {
       const dateStr = formatDate(item.submittedAt);
       return '<div class="flex flex-col sm:flex-row sm:items-center gap-3 p-3.5 rounded-xl border border-slate-200 bg-slate-50" data-pending-id="' + escapeHtml(item.id) + '">'
@@ -1971,24 +1995,33 @@ Gruppen verwalten
 
     async function renderPendingList() {
       const container = document.getElementById('admin-pending-list');
-      const empty = document.getElementById('admin-empty-state');
       container.innerHTML = '<p class="text-xs text-slate-400 text-center py-4">Lädt...</p>';
       try {
         const snap = await getDocs(query(groupsCol, where('status', '==', 'pending')));
-        const list = snap.docs.map(d => Object.assign({ id: d.id }, d.data()));
-        if (!list.length) {
-          container.innerHTML = '';
-          empty.classList.remove('hidden');
-          empty.classList.add('flex');
-          return;
-        }
-        empty.classList.add('hidden');
-        empty.classList.remove('flex');
-        container.innerHTML = list.map(pendingItemTemplate).join('');
+        adminPendingCache = snap.docs.map(d => Object.assign({ id: d.id }, d.data()));
+        renderPendingListFromCache();
       } catch (err) {
         console.error('Fehler beim Laden ausstehender Gruppen:', err);
         container.innerHTML = '<p class="text-xs text-red-400 text-center py-4">Fehler beim Laden.</p>';
       }
+    }
+
+    function renderPendingListFromCache() {
+      const container = document.getElementById('admin-pending-list');
+      const empty = document.getElementById('admin-empty-state');
+      const term = (document.getElementById('admin-search-input').value || '').trim().toLowerCase();
+      const list = adminPendingCache.filter(item => matchesAdminSearch(item, term));
+
+      if (!list.length) {
+        container.innerHTML = '';
+        empty.classList.remove('hidden');
+        empty.classList.add('flex');
+        empty.querySelector('span.text-sm').textContent = term ? 'Keine Treffer für deine Suche' : 'Keine ausstehenden Gruppen';
+        return;
+      }
+      empty.classList.add('hidden');
+      empty.classList.remove('flex');
+      container.innerHTML = list.map(pendingItemTemplate).join('');
     }
 
     // ---------- AKZEPTIERTE GRUPPEN: Auflisten & manuell löschen ----------
@@ -2016,25 +2049,59 @@ Gruppen verwalten
 
     async function renderApprovedList() {
       const container = document.getElementById('admin-approved-list');
-      const empty = document.getElementById('admin-approved-empty-state');
       container.innerHTML = '<p class="text-xs text-slate-400 text-center py-4">Lädt...</p>';
       try {
         const snap = await getDocs(query(groupsCol, where('status', '==', 'approved')));
-        const list = snap.docs.map(d => Object.assign({ id: d.id }, d.data()));
-        list.sort((a, b) => (b.votes || 0) - (a.votes || 0));
-        if (!list.length) {
-          container.innerHTML = '';
-          empty.classList.remove('hidden');
-          empty.classList.add('flex');
-          return;
-        }
-        empty.classList.add('hidden');
-        empty.classList.remove('flex');
-        container.innerHTML = list.map(approvedItemTemplate).join('');
+        adminApprovedCache = snap.docs.map(d => Object.assign({ id: d.id }, d.data()));
+        adminApprovedCache.sort((a, b) => (b.votes || 0) - (a.votes || 0));
+        renderApprovedListFromCache();
       } catch (err) {
         console.error('Fehler beim Laden akzeptierter Gruppen:', err);
         container.innerHTML = '<p class="text-xs text-red-400 text-center py-4">Fehler beim Laden.</p>';
       }
+    }
+
+    function renderApprovedListFromCache() {
+      const container = document.getElementById('admin-approved-list');
+      const empty = document.getElementById('admin-approved-empty-state');
+      const term = (document.getElementById('admin-search-input').value || '').trim().toLowerCase();
+      const list = adminApprovedCache.filter(item => matchesAdminSearch(item, term));
+
+      if (!list.length) {
+        container.innerHTML = '';
+        empty.classList.remove('hidden');
+        empty.classList.add('flex');
+        empty.querySelector('span.text-sm').textContent = term ? 'Keine Treffer für deine Suche' : 'Keine akzeptierten Gruppen';
+        return;
+      }
+      empty.classList.add('hidden');
+      empty.classList.remove('flex');
+      container.innerHTML = list.map(approvedItemTemplate).join('');
+    }
+
+    function applyAdminSearch() {
+      if (adminActiveTab === 'approved') {
+        renderApprovedListFromCache();
+      } else {
+        renderPendingListFromCache();
+      }
+    }
+
+    const adminSearchInput = document.getElementById('admin-search-input');
+    const adminSearchClear = document.getElementById('admin-search-clear');
+    if (adminSearchInput) {
+      adminSearchInput.addEventListener('input', function() {
+        if (adminSearchClear) adminSearchClear.classList.toggle('hidden', !this.value);
+        applyAdminSearch();
+      });
+    }
+    if (adminSearchClear) {
+      adminSearchClear.addEventListener('click', function() {
+        adminSearchInput.value = '';
+        this.classList.add('hidden');
+        adminSearchInput.focus();
+        applyAdminSearch();
+      });
     }
 
     window.deleteApprovedGroup = async function(id) {
@@ -2051,6 +2118,7 @@ Gruppen verwalten
     };
 
     window.switchAdminTab = function(tab) {
+      adminActiveTab = tab === 'approved' ? 'approved' : 'pending';
       const pendingList = document.getElementById('admin-pending-list');
       const pendingEmpty = document.getElementById('admin-empty-state');
       const approvedList = document.getElementById('admin-approved-list');
@@ -2061,7 +2129,7 @@ Gruppen verwalten
       const activeCls = "flex-1 py-1.5 px-3 text-xs font-semibold rounded-lg transition-all bg-white text-[#006b53] shadow-xs";
       const inactiveCls = "flex-1 py-1.5 px-3 text-xs font-semibold rounded-lg transition-all text-slate-500 hover:text-slate-800";
 
-      if (tab === 'approved') {
+      if (adminActiveTab === 'approved') {
         pendingList.classList.add('hidden');
         pendingEmpty.classList.add('hidden');
         pendingEmpty.classList.remove('flex');
@@ -2089,6 +2157,8 @@ Gruppen verwalten
       modal.classList.remove('hidden');
       modal.classList.add('flex');
       document.body.style.overflow = 'hidden';
+      if (adminSearchInput) adminSearchInput.value = '';
+      if (adminSearchClear) adminSearchClear.classList.add('hidden');
       window.switchAdminTab('pending');
     };
 
