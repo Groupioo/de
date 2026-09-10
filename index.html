@@ -1484,7 +1484,7 @@ Gruppen verwalten
           serverVoteLock = { groupId: data.lastVoteGroupId || null, timestampMs: ts };
         }
       } catch (err) {
-        console.error('Fehler beim Laden der Voting-Sperre:', err);
+        console.error('Fehler beim Laden der Voting-Sperre (Firestore-Regeln für "voters" prüfen):', err);
       } finally {
         voteLockReadyResolve();
       }
@@ -2891,7 +2891,7 @@ Gruppen verwalten
               lastUid: uid
             }, { merge: true });
           } catch (lockErr) {
-            console.error('Fehler beim Speichern der Voting-Sperre:', lockErr);
+            console.error('Fehler beim Speichern der Voting-Sperre (Firestore-Regeln für "voters" prüfen):', lockErr);
           }
         }
         serverVoteLock = { groupId: currentCardId, timestampMs: now };
