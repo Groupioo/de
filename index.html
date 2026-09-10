@@ -94,9 +94,10 @@
     justify-content: center;
     animation: groupio-loader-pulse 1.4s ease-in-out infinite;
   }
-  .groupio-loader-badge .material-symbols-outlined {
-    font-size: 44px;
-    color: #6ee7b7;
+  .groupio-loader-badge svg {
+    width: 44px;
+    height: 44px;
+    display: block;
   }
   .groupio-loader-ring {
     position: absolute;
@@ -167,7 +168,13 @@
   <div class="groupio-loader-wrap">
     <div class="groupio-loader-ring"></div>
     <div class="groupio-loader-badge">
-      <span class="material-symbols-outlined notranslate" translate="no">forum</span>
+      <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <rect x="14" y="16" width="36" height="24" rx="8" fill="#6ee7b7"></rect>
+        <polygon points="22,40 20,50 32,40" fill="#6ee7b7"></polygon>
+        <circle cx="24" cy="28" r="2.6" fill="#0d5c46"></circle>
+        <circle cx="32" cy="28" r="2.6" fill="#0d5c46"></circle>
+        <circle cx="40" cy="28" r="2.6" fill="#0d5c46"></circle>
+      </svg>
     </div>
   </div>
   <div style="text-align:center;">
