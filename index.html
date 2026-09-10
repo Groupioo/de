@@ -2045,11 +2045,15 @@ Gruppen verwalten
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
     import {
       getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, getDoc, getDocs,
-      setDoc, query, where, orderBy, serverTimestamp, increment, arrayUnion, arrayRemove
+      setDoc, query, where, orderBy, serverTimestamp, increment, arrayUnion, arrayRemove,
+      writeBatch
     } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
     import {
       getAuth, signInAnonymously, onAuthStateChanged
     } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
+    import {
+      initializeAppCheck, ReCaptchaEnterpriseProvider
+    } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app-check.js";
 
     // Your web app's Firebase configuration
     const firebaseConfig = {
@@ -2063,6 +2067,14 @@ Gruppen verwalten
     };
 
     const app = initializeApp(firebaseConfig);
+
+    // App Check: debe inicializarse ANTES de getFirestore()/getAuth(), para que
+    // todas las llamadas posteriores ya lleven el token adjunto automáticamente.
+    initializeAppCheck(app, {
+      provider: new ReCaptchaEnterpriseProvider("6LdHe7QtAAAAAPWi7CRvVUQhRP9Cpa2AQGW4KPOW"),
+      isTokenAutoRefreshEnabled: true
+    });
+
     const db = getFirestore(app);
     const auth = getAuth(app);
 
@@ -2074,7 +2086,6 @@ Gruppen verwalten
 
     const groupsCol = collection(db, 'groups');
     const usersCol = collection(db, 'users');
-    const votersCol = collection(db, 'voters');
 
     const SESSION_KEY = 'groupio_session';
     const ADMIN_USERNAME = 'admin';
@@ -2105,68 +2116,43 @@ Gruppen verwalten
       anonReadyResolve(null); // nicht ewig blockieren, falls es fehlschlägt
     });
 
-    // ---------- GERÄTE-FINGERPRINT: übersteht das Löschen von Cookies/localStorage ----------
-    // Anders als die anonyme Firebase-UID (die beim Löschen der Browserdaten neu erzeugt wird)
-    // basiert dieser Fingerabdruck auf Geräte-/Browser-Eigenschaften, die dabei erhalten bleiben.
-    // Damit kann die Abstimmungssperre in Firestore (Collection "voters") auch nach dem Löschen
-    // von Cookies oder dem Wechsel der IP (z. B. per VPN) wiedererkannt werden.
-    async function computeDeviceFingerprint() {
-      try {
-        const parts = [
-          navigator.userAgent || '',
-          navigator.language || '',
-          navigator.platform || '',
-          String(navigator.hardwareConcurrency || ''),
-          String(navigator.deviceMemory || ''),
-          (screen.width + 'x' + screen.height + 'x' + screen.colorDepth),
-          String(new Date().getTimezoneOffset()),
-          (Intl.DateTimeFormat().resolvedOptions().timeZone || '')
-        ];
-        try {
-          const canvas = document.createElement('canvas');
-          const ctx = canvas.getContext('2d');
-          ctx.textBaseline = 'top';
-          ctx.font = "14px 'Arial'";
-          ctx.fillStyle = '#f60';
-          ctx.fillRect(125, 1, 62, 20);
-          ctx.fillStyle = '#069';
-          ctx.fillText('groupio-fp', 2, 15);
-          ctx.fillStyle = 'rgba(102, 204, 0, 0.7)';
-          ctx.fillText('groupio-fp', 4, 17);
-          parts.push(canvas.toDataURL());
-        } catch (e) {}
-        const raw = parts.join('|');
-        let hash = 2166136261;
-        for (let i = 0; i < raw.length; i++) {
-          hash ^= raw.charCodeAt(i);
-          hash = Math.imul(hash, 16777619);
-        }
-        return 'fp_' + (hash >>> 0).toString(36) + (raw.length).toString(36);
-      } catch (e) {
-        return 'fp_fallback';
-      }
-    }
+    // ---------- ECHTE ABSTIMMUNGSSPERRE (serverseitig über Firestore-Regeln erzwungen) ----------
+    // WICHTIG: Der frühere "Geräte-Fingerprint" (Canvas/User-Agent-Hash) lief komplett im
+    // Client und wurde NUR zur Anzeige benutzt — er hat nie irgendeinen Schreibvorgang
+    // wirklich verhindert. Jeder konnte per Konsole direkt updateDoc(...) auf "groups"
+    // aufrufen und den Fingerprint/das Cooldown-Feld ignorieren. Eine echte Sperre kann
+    // NUR in den Firestore-Sicherheitsregeln selbst liegen (siehe README/Regeln), nicht im JS.
+    //
+    // Neues Modell (serverseitig validiert):
+    //  - groups/{id}.votedBy enthält die Firebase-Auth-UID jedes Wählers. Die Regel erlaubt
+    //    ein Update NUR, wenn genau die eigene UID neu hinzugefügt wird (nicht schon enthalten)
+    //    und votes exakt um 1 steigt. -> Direktes "votes: 9999" per Konsole ist unmöglich.
+    //  - voteCooldowns/{uid} speichert den Zeitpunkt der letzten Stimme. Die Regel erlaubt ein
+    //    Update erst nach 30 Minuten. -> Der 30-Minuten-Cooldown gilt serverseitig, nicht nur im UI.
+    //
+    // Ehrlicher Hinweis (siehe Chat): Da die Identität weiterhin eine ANONYME Firebase-UID ist,
+    // erzeugt das Löschen von Website-Daten (Cookies/localStorage/IndexedDB) zwangsläufig eine
+    // neue UID und damit einen "frischen" Wähler — das kann serverseitig ohne eine dauerhafte,
+    // verifizierte Identität (z. B. Telefonnummer-Verifizierung) NICHT verhindert werden.
+    let cooldownReadyResolve;
+    const cooldownReady = new Promise(resolve => { cooldownReadyResolve = resolve; });
+    let cooldownLastVoteAtMs = 0;
 
-    let deviceFingerprint = null;
-    let serverVoteLock = null; // { groupId, timestampMs } | null — kommt aus Firestore
-    let voteLockReadyResolve;
-    const voteLockReady = new Promise(resolve => { voteLockReadyResolve = resolve; });
-
-    (async function initVoteLock() {
+    async function loadCooldown(uid) {
       try {
-        deviceFingerprint = await computeDeviceFingerprint();
-        const snap = await getDoc(doc(votersCol, deviceFingerprint));
+        const snap = await getDoc(doc(db, 'voteCooldowns', uid));
         if (snap.exists()) {
           const data = snap.data();
-          const ts = data.lastVoteAt && typeof data.lastVoteAt.toMillis === 'function' ? data.lastVoteAt.toMillis() : (Number(data.lastVoteAt) || 0);
-          serverVoteLock = { groupId: data.lastVoteGroupId || null, timestampMs: ts };
+          cooldownLastVoteAtMs = data.lastVoteAt && typeof data.lastVoteAt.toMillis === 'function'
+            ? data.lastVoteAt.toMillis() : 0;
         }
       } catch (err) {
-        console.error('Fehler beim Laden der Voting-Sperre (Firestore-Regeln für "voters" prüfen):', err);
+        console.error('Fehler beim Laden des Vote-Cooldowns (Firestore-Regeln für "voteCooldowns" prüfen):', err);
       } finally {
-        voteLockReadyResolve();
+        cooldownReadyResolve();
       }
-    })();
+    }
+    anonReady.then((uid) => { if (uid) loadCooldown(uid); else cooldownReadyResolve(); });
 
     function escapeHtml(str) {
       return String(str == null ? '' : str).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -3671,47 +3657,36 @@ Gruppen verwalten
     let currentCreatorUsername = null;
     let currentGroupTitle = '';
 
-    // ---------- VOTE-COOLDOWN: alle 30 Minuten, aber nie zweimal hintereinander für dieselbe Gruppe ----------
+    // ---------- VOTE-COOLDOWN: alle 30 Minuten, aber nie zweimal für dieselbe Gruppe (serverseitig via Regeln) ----------
     const VOTE_COOLDOWN_MS = 30 * 60 * 1000;
-    const LAST_VOTE_KEY = 'groupio_last_vote';
     let voteCountdownTimer = null;
 
-    function getLastVote() {
-      try { return JSON.parse(localStorage.getItem(LAST_VOTE_KEY)); } catch (e) { return null; }
-    }
-    function setLastVote(groupId) {
-      try { localStorage.setItem(LAST_VOTE_KEY, JSON.stringify({ groupId: groupId, timestamp: Date.now() })); } catch (e) {}
-    }
-    // Kombiniert den lokalen Cooldown (localStorage) mit der Fingerprint-Sperre aus Firestore
-    // und nimmt jeweils den strengeren Stand — so bleibt die Sperre auch nach dem Löschen von
-    // Cookies/localStorage oder einem IP-Wechsel (VPN) bestehen, solange der Fingerabdruck gleich bleibt.
-    function getEffectiveLastVote() {
-      const local = getLastVote();
-      const candidates = [];
-      if (local && local.groupId && local.timestamp) candidates.push({ groupId: local.groupId, timestampMs: local.timestamp });
-      if (serverVoteLock && serverVoteLock.groupId) candidates.push(serverVoteLock);
-      if (!candidates.length) return null;
-      candidates.sort((a, b) => b.timestampMs - a.timestampMs);
-      return candidates[0];
-    }
-    // Ermittelt, ob für die aktuell geöffnete Gruppe abgestimmt werden darf, und aktualisiert den Button entsprechend
+    // Ermittelt, ob für die aktuell geöffnete Gruppe abgestimmt werden darf, und aktualisiert den Button entsprechend.
+    // Beide Sperren (schon für DIESE Gruppe abgestimmt / 30-Min-Cooldown) werden aus Daten gelesen,
+    // die durch die Firestore-Regeln serverseitig erzwungen werden — nicht nur lokal geprüft.
     async function refreshUpvoteButtonState() {
       mUpvote.disabled = true;
       mUpvote.innerHTML = '<span>Lädt...</span>';
-      await voteLockReady;
+      const uid = anonUid || await anonReady;
+      await cooldownReady;
 
-      const lastVote = getEffectiveLastVote();
+      const item = allApprovedGroups.find(g => g.id === currentCardId);
+      const votedBy = (item && Array.isArray(item.votedBy)) ? item.votedBy : [];
+      const alreadyVotedThisGroup = !!(uid && votedBy.includes(uid));
+
       const now = Date.now();
-      const elapsed = lastVote ? now - lastVote.timestampMs : Infinity;
+      const elapsed = cooldownLastVoteAtMs ? now - cooldownLastVoteAtMs : Infinity;
       const cooldownActive = elapsed < VOTE_COOLDOWN_MS;
-      const sameGroupAsLast = !!(lastVote && lastVote.groupId === currentCardId);
 
       if (voteCountdownTimer) { clearInterval(voteCountdownTimer); voteCountdownTimer = null; }
 
-      if (cooldownActive) {
+      if (alreadyVotedThisGroup) {
+        mUpvote.disabled = true;
+        mUpvote.innerHTML = '<span>Du hast bereits für diese Gruppe abgestimmt</span>';
+      } else if (cooldownActive) {
         mUpvote.disabled = true;
         const updateCountdown = function() {
-          const remainingMs = VOTE_COOLDOWN_MS - (Date.now() - lastVote.timestampMs);
+          const remainingMs = VOTE_COOLDOWN_MS - (Date.now() - cooldownLastVoteAtMs);
           if (remainingMs <= 0) {
             clearInterval(voteCountdownTimer);
             voteCountdownTimer = null;
@@ -3723,9 +3698,6 @@ Gruppen verwalten
         };
         updateCountdown();
         voteCountdownTimer = setInterval(updateCountdown, 1000);
-      } else if (sameGroupAsLast) {
-        mUpvote.disabled = true;
-        mUpvote.innerHTML = '<span>Bitte für eine andere Gruppe abstimmen</span>';
       } else {
         mUpvote.disabled = false;
         mUpvote.innerHTML = '<span>⭐ Für Gruppe abstimmen (+1 Vote)</span>';
@@ -3891,52 +3863,41 @@ Gruppen verwalten
       mUpvote.disabled = true;
       const originalLabel = mUpvote.innerHTML;
       mUpvote.innerHTML = '<span>Einen Moment...</span>';
-      await voteLockReady;
 
-      // Letzte Prüfung direkt vor dem Absenden: 30-Minuten-Cooldown + andere Gruppe als beim letzten Vote
-      // (kombinierte Sperre aus Firestore-Fingerprint + localStorage — übersteht Cookie-Löschung/VPN)
-      const lastVote = getEffectiveLastVote();
+      const uid = anonUid || await anonReady;
+      if (!uid) {
+        mUpvote.innerHTML = originalLabel;
+        refreshUpvoteButtonState();
+        return;
+      }
+      await cooldownReady;
+
+      // Lokale Vorabprüfung nur für die UX (sofortiges Feedback). Die WIRKLICHE Sperre kommt
+      // aus den Firestore-Regeln: Wenn hier jemand versucht zu schummeln, lehnt Firestore
+      // den Schreibvorgang unten serverseitig ab (catch-Block greift dann permission-denied ab).
+      const item = allApprovedGroups.find(g => g.id === currentCardId);
+      const votedBy = (item && Array.isArray(item.votedBy)) ? item.votedBy : [];
       const now = Date.now();
-      if (lastVote && (now - lastVote.timestampMs) < VOTE_COOLDOWN_MS) {
-        refreshUpvoteButtonState();
-        return;
-      }
-      if (lastVote && lastVote.groupId === currentCardId) {
-        refreshUpvoteButtonState();
-        return;
-      }
+      if (votedBy.includes(uid)) { refreshUpvoteButtonState(); return; }
+      if (cooldownLastVoteAtMs && (now - cooldownLastVoteAtMs) < VOTE_COOLDOWN_MS) { refreshUpvoteButtonState(); return; }
 
       if (voteCountdownTimer) { clearInterval(voteCountdownTimer); voteCountdownTimer = null; }
       try {
-        // Auf die anonyme Firebase-Anmeldung warten, falls sie noch nicht abgeschlossen ist
-        const uid = anonUid || await anonReady;
-        if (!uid) throw new Error('Keine anonyme Firebase-UID verfügbar');
+        // Beide Schreibvorgänge zusammen in einem Batch: entweder werden BEIDE übernommen,
+        // oder KEINER — jeder für sich wird zusätzlich einzeln von den Firestore-Regeln geprüft
+        // (votedBy darf nur die eigene, neue uid enthalten; Cooldown-Doc nur alle 30 Min neu).
+        const batch = writeBatch(db);
+        batch.update(doc(db, 'groups', currentCardId), { votes: increment(1), votedBy: arrayUnion(uid) });
+        batch.set(doc(db, 'voteCooldowns', uid), { lastVoteAt: serverTimestamp() });
+        await batch.commit();
 
-        const item = allApprovedGroups.find(g => g.id === currentCardId);
-
-        await updateDoc(doc(db, 'groups', currentCardId), { votes: increment(1), votedBy: arrayUnion(uid) });
-        // Sperre serverseitig unter dem Geräte-Fingerprint speichern, damit sie das Löschen von
-        // Cookies/localStorage und einen IP-Wechsel (VPN) übersteht.
-        if (deviceFingerprint) {
-          try {
-            await setDoc(doc(votersCol, deviceFingerprint), {
-              lastVoteGroupId: currentCardId,
-              lastVoteAt: serverTimestamp(),
-              lastUid: uid
-            }, { merge: true });
-          } catch (lockErr) {
-            console.error('Fehler beim Speichern der Voting-Sperre (Firestore-Regeln für "voters" prüfen):', lockErr);
-          }
-        }
-        serverVoteLock = { groupId: currentCardId, timestampMs: now };
-        setLastVote(currentCardId);
-
+        cooldownLastVoteAtMs = now;
         currentVotes += 1;
         mVotes.textContent = currentVotes + ' Stimmen';
         mUpvote.innerHTML = '<span class="text-emerald-600 font-bold">✓ Vote gezählt!</span>';
         if (item) {
           item.votes = currentVotes;
-          item.votedBy = Array.isArray(item.votedBy) ? item.votedBy.concat(uid) : [uid];
+          item.votedBy = votedBy.concat(uid);
         }
         // Karte im DOM live aktualisieren, ohne alles neu zu laden
         document.querySelectorAll('.group-card[data-id="' + currentCardId + '"]').forEach(card => {
@@ -3947,7 +3908,7 @@ Gruppen verwalten
         // Nach kurzer Bestätigung den Button-Zustand aktualisieren (Cooldown startet jetzt)
         setTimeout(refreshUpvoteButtonState, 1200);
       } catch (err) {
-        console.error('Fehler beim Abstimmen:', err);
+        console.error('Fehler beim Abstimmen (evtl. von den Firestore-Regeln serverseitig abgelehnt):', err);
         mUpvote.innerHTML = originalLabel;
         refreshUpvoteButtonState();
       }
