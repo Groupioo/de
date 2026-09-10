@@ -94,7 +94,8 @@
 <!-- Profil-Pille (angemeldeter Zustand, standardmäßig versteckt) -->
 <button class="hidden items-center gap-0 sm:gap-2 w-9 h-9 sm:w-auto sm:h-auto pl-0 sm:pl-1.5 pr-0 sm:pr-3 py-0 sm:py-1 justify-center bg-white/10 hover:bg-white/20 border border-white/20 text-white text-xs font-semibold rounded-full shadow-sm transition-all cursor-pointer shrink-0" id="logged-in-pill" onclick="openProfilePage()" title="Profil">
 <span class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center overflow-hidden shrink-0">
-<span class="material-symbols-outlined text-[15px]">person</span>
+<img alt="Profilbild" class="hidden w-full h-full object-cover" id="logged-in-avatar-img" src="">
+<span class="material-symbols-outlined text-[15px]" id="logged-in-avatar-placeholder">person</span>
 </span>
 <span class="hidden sm:inline" id="logged-in-name">Benutzer</span>
 </button>
@@ -1269,6 +1270,20 @@ Gruppen verwalten
     }
 
     // ---------- HEADER STATE ----------
+    function setHeaderAvatar(url) {
+      const img = document.getElementById('logged-in-avatar-img');
+      const placeholder = document.getElementById('logged-in-avatar-placeholder');
+      if (!img || !placeholder) return;
+      if (url) {
+        img.src = url;
+        img.classList.remove('hidden');
+        placeholder.classList.add('hidden');
+      } else {
+        img.classList.add('hidden');
+        placeholder.classList.remove('hidden');
+      }
+    }
+
     async function updateHeaderForSession() {
       const session = getSession();
       const guestBtn = document.getElementById('user-profile-btn');
@@ -1285,6 +1300,19 @@ Gruppen verwalten
         loggedPill.classList.remove('hidden');
         loggedPill.classList.add('flex');
         loggedName.textContent = session.displayName || session.username;
+
+        // Profilfoto in der Header-Pille anzeigen (aus Cache oder frisch aus Firestore laden,
+        // blockiert die restliche Anzeige nicht)
+        if (window.currentProfileData && window.currentProfileData.photoUrl) {
+          setHeaderAvatar(window.currentProfileData.photoUrl);
+        } else {
+          setHeaderAvatar('');
+          getDoc(doc(db, 'users', session.username.toLowerCase()))
+            .then(snap => {
+              if (snap.exists() && snap.data().photoUrl) setHeaderAvatar(snap.data().photoUrl);
+            })
+            .catch(() => {});
+        }
 
         if (session.role === 'admin') {
           adminBtn.classList.remove('hidden');
@@ -1325,6 +1353,7 @@ Gruppen verwalten
         adminBtn.classList.add('hidden');
         adminBtn.classList.remove('flex');
         if (profileAdminBtn) { profileAdminBtn.classList.add('hidden'); profileAdminBtn.classList.remove('flex'); }
+        setHeaderAvatar('');
       }
     }
 
@@ -1529,6 +1558,7 @@ Gruppen verwalten
         avatarImg.classList.add('hidden');
         avatarPlaceholder.classList.remove('hidden');
       }
+      setHeaderAvatar(data.photoUrl || '');
 
       document.getElementById('profile-display-name').textContent = data.displayName || session.displayName || session.username;
 
