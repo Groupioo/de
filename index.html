@@ -884,7 +884,7 @@ Gruppen verwalten
 <span class="material-symbols-outlined text-emerald-600 text-[20px] notranslate" translate="no">stacks</span>
 <h3 class="font-bold text-slate-800 text-sm" id="profile-groups-heading">Gruppen von Chris1887x</h3>
 </div>
-<div class="w-full grid grid-cols-2 md:grid-cols-3 gap-3.5 sm:gap-4" id="profile-groups-grid">
+<div class="w-full grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3.5 sm:gap-4" id="profile-groups-grid">
 <!-- wird dynamisch befüllt -->
 </div>
 <!-- Paginierung: 12 Gruppen pro Seite -->
@@ -2297,11 +2297,15 @@ Gruppen verwalten
         + '<div class="flex items-center gap-2 flex-wrap">'
         + '<span class="text-[10px] uppercase font-bold tracking-wide bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">' + escapeHtml(item.category) + '</span>'
         + '<span class="text-[11px] text-slate-400">' + dateStr + '</span>'
-        + '<span class="text-[11px] font-semibold text-amber-600 flex items-center gap-0.5"><span class="text-amber-500">★</span> ' + (item.votes || 0) + '</span>'
         + '</div>'
         + (item.name ? '<span class="text-sm font-bold text-slate-900 truncate">' + escapeHtml(item.name) + '</span>' : '')
         + '<a href="' + escapeHtml(item.link) + '" target="_blank" rel="noopener noreferrer" class="text-sm font-semibold text-slate-800 hover:underline truncate">' + escapeHtml(item.link) + '</a>'
         + '<span class="text-[11px] text-slate-400">Eingereicht von: ' + escapeHtml(item.submittedBy || 'Gast') + (item.country ? ' · ' + escapeHtml(item.country.toUpperCase()) : '') + '</span>'
+        + '<div class="flex items-center gap-1.5 mt-1">'
+        + '<span class="text-amber-500 text-sm">★</span>'
+        + '<input type="number" min="0" step="1" value="' + (item.votes || 0) + '" id="votes-input-' + escapeHtml(item.id) + '" class="w-16 px-1.5 py-1 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700">'
+        + '<button class="px-2 py-1 rounded-lg bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 text-emerald-700 text-[10px] font-bold" onclick="updateGroupVotes(\'' + escapeHtml(item.id) + '\')">Speichern</button>'
+        + '</div>'
         + '</div>'
         + '<div class="flex sm:flex-col gap-2 shrink-0">'
         + '<button class="px-3 py-2 rounded-lg bg-white border border-red-200 hover:bg-red-50 text-red-600 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors" onclick="deleteApprovedGroup(\'' + escapeHtml(item.id) + '\')">'
@@ -2365,6 +2369,25 @@ Gruppen verwalten
         applyAdminSearch();
       });
     }
+
+    window.updateGroupVotes = async function(id) {
+      const input = document.getElementById('votes-input-' + id);
+      if (!input) return;
+      let newVotes = parseInt(input.value, 10);
+      if (isNaN(newVotes) || newVotes < 0) newVotes = 0;
+      try {
+        await updateDoc(doc(db, 'groups', id), { votes: newVotes });
+        const cachedItem = adminApprovedCache.find(g => g.id === id);
+        if (cachedItem) cachedItem.votes = newVotes;
+        adminApprovedCache.sort((a, b) => (b.votes || 0) - (a.votes || 0));
+        renderApprovedListFromCache();
+        showAdminFeedback('✓ Sterne wurden aktualisiert.', false);
+        if (window.reloadApprovedGroups) window.reloadApprovedGroups();
+      } catch (err) {
+        console.error('Fehler beim Aktualisieren der Sterne:', err);
+        showAdminFeedback('Fehler beim Aktualisieren der Sterne.', true);
+      }
+    };
 
     window.deleteApprovedGroup = async function(id) {
       if (!confirm('Diese Gruppe wirklich endgültig löschen? Dies kann nicht rückgängig gemacht werden.')) return;
@@ -2632,6 +2655,51 @@ Gruppen verwalten
     let currentVotes = 0;
     let currentCreatorUsername = null;
 
+    // ---------- VOTE-COOLDOWN: alle 30 Minuten, aber nie zweimal hintereinander für dieselbe Gruppe ----------
+    const VOTE_COOLDOWN_MS = 30 * 60 * 1000;
+    const LAST_VOTE_KEY = 'groupio_last_vote';
+    let voteCountdownTimer = null;
+
+    function getLastVote() {
+      try { return JSON.parse(localStorage.getItem(LAST_VOTE_KEY)); } catch (e) { return null; }
+    }
+    function setLastVote(groupId) {
+      try { localStorage.setItem(LAST_VOTE_KEY, JSON.stringify({ groupId: groupId, timestamp: Date.now() })); } catch (e) {}
+    }
+    // Ermittelt, ob für die aktuell geöffnete Gruppe abgestimmt werden darf, und aktualisiert den Button entsprechend
+    function refreshUpvoteButtonState() {
+      const lastVote = getLastVote();
+      const now = Date.now();
+      const elapsed = lastVote ? now - lastVote.timestamp : Infinity;
+      const cooldownActive = elapsed < VOTE_COOLDOWN_MS;
+      const sameGroupAsLast = !!(lastVote && lastVote.groupId === currentCardId);
+
+      if (voteCountdownTimer) { clearInterval(voteCountdownTimer); voteCountdownTimer = null; }
+
+      if (cooldownActive) {
+        mUpvote.disabled = true;
+        const updateCountdown = function() {
+          const remainingMs = VOTE_COOLDOWN_MS - (Date.now() - lastVote.timestamp);
+          if (remainingMs <= 0) {
+            clearInterval(voteCountdownTimer);
+            voteCountdownTimer = null;
+            refreshUpvoteButtonState();
+            return;
+          }
+          const mins = Math.ceil(remainingMs / 60000);
+          mUpvote.innerHTML = '<span>⏳ Nächste Stimme in ' + mins + ' Min.</span>';
+        };
+        updateCountdown();
+        voteCountdownTimer = setInterval(updateCountdown, 1000);
+      } else if (sameGroupAsLast) {
+        mUpvote.disabled = true;
+        mUpvote.innerHTML = '<span>Bitte für eine andere Gruppe abstimmen</span>';
+      } else {
+        mUpvote.disabled = false;
+        mUpvote.innerHTML = '<span>⭐ Für Gruppe abstimmen (+1 Vote)</span>';
+      }
+    }
+
     if (mCreatorBtn) {
       mCreatorBtn.addEventListener('click', function() {
         if (!currentCreatorUsername) return;
@@ -2683,12 +2751,7 @@ Gruppen verwalten
           }
         }
 
-        const item = allApprovedGroups.find(g => g.id === currentCardId);
-        const alreadyVoted = !!(item && Array.isArray(item.votedBy) && anonUid && item.votedBy.includes(anonUid));
-        mUpvote.disabled = alreadyVoted;
-        mUpvote.innerHTML = alreadyVoted
-          ? '<span class="text-emerald-600 font-bold">✓ Vote gezählt!</span>'
-          : '<span>⭐ Für Gruppe abstimmen (+1 Vote)</span>';
+        refreshUpvoteButtonState();
 
         joinModal.classList.remove('hidden');
       });
@@ -2698,11 +2761,33 @@ Gruppen verwalten
     const profileGroupsGrid = document.getElementById('profile-groups-grid');
     if (profileGroupsGrid) attachCardClickDelegation(profileGroupsGrid);
 
-    modalClose.addEventListener('click', () => joinModal.classList.add('hidden'));
-    joinModal.addEventListener('click', (e) => { if (e.target === joinModal) joinModal.classList.add('hidden'); });
+    modalClose.addEventListener('click', () => {
+      joinModal.classList.add('hidden');
+      if (voteCountdownTimer) { clearInterval(voteCountdownTimer); voteCountdownTimer = null; }
+    });
+    joinModal.addEventListener('click', (e) => {
+      if (e.target === joinModal) {
+        joinModal.classList.add('hidden');
+        if (voteCountdownTimer) { clearInterval(voteCountdownTimer); voteCountdownTimer = null; }
+      }
+    });
 
     mUpvote.addEventListener('click', async function() {
       if (!currentCardId) return;
+
+      // Letzte Prüfung direkt vor dem Absenden: 30-Minuten-Cooldown + andere Gruppe als beim letzten Vote
+      const lastVote = getLastVote();
+      const now = Date.now();
+      if (lastVote && (now - lastVote.timestamp) < VOTE_COOLDOWN_MS) {
+        refreshUpvoteButtonState();
+        return;
+      }
+      if (lastVote && lastVote.groupId === currentCardId) {
+        refreshUpvoteButtonState();
+        return;
+      }
+
+      if (voteCountdownTimer) { clearInterval(voteCountdownTimer); voteCountdownTimer = null; }
       mUpvote.disabled = true;
       mUpvote.innerHTML = '<span>Einen Moment...</span>';
       try {
@@ -2711,14 +2796,11 @@ Gruppen verwalten
         if (!uid) throw new Error('Keine anonyme Firebase-UID verfügbar');
 
         const item = allApprovedGroups.find(g => g.id === currentCardId);
-        if (item && Array.isArray(item.votedBy) && item.votedBy.includes(uid)) {
-          mUpvote.innerHTML = '<span class="text-emerald-600 font-bold">✓ Vote gezählt!</span>';
-          return;
-        }
 
         await updateDoc(doc(db, 'groups', currentCardId), { votes: increment(1), votedBy: arrayUnion(uid) });
         currentVotes += 1;
         mVotes.textContent = currentVotes + ' Stimmen';
+        setLastVote(currentCardId);
         mUpvote.innerHTML = '<span class="text-emerald-600 font-bold">✓ Vote gezählt!</span>';
         if (item) {
           item.votes = currentVotes;
@@ -2730,10 +2812,11 @@ Gruppen verwalten
           const starEl = card.querySelector('.text-amber-500');
           if (starEl && starEl.parentElement) starEl.parentElement.innerHTML = '<span class="text-amber-500">★</span> ' + currentVotes;
         });
+        // Nach kurzer Bestätigung den Button-Zustand aktualisieren (Cooldown startet jetzt)
+        setTimeout(refreshUpvoteButtonState, 1200);
       } catch (err) {
         console.error('Fehler beim Abstimmen:', err);
-        mUpvote.disabled = false;
-        mUpvote.innerHTML = '<span>⭐ Für Gruppe abstimmen (+1 Vote)</span>';
+        refreshUpvoteButtonState();
       }
     });
 
