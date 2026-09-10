@@ -79,14 +79,31 @@
       0%, 100% { box-shadow: 0 0 0 0 rgba(0, 168, 132, 0.45); }
       50% { box-shadow: 0 0 0 8px rgba(0, 168, 132, 0); }
     }
-    /* Animación amarilla en el borde redondo del botón de la estrella al hacer clic */
-    .star-btn-pulse {
-      animation: star-btn-pulse-anim 0.7s ease-out;
+    /* Animación radial 360° con brillo suave: solo se activa al presionar el botón de la estrella */
+    #top-voted-btn {
+      position: relative;
+      z-index: 0;
     }
-    @keyframes star-btn-pulse-anim {
-      0% { box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.75); }
-      70% { box-shadow: 0 0 0 12px rgba(251, 191, 36, 0); }
-      100% { box-shadow: 0 0 0 0 rgba(251, 191, 36, 0); }
+    #top-voted-btn::before {
+      content: "";
+      position: absolute;
+      inset: -4px;
+      border-radius: 9999px;
+      background: conic-gradient(from 0deg, transparent 0%, rgba(251, 191, 36, 0.95) 18%, transparent 40%, transparent 100%);
+      filter: blur(3px);
+      opacity: 0;
+      z-index: -1;
+      pointer-events: none;
+      animation: star-ring-spin 2.6s linear infinite;
+      animation-play-state: paused;
+      transition: opacity 0.2s ease;
+    }
+    #top-voted-btn.star-ring-active::before {
+      opacity: 0.9;
+      animation-play-state: running;
+    }
+    @keyframes star-ring-spin {
+      to { transform: rotate(360deg); }
     }
   </style>
 </head>
@@ -3519,17 +3536,12 @@ Gruppen verwalten
     };
 
     function updateTopVotedButtonStyle() {
+      // El círculo del botón ya NO se pinta de amarillo; el brillo radial giratorio
+      // (ver #top-voted-btn::before) solo se activa al presionar el botón de la estrella.
       document.querySelectorAll('.top-voted-btn').forEach(function(btn) {
-        btn.classList.toggle('bg-amber-400', currentTopVotedFilter);
-        btn.classList.toggle('hover:bg-amber-500', currentTopVotedFilter);
-        btn.classList.toggle('border-amber-300', currentTopVotedFilter);
-        btn.classList.toggle('bg-white/10', !currentTopVotedFilter);
-        btn.classList.toggle('hover:bg-white/20', !currentTopVotedFilter);
-        const icon = btn.querySelector('.material-symbols-outlined');
-        if (icon) {
-          icon.classList.toggle('text-[#0d5c46]', currentTopVotedFilter);
-          icon.classList.toggle('text-amber-300', !currentTopVotedFilter);
-        }
+        btn.classList.toggle('ring-2', currentTopVotedFilter);
+        btn.classList.toggle('ring-amber-300', currentTopVotedFilter);
+        btn.classList.toggle('star-ring-active', currentTopVotedFilter);
       });
     }
 
@@ -3543,18 +3555,6 @@ Gruppen verwalten
       updateTopVotedButtonStyle();
       applyFilters();
       window.scrollTo({ top: 0, behavior: 'smooth' });
-
-      // Animación amarilla en el borde redondo del botón al hacer clic
-      document.querySelectorAll('.top-voted-btn').forEach(function(btn) {
-        btn.classList.remove('star-btn-pulse');
-        // Forzar reflow para poder re-disparar la animación en clics seguidos
-        void btn.offsetWidth;
-        btn.classList.add('star-btn-pulse');
-        btn.addEventListener('animationend', function handler() {
-          btn.classList.remove('star-btn-pulse');
-          btn.removeEventListener('animationend', handler);
-        });
-      });
     };
 
     const categoryBarRow = document.getElementById('category-bar-row');
