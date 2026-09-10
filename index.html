@@ -1111,6 +1111,391 @@ Gruppen verwalten
 </div>
 <!-- ===================== FIN PWA INSTALL BANNER ===================== -->
 
+<!-- ===================== TERMS OF SERVICE MODAL (Nutzungsbedingungen) ===================== -->
+<div class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center p-3 sm:p-4 overflow-y-auto" id="terms-modal">
+  <div class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl flex flex-col relative animate-in fade-in zoom-in-95 duration-150 my-auto max-h-[92vh]">
+    <!-- Close Button -->
+    <button class="absolute top-4 right-4 p-1.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 transition-colors" id="terms-modal-close" onclick="closeTermsModal()" title="Schließen">
+      <span class="material-symbols-outlined text-[20px] block notranslate" translate="no">close</span>
+    </button>
+
+    <!-- Modal Header -->
+    <div class="flex items-center gap-3 px-5 sm:px-7 pt-6 pb-4 border-b border-slate-100 shrink-0">
+      <div class="w-11 h-11 rounded-xl bg-[#00a884]/15 text-[#006b53] flex items-center justify-center shrink-0 border border-[#00a884]/30">
+        <span class="material-symbols-outlined text-[24px] notranslate" translate="no">gavel</span>
+      </div>
+      <div class="flex flex-col">
+        <h2 class="font-bold text-slate-900 text-lg leading-tight font-display">Nutzungsbedingungen</h2>
+        <span class="text-xs text-slate-500">Gültig für die Nutzung von Groupio.app · Stand: 2026</span>
+      </div>
+    </div>
+
+    <!-- Modal Body (scrollable) -->
+    <div class="flex flex-col gap-5 px-5 sm:px-7 py-5 overflow-y-auto custom-scroll text-sm leading-relaxed text-slate-600">
+
+      <p>Diese Nutzungsbedingungen regeln den Zugriff auf und die Nutzung der Webseite (nachfolgend „<strong class="text-slate-800">Dienste</strong>“ oder „<strong class="text-slate-800">Dienst</strong>“), die von <strong class="text-slate-800">Groupio.app</strong> („Groupio.app“, „wir“, „unser“ oder „uns“) betrieben wird. Mit dem Zugriff auf die Dienste erklärst du dich damit einverstanden, diese ausschließlich in Übereinstimmung mit den vorliegenden Nutzungsbedingungen zu nutzen.</p>
+
+      <p>Solltest du in deinem Land die Volljährigkeit noch nicht erreicht haben und kein mündiger Minderjähriger sein (in Ländern, in denen dies zulässig ist), benötigst du die Einwilligung deiner Eltern oder deines Erziehungsberechtigten, um diese Nutzungsbedingungen zu akzeptieren und die Dienste zu nutzen. Durch die Nutzung der Dienste bestätigst du, dass diese Einwilligung vorliegt.</p>
+
+      <div>
+        <h3 class="font-bold text-slate-900 text-sm mb-1.5">1. Zustimmung zu den Nutzungsbedingungen</h3>
+        <p>Indem du auf die Dienste zugreifst, sie nutzt oder dich registrierst, akzeptierst du diese Nutzungsbedingungen sowie die Datenschutzerklärung. Solltest du beiden nicht zustimmen, ist dir der Zugriff auf die Dienste sowie deren Nutzung nicht gestattet.</p>
+      </div>
+
+      <div>
+        <h3 class="font-bold text-slate-900 text-sm mb-1.5">2. Altersvorgaben</h3>
+        <p>Mit dem Zugriff oder der Nutzung der Dienste bestätigst du, dass du entweder in deinem Land die Volljährigkeit erreicht hast, ein mündiger Minderjähriger bist, oder dass du über das Einverständnis deines gesetzlichen Vertreters bzw. deiner Eltern verfügst und uneingeschränkt fähig und kompetent bist, die vorliegenden Bedingungen zu akzeptieren. In jedem Fall bestätigst du, mindestens 13 Jahre alt zu sein bzw. mindestens 16 Jahre, wenn du aus der Europäischen Union stammst. Bist du jünger als das jeweilige Mindestalter, ist dir der Zugriff auf die Dienste sowie deren Nutzung untersagt. Erfahren wir von einer Nutzung unter dem Mindestalter, sperren wir das betreffende Konto und ergreifen Maßnahmen, um einen weiteren Zugriff auf die Dienste zu unterbinden.</p>
+      </div>
+
+      <div>
+        <h3 class="font-bold text-slate-900 text-sm mb-1.5">3. Einhaltung der Gesetze</h3>
+        <p>Es liegt in deiner Verantwortung, sicherzustellen, dass du bei Zugriff und Nutzung der Dienste alle geltenden Gesetze und Vorschriften deines Wohnsitzlandes einhältst.</p>
+      </div>
+
+      <div>
+        <h3 class="font-bold text-slate-900 text-sm mb-1.5">4. Verhaltensregeln</h3>
+        <p class="mb-3">Alles, was du veröffentlichst oder hochlädst, kann öffentlich einsehbar sein. Du trägst die alleinige Verantwortung für sämtliche Inhalte, die du auf Groupio.app erstellst oder teilst, und verpflichtest dich zur Einhaltung der folgenden Regeln.</p>
+
+        <div class="flex flex-col gap-3">
+          <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+            <p class="font-semibold text-slate-800 text-[13px] mb-1">Sexueller Inhalt</p>
+            <p class="text-[13px]">Die Veröffentlichung von Gruppen, die Nacktheit oder sexuell explizites bzw. pornografisches Material fördern, ist untersagt. Anfragen nach expliziten sexuellen Inhalten sowie sexuelle Belästigung jeglicher Art werden nicht toleriert.</p>
+          </div>
+
+          <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+            <p class="font-semibold text-slate-800 text-[13px] mb-1">Hassrede und Gewaltverherrlichung</p>
+            <p class="text-[13px]">Inhalte, die zu Hass oder Gewalt aufrufen, sind nicht gestattet. Dazu zählen insbesondere Gewaltandrohungen sowie Aussagen, die Gewalt schüren — vor allem aufgrund von Rassenzugehörigkeit, ethnischer Herkunft, Religion, Behinderung, Geschlecht, Alter oder sexueller Orientierung. Verstöße gegen diese Regel können jederzeit gemeldet werden.</p>
+          </div>
+
+          <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+            <p class="font-semibold text-slate-800 text-[13px] mb-1">Schutz von Minderjährigen und Schutzbefohlenen</p>
+            <p class="text-[13px]">Es ist untersagt, Gruppen mit sexuell anzüglichen oder gewalttätigen Inhalten in Bezug auf Minderjährige zu erstellen. Das Schikanieren, Mobben oder Beleidigen von Minderjährigen ist strikt verboten — auch unter minderjährigen Nutzern selbst.</p>
+          </div>
+
+          <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+            <p class="font-semibold text-slate-800 text-[13px] mb-1">Förderung selbstschädigenden Verhaltens</p>
+            <p class="text-[13px]">Gruppen, die selbstschädigendes Verhalten aktiv fördern oder glorifizieren, sind nicht gestattet. Dies umfasst Inhalte, die andere Nutzer zu Selbstverletzung, Essstörungen (z. B. Magersucht oder Bulimie) oder Suizid ermutigen bzw. dazu drängen.</p>
+          </div>
+
+          <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+            <p class="font-semibold text-slate-800 text-[13px] mb-1">Spam</p>
+            <p class="text-[13px]">Das mehrfache Erstellen derselben Gruppe sowie das Posten von Reflinks oder Werbung ist untersagt. Gruppen dürfen nicht ausschließlich zu Werbezwecken missbraucht werden. Spam hat auf Groupio.app keinen Platz.</p>
+          </div>
+
+          <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+            <p class="font-semibold text-slate-800 text-[13px] mb-1">Massenregistrierungen und automatisierte Aktionen</p>
+            <p class="text-[13px]">Das automatisierte, systematische oder geplante Erstellen von Gruppen ist nicht gestattet.</p>
+          </div>
+
+          <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+            <p class="font-semibold text-slate-800 text-[13px] mb-1">Urheber- und Markenrechte</p>
+            <p class="text-[13px]">Die Urheber- und Markenrechte Dritter sind zu respektieren und dürfen nicht verletzt werden.</p>
+          </div>
+
+          <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+            <p class="font-semibold text-slate-800 text-[13px] mb-1">Belästigung</p>
+            <p class="text-[13px]">Das gezielte Beleidigen, Belästigen oder Stalken anderer Nutzer ist nicht gestattet.</p>
+          </div>
+
+          <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+            <p class="font-semibold text-slate-800 text-[13px] mb-1">Illegale Handlungen und Inhalte</p>
+            <p class="text-[13px]">Die missbräuchliche Nutzung von Groupio.app für illegale Aktivitäten wie Betrug oder Phishing ist strikt untersagt.</p>
+          </div>
+
+          <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+            <p class="font-semibold text-slate-800 text-[13px] mb-1">Verletzung der Privatsphäre</p>
+            <p class="text-[13px]">Es ist untersagt, sich über Groupio.app durch betrügerisches Verhalten Zugang zu persönlichen Daten zu verschaffen. Ebenso dürfen keine Gruppen erstellt werden, die die Privatsphäre Dritter verletzen — insbesondere durch die Preisgabe vertraulicher oder identifizierender Informationen wie Kreditkartennummern, Bankdaten, Sozialversicherungsnummern, Telefonnummern, Adressen, Profile sozialer Netzwerke oder unveröffentlichte Kontaktdaten.</p>
+          </div>
+
+          <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+            <p class="font-semibold text-slate-800 text-[13px] mb-1">Terrorismus</p>
+            <p class="text-[13px]">Inhalte, die terroristische Handlungen propagieren, unterstützen oder anstiften, werden nicht toleriert. Dies schließt Inhalte ein, die Terororganisationen, deren Anführer oder deren Gewalttaten unterstützen oder feiern.</p>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <h3 class="font-bold text-slate-900 text-sm mb-1.5">5. Verstöße gegen die Verhaltensregeln</h3>
+        <p>Gelangen wir zu der Ansicht, dass gegen diese Nutzungsbedingungen verstoßen wurde, behalten wir uns das Recht vor, betroffene Nutzerkonten jederzeit und ohne Vorwarnung zu sperren sowie entsprechende Inhalte zu entfernen. Wir behalten uns zudem das Recht vor, diese Nutzungsbedingungen nach eigenem Ermessen durchzusetzen, nicht durchzusetzen oder anzupassen.</p>
+      </div>
+
+      <div>
+        <h3 class="font-bold text-slate-900 text-sm mb-1.5">6. Rechtswirksamkeit</h3>
+        <p>Sollten einzelne Bestimmungen oder Formulierungen dieser Nutzungsbedingungen der geltenden Rechtslage nicht, nicht mehr oder nicht vollständig entsprechen, bleiben die übrigen Bestimmungen in ihrem Inhalt und ihrer Gültigkeit hiervon unberührt.</p>
+      </div>
+
+    </div>
+
+    <!-- Modal Footer -->
+    <div class="px-5 sm:px-7 py-4 border-t border-slate-100 shrink-0">
+      <button class="w-full py-2.5 rounded-xl bg-[#0d5c46] hover:bg-[#0a4736] text-white text-sm font-bold transition-colors" onclick="closeTermsModal()" type="button">Verstanden</button>
+    </div>
+  </div>
+</div>
+<script>
+  window.openTermsModal = function() {
+    const modal = document.getElementById('terms-modal');
+    if (!modal) return;
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    document.body.style.overflow = 'hidden';
+  };
+  window.closeTermsModal = function() {
+    const modal = document.getElementById('terms-modal');
+    if (!modal) return;
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+    document.body.style.overflow = '';
+  };
+</script>
+<!-- ===================== FIN TERMS OF SERVICE MODAL ===================== -->
+
+<!-- ===================== PRIVACY POLICY MODAL (Datenschutzerklärung) ===================== -->
+<div class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center p-3 sm:p-4 overflow-y-auto" id="privacy-modal">
+  <div class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl flex flex-col relative animate-in fade-in zoom-in-95 duration-150 my-auto max-h-[92vh]">
+    <!-- Close Button -->
+    <button class="absolute top-4 right-4 p-1.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 transition-colors" id="privacy-modal-close" onclick="closePrivacyModal()" title="Schließen">
+      <span class="material-symbols-outlined text-[20px] block notranslate" translate="no">close</span>
+    </button>
+
+    <!-- Modal Header -->
+    <div class="flex items-center gap-3 px-5 sm:px-7 pt-6 pb-4 border-b border-slate-100 shrink-0">
+      <div class="w-11 h-11 rounded-xl bg-[#00a884]/15 text-[#006b53] flex items-center justify-center shrink-0 border border-[#00a884]/30">
+        <span class="material-symbols-outlined text-[24px] notranslate" translate="no">shield_lock</span>
+      </div>
+      <div class="flex flex-col">
+        <h2 class="font-bold text-slate-900 text-lg leading-tight font-display">Datenschutzerklärung</h2>
+        <span class="text-xs text-slate-500">Informationen zur Verarbeitung deiner Daten · Stand: 20.05.2018</span>
+      </div>
+    </div>
+
+    <!-- Modal Body (scrollable) -->
+    <div class="flex flex-col gap-5 px-5 sm:px-7 py-5 overflow-y-auto custom-scroll text-sm leading-relaxed text-slate-600">
+
+      <div>
+        <h3 class="font-bold text-slate-900 text-sm mb-1.5">1. Zwecke der Datenverarbeitung, Rechtsgrundlagen und Empfänger</h3>
+        <p>Wir verarbeiten personenbezogene Daten, soweit dies für die Begründung und Erfüllung von Verträgen sowie zur Durchführung vorvertraglicher Maßnahmen erforderlich ist (Art. 6 Abs. 1b DSGVO, §§ 11–15a TMG) oder eine entsprechende Einwilligung vorliegt (Art. 6 Abs. 1a, 7, 8 DSGVO; § 13 Abs. 2 TMG). Eine Verarbeitung kann zudem in Abwägung mit den Grundrechten und Grundfreiheiten der betroffenen Person zur Wahrung überwiegender berechtigter Interessen des Verantwortlichen oder Dritter erfolgen (Art. 6 Abs. 1f, Art. 31 BDSG). Erfolgt eine Verarbeitung im Auftrag (Art. 28 DSGVO), arbeiten wir ausschließlich mit Auftragsverarbeitern zusammen, die hinreichende Garantien dafür bieten, dass die Verarbeitung im Einklang mit den gesetzlichen Anforderungen erfolgt und der Schutz der Rechte betroffener Personen gewährleistet ist. Übermittlungen personenbezogener Daten erfolgen ausschließlich innerhalb des Europäischen Wirtschaftsraumes oder an Drittländer mit einem von der Europäischen Kommission anerkannten angemessenen Schutzniveau (Art. 45 DSGVO), bzw. auf Grundlage geeigneter Garantien wie Standarddatenschutzklauseln (Art. 46, 93 Abs. 2 DSGVO), verbindlicher interner Datenschutzvorschriften (Art. 47 DSGVO) oder genehmigter Verhaltensregeln (Art. 40 DSGVO).</p>
+      </div>
+
+      <div class="flex flex-col gap-3">
+        <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+          <p class="font-semibold text-slate-800 text-[13px] mb-1">Erstellung von Logfiles</p>
+          <p class="text-[13px]">Bei jedem Aufruf unserer Webseite erfassen wir automatisiert Daten, die in den Logfiles des Servers gespeichert werden (Art. 6 Abs. 1f DSGVO, § 15 Abs. 1 TMG), darunter Browsertyp und -version, Betriebssystem, Internet-Service-Provider, IP-Adresse, Datum und Uhrzeit des Zugriffs sowie aufgerufene bzw. verweisende Webseiten (Referrer). Diese Daten dienen der Auslieferung der Inhalte, der Gewährleistung der Systemsicherheit und der Optimierung unserer Webseite und werden stets getrennt von anderen personenbezogenen Daten gespeichert.</p>
+        </div>
+
+        <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+          <p class="font-semibold text-slate-800 text-[13px] mb-1">Registrierung auf unserer Webseite</p>
+          <p class="text-[13px]">Bei einer Registrierung, Teilnahme an Umfragen, einem Newsletter-Abo oder Vertragsabschluss werden die im jeweiligen Formular angegebenen Daten ausschließlich zum jeweiligen Zweck verarbeitet (Art. 6 Abs. 1a, b, Art. 88 DSGVO; §§ 13 Abs. 2, 14 TMG; § 26 BDSG). Zusätzlich werden IP-Adresse sowie Datum und Uhrzeit der Registrierung gespeichert, um Missbrauch der Dienste vorzubeugen. Eine Weitergabe an Dritte erfolgt nicht, außer bei gesetzlicher Verpflichtung.</p>
+        </div>
+
+        <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+          <p class="font-semibold text-slate-800 text-[13px] mb-1">Kontaktaufnahme</p>
+          <p class="text-[13px]">Über das Kontaktformular oder per E-Mail übermittelte personenbezogene Daten werden automatisch gespeichert (Art. 6 Abs. 1b, f DSGVO, § 14 TMG) und ausschließlich zur Bearbeitung deiner Anfrage bzw. zur Kontaktaufnahme verwendet.</p>
+        </div>
+
+        <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+          <p class="font-semibold text-slate-800 text-[13px] mb-1">Cookies und Datenanalyse</p>
+          <p class="text-[13px]">Um dir eine erneute Anmeldung bei künftigen Besuchen zu ersparen, speichert dein Browser sogenannte Cookies für einen begrenzten Zeitraum auf deinem Endgerät (Art. 6 Abs. 1f DSGVO, § 15 Abs. 3 TMG). Cookies erleichtern die Nutzung unserer Webseite und können in den Browsereinstellungen deaktiviert werden — dies kann jedoch die Nutzung einzelner Funktionen einschränken.</p>
+        </div>
+
+        <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+          <p class="font-semibold text-slate-800 text-[13px] mb-1">Facebook und Google (Social Plugins)</p>
+          <p class="text-[13px]">Auf unserer Webseite können inaktive Social Plugins von Facebook Inc. und Google Inc. eingebunden sein (Art. 6 Abs. 1a, f DSGVO; §§ 13 Abs. 2, 15 Abs. 3 TMG). Erst nach deiner aktiven Betätigung des jeweiligen Buttons wird eine Verbindung zu den Servern des Anbieters aufgebaut. Weitere Informationen findest du in den Datenschutzhinweisen von Facebook und Google.</p>
+        </div>
+
+        <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+          <p class="font-semibold text-slate-800 text-[13px] mb-1">Scriptbibliotheken (Google Webfonts)</p>
+          <p class="text-[13px]">Zur browserübergreifend korrekten und ansprechenden Darstellung unserer Inhalte nutzen wir Schriftbibliotheken wie Google Webfonts. Diese werden zur Vermeidung mehrfachen Ladens im Cache deines Browsers gespeichert. Unterstützt dein Browser Google Webfonts nicht, werden Inhalte in einer Standardschrift angezeigt.</p>
+        </div>
+
+        <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+          <p class="font-semibold text-slate-800 text-[13px] mb-1">Fingerprinting</p>
+          <p class="text-[13px]">Zu Werbezwecken nutzen wir elektronische Fingerprinting-Technologie. Dabei werden keine Dateien auf deinem Gerät gespeichert; übermittelt wird lediglich eine Prüfsumme individueller Geräteeinstellungen, aus der ein elektronischer Fingerprint erzeugt wird — eine direkte Zuordnung zu deiner Person findet nicht statt. Du kannst dies durch Deaktivierung von JavaScript verhindern, wobei dann nicht alle Funktionen nutzbar sind.</p>
+        </div>
+
+        <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+          <p class="font-semibold text-slate-800 text-[13px] mb-1">Google Analytics</p>
+          <p class="text-[13px]">Diese Webseite nutzt Google Analytics mit der Erweiterung „_anonymizeIp()" (Art. 6 Abs. 1f DSGVO, § 15 Abs. 3 TMG). Deine IP-Adresse wird dabei innerhalb der EU bzw. des EWR gekürzt, bevor sie an Google übertragen wird. Die so gewonnenen Informationen werden zur Auswertung der Webseitennutzung verwendet und nicht mit anderen Google-Daten zusammengeführt. Du kannst die Speicherung der Cookies über deine Browsereinstellungen verhindern oder über ein Browser-Plugin von Google die Erfassung deiner Daten unterbinden.</p>
+        </div>
+
+        <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+          <p class="font-semibold text-slate-800 text-[13px] mb-1">Verträge und vorvertragliche Maßnahmen</p>
+          <p class="text-[13px]">Im Rahmen von Verträgen verarbeiten wir Bestandsdaten (zur Begründung, Ausgestaltung oder Beendigung eines Vertrags, § 14 Abs. 1 TMG) sowie Nutzungsdaten (zur Ermöglichung, Durchführung und Abrechnung von Telemediendiensten, § 15 Abs. 1 TMG). Bei vertraglichen Vereinbarungen mit Dritten zum Entgelteinzug übermitteln wir die hierfür erforderlichen Daten unter Wahrung des Fernmeldegeheimnisses und Datenschutzes (Art. 6 Abs. 1b, f DSGVO, § 15 Abs. 5 TMG).</p>
+        </div>
+
+        <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+          <p class="font-semibold text-slate-800 text-[13px] mb-1">Geltendmachung rechtlicher Ansprüche</p>
+          <p class="text-[13px]">Zur Geltendmachung, Ausübung oder Verteidigung rechtlicher Ansprüche können personenbezogene Daten an Inkassodienstleister oder Rechtsanwälte übermittelt werden (Art. 6 Abs. 1b, f, Abs. 4 DSGVO; § 24 Abs. 1 Nr. 2 BDSG). Bei tatsächlichen Anhaltspunkten für eine ungesetzliche Nutzung unserer Angebote speichern, verarbeiten und nutzen wir entsprechende Daten bis zu 60 Tage und übermitteln relevante Sachverhalte an Strafverfolgungsbehörden.</p>
+        </div>
+
+        <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+          <p class="font-semibold text-slate-800 text-[13px] mb-1">Übermittlung an Wirtschaftsauskunfteien</p>
+          <p class="text-[13px]">Zur Identitäts- und Bonitätsprüfung sowie zur Wahrung berechtigter Interessen können wir personenbezogene Daten über Vertragsverhältnisse und nicht vertragsgemäßes Verhalten an Wirtschaftsauskunfteien wie die SCHUFA Holding AG (Kormoranweg 5, 65201 Wiesbaden) übermitteln (Art. 6 Abs. 1b, f, Abs. 4 DSGVO; §§ 24 Abs. 1, 31 BDSG; §§ 505a, 506 BGB). Auskunfteien verarbeiten diese Daten zur Beurteilung der Kreditwürdigkeit, berechnen hierzu Scorewerte im Verfahren der logistischen Regression und speichern die Daten grundsätzlich für drei Jahre nach deren Erledigung, mit abweichenden Fristen etwa für Schuldnerverzeichnis- oder Insolvenzeinträge. Besondere Kategorien personenbezogener Daten (z. B. ethnische Herkunft, politische oder religiöse Ansichten) werden dabei nicht verarbeitet. Betroffene Personen haben gegenüber den Auskunfteien die Rechte auf Auskunft, Berichtigung, Löschung, Einschränkung sowie ein formfreies Widerspruchsrecht nach Art. 21 Abs. 1 DSGVO und können sich zusätzlich an die zuständige Aufsichtsbehörde oder das SCHUFA Privatkunden-ServiceCenter wenden.</p>
+        </div>
+      </div>
+
+      <div>
+        <h3 class="font-bold text-slate-900 text-sm mb-1.5">2. Dauer der Datenspeicherung</h3>
+        <p>Bestands- und Nutzungsdaten werden gemäß § 13 Abs. 4 TMG grundsätzlich unmittelbar nach Beendigung des Zugriffs bzw. der Nutzung gelöscht, sofern sie nicht für Abrechnungszwecke weiterhin benötigt werden (§ 15 Abs. 4 TMG). Im Übrigen werden personenbezogene Daten unverzüglich gelöscht, sobald der Verarbeitungszweck entfällt (Art. 17 Abs. 1a DSGVO). Besteht eine vertragliche oder gesetzliche Aufbewahrungspflicht (z. B. aus steuer- oder handelsrechtlichen Vorschriften), werden die Daten nicht gelöscht, sondern gemäß Art. 18 Abs. 1c DSGVO in ihrer Verarbeitung eingeschränkt.</p>
+      </div>
+
+      <div>
+        <h3 class="font-bold text-slate-900 text-sm mb-1.5">3. Deine Rechte als betroffene Person</h3>
+        <p>Dir stehen uns gegenüber das Recht auf Auskunft (Art. 15 DSGVO), das Recht auf Berichtigung (Art. 16 DSGVO), das Recht auf Löschung (Art. 17 DSGVO), das Recht auf Einschränkung der Verarbeitung (Art. 18 DSGVO) sowie das Recht auf Datenübertragbarkeit (Art. 20 DSGVO) hinsichtlich deiner von uns verarbeiteten personenbezogenen Daten zu. Werden Daten zur Wahrung berechtigter Interessen von uns oder Dritten verarbeitet, hast du zudem das Recht, aus Gründen deiner besonderen Situation jederzeit formfrei Widerspruch gegen diese Verarbeitung einzulegen.</p>
+      </div>
+
+    </div>
+
+    <!-- Modal Footer -->
+    <div class="px-5 sm:px-7 py-4 border-t border-slate-100 shrink-0">
+      <button class="w-full py-2.5 rounded-xl bg-[#0d5c46] hover:bg-[#0a4736] text-white text-sm font-bold transition-colors" onclick="closePrivacyModal()" type="button">Verstanden</button>
+    </div>
+  </div>
+</div>
+<script>
+  window.openPrivacyModal = function() {
+    const modal = document.getElementById('privacy-modal');
+    if (!modal) return;
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    document.body.style.overflow = 'hidden';
+  };
+  window.closePrivacyModal = function() {
+    const modal = document.getElementById('privacy-modal');
+    if (!modal) return;
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+    document.body.style.overflow = '';
+  };
+</script>
+<!-- ===================== FIN PRIVACY POLICY MODAL ===================== -->
+
+<!-- ===================== KONTAKT MODAL ===================== -->
+<div class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center p-3 sm:p-4 overflow-y-auto" id="contact-modal">
+  <div class="bg-white rounded-2xl max-w-md w-full p-5 sm:p-7 shadow-2xl flex flex-col gap-4 relative animate-in fade-in zoom-in-95 duration-150 my-auto max-h-[92vh] overflow-y-auto custom-scroll">
+    <!-- Close Button -->
+    <button class="absolute top-4 right-4 p-1.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 transition-colors" id="contact-modal-close" onclick="closeContactModal()" title="Schließen">
+      <span class="material-symbols-outlined text-[20px] block notranslate" translate="no">close</span>
+    </button>
+
+    <!-- Modal Header -->
+    <div class="flex items-center gap-3 pt-1 border-b border-slate-100 pb-3.5">
+      <div class="w-11 h-11 rounded-xl bg-[#00a884]/15 text-[#006b53] flex items-center justify-center shrink-0 border border-[#00a884]/30">
+        <span class="material-symbols-outlined text-[24px] notranslate" translate="no">mail</span>
+      </div>
+      <div class="flex flex-col">
+        <h2 class="font-bold text-slate-900 text-lg leading-tight font-display">Kontakt</h2>
+        <span class="text-xs text-slate-500">Wir antworten dir so schnell wie möglich</span>
+      </div>
+    </div>
+
+    <!-- Alert / Feedback Box -->
+    <div class="hidden p-3.5 rounded-xl text-xs font-medium" id="contact-feedback"></div>
+
+    <!-- Contact Form -->
+    <form class="flex flex-col gap-3.5" id="contact-form" onsubmit="handleContactSubmit(event)">
+      <!-- Honeypot anti-spam (unsichtbar für echte Nutzer) -->
+      <input type="text" name="_honey" style="display:none" tabindex="-1" autocomplete="off">
+      <input type="hidden" name="_subject" value="Neue Kontaktanfrage über Groupio.app">
+      <input type="hidden" name="_captcha" value="false">
+      <input type="hidden" name="_template" value="table">
+
+      <!-- Name -->
+      <div class="flex flex-col gap-1">
+        <input class="w-full bg-white border border-slate-200 text-slate-800 placeholder-slate-400 px-3.5 py-2.5 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all" id="contact-name-input" name="name" placeholder="Ihr Name" required type="text">
+      </div>
+
+      <!-- E-Mail -->
+      <div class="flex flex-col gap-1">
+        <input class="w-full bg-white border border-slate-200 text-slate-800 placeholder-slate-400 px-3.5 py-2.5 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all" id="contact-email-input" name="email" placeholder="deine@email-adresse.de" required type="email">
+      </div>
+
+      <!-- Nachricht -->
+      <div class="flex flex-col gap-1">
+        <textarea class="w-full bg-white border border-slate-200 text-slate-800 placeholder-slate-400 px-3.5 py-2.5 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all resize-y min-h-[110px]" id="contact-message-input" name="message" placeholder="Ihr Anliegen" required></textarea>
+      </div>
+
+      <!-- Anti-Bot Checkbox (reCAPTCHA-Style) -->
+      <label class="flex items-center gap-3 p-3 rounded-lg border border-slate-200 bg-slate-50 cursor-pointer select-none" for="contact-robot-check">
+        <input class="w-5 h-5 rounded border-slate-300 text-emerald-600 focus:ring-emerald-400" id="contact-robot-check" required type="checkbox">
+        <span class="text-sm text-slate-700 flex-1">Ich bin kein Roboter</span>
+        <span class="material-symbols-outlined text-[26px] text-slate-300 notranslate" translate="no">verified_user</span>
+      </label>
+
+      <!-- Submit Button -->
+      <button class="w-full py-2.5 rounded-xl bg-[#25d366] hover:bg-[#1fb956] text-white text-sm font-bold transition-colors flex items-center justify-center gap-2" id="contact-submit-btn" type="submit">
+        <span id="contact-submit-label">Abschicken</span>
+        <span class="hidden w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" id="contact-submit-spinner"></span>
+      </button>
+    </form>
+  </div>
+</div>
+<script>
+  window.openContactModal = function() {
+    const modal = document.getElementById('contact-modal');
+    const feedback = document.getElementById('contact-feedback');
+    if (feedback) { feedback.classList.add('hidden'); feedback.textContent = ''; }
+    if (!modal) return;
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    document.body.style.overflow = 'hidden';
+  };
+  window.closeContactModal = function() {
+    const modal = document.getElementById('contact-modal');
+    if (!modal) return;
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+    document.body.style.overflow = '';
+  };
+
+  window.handleContactSubmit = function(event) {
+    event.preventDefault();
+    const form = document.getElementById('contact-form');
+    const feedback = document.getElementById('contact-feedback');
+    const submitBtn = document.getElementById('contact-submit-btn');
+    const submitLabel = document.getElementById('contact-submit-label');
+    const submitSpinner = document.getElementById('contact-submit-spinner');
+    const robotCheck = document.getElementById('contact-robot-check');
+
+    if (!robotCheck.checked) {
+      feedback.textContent = 'Bitte bestätige, dass du kein Roboter bist.';
+      feedback.className = 'block p-3.5 rounded-xl text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200';
+      return;
+    }
+
+    const formData = new FormData(form);
+    const payload = {};
+    formData.forEach(function(value, key) { payload[key] = value; });
+
+    submitBtn.disabled = true;
+    submitLabel.textContent = 'Wird gesendet...';
+    submitSpinner.classList.remove('hidden');
+    feedback.classList.add('hidden');
+
+    fetch('https://formsubmit.co/ajax/cristhianzh1994@gmail.com', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+    .then(function(res) { return res.json(); })
+    .then(function() {
+      feedback.textContent = '✓ Deine Nachricht wurde erfolgreich gesendet. Wir melden uns bald bei dir!';
+      feedback.className = 'block p-3.5 rounded-xl text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200';
+      form.reset();
+    })
+    .catch(function() {
+      feedback.textContent = 'Beim Senden ist ein Fehler aufgetreten. Bitte versuche es später erneut.';
+      feedback.className = 'block p-3.5 rounded-xl text-xs font-medium bg-red-50 text-red-700 border border-red-200';
+    })
+    .finally(function() {
+      submitBtn.disabled = false;
+      submitLabel.textContent = 'Abschicken';
+      submitSpinner.classList.add('hidden');
+    });
+  };
+</script>
+<!-- ===================== FIN KONTAKT MODAL ===================== -->
+
 <!-- SIMPLE FOOTER -->
 <footer class="w-full bg-white border-t border-slate-200 mt-10 py-6 text-xs text-slate-500">
 <div class="max-w-[1240px] mx-auto px-4 flex flex-col sm:flex-row items-center justify-center sm:justify-between gap-3 text-center">
@@ -1119,10 +1504,10 @@ Gruppen verwalten
 <span class="">© 2026 Groupio Platform. Alle Rechte vorbehalten.</span>
 </div>
 <div class="flex items-center gap-3 sm:gap-4 flex-wrap justify-center">
-<a class="hover:text-emerald-700" href="#">Datenschutz</a>
-<a class="hover:text-emerald-700" href="#">Nutzungsbedingungen</a>
+<a class="hover:text-emerald-700" href="#" onclick="openPrivacyModal(); return false;">Datenschutz</a>
+<a class="hover:text-emerald-700" href="#" onclick="openTermsModal(); return false;">Nutzungsbedingungen</a>
 <a class="hover:text-emerald-700" href="#">Gruppenregeln</a>
-<a class="hover:text-emerald-700" href="#">Kontakt</a>
+<a class="hover:text-emerald-700" href="#" onclick="openContactModal(); return false;">Kontakt</a>
 </div>
 </div>
 </footer>
