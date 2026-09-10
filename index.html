@@ -1757,7 +1757,15 @@ Gruppen verwalten
 
 <!-- SIMPLE FOOTER -->
 <footer class="w-full bg-white border-t border-slate-200 mt-10 py-6 text-xs text-slate-500">
-<div class="max-w-[1240px] mx-auto px-4 flex flex-col sm:flex-row items-center justify-center sm:justify-between gap-3 text-center">
+<div class="max-w-[1240px] mx-auto px-4 flex flex-col gap-4">
+<div class="flex flex-wrap items-center justify-center gap-2" id="footer-country-row">
+<span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wide mr-1">Länder:</span>
+<button type="button" class="country-filter-btn flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-slate-200 bg-slate-50 text-slate-600 text-[11px] sm:text-xs font-medium hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-700 transition-colors" data-country="de"><span>🇩🇪</span> Deutschland</button>
+<button type="button" class="country-filter-btn flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-slate-200 bg-slate-50 text-slate-600 text-[11px] sm:text-xs font-medium hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-700 transition-colors" data-country="ch"><span>🇨🇭</span> Schweiz</button>
+<button type="button" class="country-filter-btn flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-slate-200 bg-slate-50 text-slate-600 text-[11px] sm:text-xs font-medium hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-700 transition-colors" data-country="at"><span>🇦🇹</span> Österreich</button>
+<button type="button" class="country-filter-btn flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-slate-200 bg-slate-50 text-slate-600 text-[11px] sm:text-xs font-medium hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-700 transition-colors" data-country="us"><span>🇺🇸</span> USA</button>
+</div>
+<div class="flex flex-col sm:flex-row items-center justify-center sm:justify-between gap-3 text-center border-t border-slate-100 pt-4">
 <div class="flex items-center gap-2 flex-wrap justify-center">
 <span class="font-bold text-emerald-800 font-display">Groupio</span>
 <span class="">© 2026 Groupio Platform. Alle Rechte vorbehalten.</span>
@@ -1767,6 +1775,7 @@ Gruppen verwalten
 <a class="hover:text-emerald-700" href="#" onclick="openTermsModal(); return false;">Nutzungsbedingungen</a>
 <a class="hover:text-emerald-700" href="#" onclick="openRulesModal(); return false;">Gruppenregeln</a>
 <a class="hover:text-emerald-700" href="#" onclick="openContactModal(); return false;">Kontakt</a>
+</div>
 </div>
 </div>
 </footer>
@@ -2412,6 +2421,18 @@ Gruppen verwalten
       }
     };
 
+    // ---------- LÄNDER / FLAGGEN (für Footer-Filter & Gruppen-Karten) ----------
+    const COUNTRY_INFO = {
+      de: { flag: '🇩🇪', label: 'Deutschland' },
+      ch: { flag: '🇨🇭', label: 'Schweiz' },
+      at: { flag: '🇦🇹', label: 'Österreich' },
+      us: { flag: '🇺🇸', label: 'USA' }
+    };
+    function countryFlagHtml(country) {
+      const info = COUNTRY_INFO[(country || '').toLowerCase().trim()];
+      return info ? '<span class="text-sm leading-none" title="' + escapeHtml(info.label) + '">' + info.flag + '</span>' : '';
+    }
+
     // ---------- PROFILE PAGE (eigene Gruppen aus Firestore) ----------
     function profileGroupCardTemplate(item) {
       const isPending = item.status === 'pending';
@@ -2423,7 +2444,7 @@ Gruppen verwalten
       const dateStr = formatDate(item.approvedAt || item.submittedAt) || '';
       const statusBadge = isPending
         ? '<span class="inline-flex items-center gap-1 bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full text-[10px] font-semibold">In Prüfung</span>'
-        : '<span class="text-sm font-bold text-slate-700 flex items-center gap-0.5"><span class="text-amber-500 text-base">★</span> ' + (item.votes || 0) + '</span>';
+        : '<span class="text-sm font-bold text-slate-700 flex items-center gap-1">' + countryFlagHtml(item.country) + '<span class="text-amber-500 text-base">★</span> ' + (item.votes || 0) + '</span>';
       return '<div class="group-card bg-white rounded-xl border border-slate-200/90 shadow-2xs hover:shadow-md hover:border-emerald-300 transition-all p-3.5 flex flex-col justify-between cursor-pointer relative"'
         + ' data-id="' + escapeHtml(item.id) + '" data-link="' + escapeHtml(item.link || '') + '" data-cat="' + escapeHtml(item.category || 'Allgemein') + '"'
         + ' data-date="' + escapeHtml(dateStr) + '" data-desc="' + escapeHtml(desc) + '" data-group="' + escapeHtml(groupTitle) + '"'
@@ -3342,6 +3363,7 @@ Gruppen verwalten
     let currentPage = 1;
     let currentQuery = '';
     let currentCategoryFilter = null;
+    let currentCountryFilter = null;
     let currentTopVotedFilter = false;
     const TOP_VOTED_LIMIT = 20;
     // Cache: Benutzername (lowercase) -> photoUrl (nicht mehr für die Kartenanzeige genutzt,
@@ -3396,7 +3418,7 @@ Gruppen verwalten
         + '<div class="flex flex-col">'
         + '<div class="flex items-center justify-between min-h-[22px]">'
         + submitterAvatarHtml(item)
-        + '<span class="text-sm font-bold text-slate-700 flex items-center gap-0.5"><span class="card-star text-amber-500 text-base">★</span> ' + (item.votes || 0) + '</span>'
+        + '<span class="text-sm font-bold text-slate-700 flex items-center gap-1">' + countryFlagHtml(item.country) + '<span class="card-star text-amber-500 text-base">★</span> ' + (item.votes || 0) + '</span>'
         + '</div>'
         + '<div class="flex justify-center my-3"><div class="relative">'
         + '<div class="w-24 h-24 sm:w-28 sm:h-28 rounded-full overflow-hidden border border-slate-200 shadow-inner bg-slate-100 flex items-center justify-center">' + imgTag + '</div>'
@@ -3476,7 +3498,7 @@ Gruppen verwalten
         return;
       }
 
-      if (!query_ && !currentCategoryFilter) {
+      if (!query_ && !currentCategoryFilter && !currentCountryFilter) {
         noResultsBox.classList.add('hidden');
         paginationBar.classList.remove('hidden');
         renderGrid(1);
@@ -3491,6 +3513,11 @@ Gruppen verwalten
         filtered = filtered.filter(item => normalize(item.category) === catNorm);
       }
 
+      if (currentCountryFilter) {
+        const countryNorm = normalize(currentCountryFilter);
+        filtered = filtered.filter(item => normalize(item.country) === countryNorm);
+      }
+
       if (query_) {
         filtered = filtered.filter(item => {
           const haystack = normalize(item.name) + ' ' + normalize(item.description) + ' ' + normalize(item.tags) + ' ' + normalize(item.category);
@@ -3503,8 +3530,18 @@ Gruppen verwalten
       p1.innerHTML = filtered.map(groupCardHtml).join('') || '';
       p2.innerHTML = '';
 
+      const countryLabel = currentCountryFilter && COUNTRY_INFO[currentCountryFilter] ? COUNTRY_INFO[currentCountryFilter].label : null;
+
       let label;
-      if (currentCategoryFilter && query_) {
+      if (currentCategoryFilter && countryLabel && query_) {
+        label = filtered.length + ' Ergebnis' + (filtered.length === 1 ? '' : 'se') + ' in "' + currentCategoryFilter + '" · ' + countryLabel + ' für "' + currentQuery.trim() + '"';
+      } else if (currentCategoryFilter && countryLabel) {
+        label = filtered.length + ' Gruppe' + (filtered.length === 1 ? '' : 'n') + ' in der Kategorie "' + currentCategoryFilter + '" aus ' + countryLabel;
+      } else if (countryLabel && query_) {
+        label = filtered.length + ' Ergebnis' + (filtered.length === 1 ? '' : 'se') + ' aus ' + countryLabel + ' für "' + currentQuery.trim() + '"';
+      } else if (countryLabel) {
+        label = filtered.length + ' Gruppe' + (filtered.length === 1 ? '' : 'n') + ' aus ' + countryLabel;
+      } else if (currentCategoryFilter && query_) {
         label = filtered.length + ' Ergebnis' + (filtered.length === 1 ? '' : 'se') + ' in "' + currentCategoryFilter + '" für "' + currentQuery.trim() + '"';
       } else if (currentCategoryFilter) {
         label = filtered.length + ' Gruppe' + (filtered.length === 1 ? '' : 'n') + ' in der Kategorie "' + currentCategoryFilter + '"';
@@ -3541,6 +3578,38 @@ Gruppen verwalten
       if (barEl) barEl.closest('main') ? window.scrollTo({ top: 0, behavior: 'smooth' }) : null;
     };
 
+    function updateCountryActiveStyles() {
+      document.querySelectorAll('.country-filter-btn').forEach(function(btn) {
+        const isActive = currentCountryFilter && btn.getAttribute('data-country') === currentCountryFilter;
+        btn.classList.toggle('bg-emerald-600', !!isActive);
+        btn.classList.toggle('border-emerald-600', !!isActive);
+        btn.classList.toggle('text-white', !!isActive);
+        btn.classList.toggle('bg-slate-50', !isActive);
+        btn.classList.toggle('text-slate-600', !isActive);
+      });
+    }
+
+    window.filterByCountry = function(country) {
+      currentCountryFilter = (currentCountryFilter === country) ? null : country;
+      if (currentTopVotedFilter) {
+        currentTopVotedFilter = false;
+        updateTopVotedButtonStyle();
+      }
+      updateCountryActiveStyles();
+      applyFilters();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    const footerCountryRow = document.getElementById('footer-country-row');
+    if (footerCountryRow) {
+      footerCountryRow.addEventListener('click', function(e) {
+        const btn = e.target.closest('.country-filter-btn');
+        if (!btn) return;
+        e.preventDefault();
+        window.filterByCountry(btn.getAttribute('data-country'));
+      });
+    }
+
     function updateTopVotedButtonStyle() {
       // El círculo del botón ya NO se pinta de amarillo; el brillo radial giratorio
       // (ver #top-voted-btn::before) solo se activa al presionar el botón de la estrella.
@@ -3559,6 +3628,10 @@ Gruppen verwalten
       if (currentTopVotedFilter && currentCategoryFilter) {
         currentCategoryFilter = null;
         updateCategoryActiveStyles();
+      }
+      if (currentTopVotedFilter && currentCountryFilter) {
+        currentCountryFilter = null;
+        updateCountryActiveStyles();
       }
       updateTopVotedButtonStyle();
       applyFilters();
@@ -3923,6 +3996,8 @@ Gruppen verwalten
         if (mobileSearch) mobileSearch.value = '';
         currentCategoryFilter = null;
         updateCategoryActiveStyles();
+        currentCountryFilter = null;
+        updateCountryActiveStyles();
         currentTopVotedFilter = false;
         updateTopVotedButtonStyle();
         window.applyGroupSearch('');
