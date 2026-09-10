@@ -670,45 +670,68 @@
 </main>
 <!-- INTERACTIVE MODAL 1: JOIN & VOTE GROUP (TRIGGERED BY CLICKING ANY GROUP CARD) -->
 <div class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto" id="join-modal">
-<div class="bg-white rounded-2xl max-w-md w-full p-5 sm:p-6 shadow-2xl flex flex-col gap-4 relative animate-in fade-in zoom-in-95 duration-150 my-auto max-h-[92vh] overflow-y-auto custom-scroll">
-<button class="absolute top-4 right-4 p-1 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500" id="modal-close-btn">
+<div class="bg-white rounded-2xl max-w-md w-full shadow-2xl flex flex-col relative animate-in fade-in zoom-in-95 duration-150 my-auto max-h-[92vh] overflow-y-auto custom-scroll">
+<!-- Kopfbereich mit Farbverlauf -->
+<div class="relative bg-gradient-to-br from-[#0d5c46] to-[#00a884] rounded-t-2xl px-5 sm:px-6 pt-5 pb-8">
+<button class="absolute top-4 right-4 w-7 h-7 rounded-full bg-white/15 hover:bg-white/25 text-white flex items-center justify-center transition-colors" id="modal-close-btn">
 <span class="material-symbols-outlined text-[18px]">close</span>
 </button>
-<div class="flex items-center gap-3 pt-1">
-<div class="w-12 h-12 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+<div class="flex items-center gap-3 pr-8">
+<div class="w-12 h-12 rounded-full bg-white/15 border border-white/25 text-emerald-200 flex items-center justify-center shrink-0 shadow-inner">
 <span class="material-symbols-outlined text-[26px]">forum</span>
 </div>
-<div class="flex flex-col pr-6">
-<span class="text-[11px] uppercase tracking-wider font-semibold text-emerald-600" id="modal-group-cat">Adult</span>
-<h3 class="font-bold text-slate-900 text-base leading-tight" id="modal-group-title">Gruppe Beitreten</h3>
+<div class="flex flex-col min-w-0">
+<span class="text-[11px] uppercase tracking-wider font-bold text-emerald-100" id="modal-group-cat">Adult</span>
+<h3 class="font-bold text-white text-base leading-tight truncate" id="modal-group-title">Gruppe Beitreten</h3>
 </div>
 </div>
-<p class="text-xs text-slate-600 bg-slate-50 p-3 rounded-lg border border-slate-100" id="modal-group-desc">
-        Du wirst nun direkt zur offiziellen WhatsApp-Einladungsseite weitergeleitet.
-      </p>
-<div class="flex items-center justify-between p-3 rounded-lg bg-emerald-50/70 border border-emerald-200/60">
+</div>
+<!-- Inhalt -->
+<div class="flex flex-col gap-4 p-5 sm:p-6 -mt-4">
+<div class="bg-white rounded-xl shadow-sm border border-slate-100 p-3">
+<p class="text-xs text-slate-600 leading-relaxed" id="modal-group-desc">
+          Du wirst nun direkt zur offiziellen WhatsApp-Einladungsseite weitergeleitet.
+        </p>
+</div>
+<div class="flex items-center justify-between px-3.5 py-2.5 rounded-lg bg-emerald-50/70 border border-emerald-200/60">
 <div class="flex items-center gap-1.5 text-xs text-emerald-900 font-medium">
 <span class="text-amber-500">★</span>
 <span class="">Community Bewertung:</span>
 </div>
 <span class="font-bold text-sm text-emerald-800" id="modal-votes-count">406 Stimmen</span>
 </div>
-<div class="flex flex-col gap-2 pt-2">
-<a class="w-full py-2.5 rounded-lg bg-[#25d366] hover:bg-[#20bd5a] text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-xs transition-colors" href="https://chat.whatsapp.com/invite/groupio-demo" id="modal-whatsapp-link" rel="noopener noreferrer" target="_blank">
+<!-- QR-Code zum Scannen -->
+<div class="flex items-center gap-4 p-3.5 rounded-xl border border-slate-200 bg-slate-50/60">
+<div class="w-[92px] h-[92px] shrink-0 rounded-lg bg-white border border-slate-200 shadow-sm flex items-center justify-center overflow-hidden p-1">
+<img alt="QR-Code zum Beitreten" class="w-full h-full object-contain" id="modal-qr-img" src="">
+</div>
+<div class="flex flex-col gap-0.5 min-w-0">
+<span class="text-xs font-bold text-slate-800">📱 Mit Handy scannen</span>
+<span class="text-[11px] text-slate-500 leading-snug">Öffne die Kamera-App und scanne den QR-Code, um der Gruppe direkt über WhatsApp beizutreten.</span>
+</div>
+</div>
+<div class="flex flex-col gap-2">
+<a class="w-full py-2.5 rounded-lg bg-[#25d366] hover:bg-[#20bd5a] text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-sm transition-colors" href="https://chat.whatsapp.com/invite/groupio-demo" id="modal-whatsapp-link" rel="noopener noreferrer" target="_blank">
 <span class="material-symbols-outlined text-[18px]">chat</span>
-<span class="">💬 Gruppe beitreten (WhatsApp)</span>
+<span class="">Gruppe beitreten (WhatsApp)</span>
 </a>
 <button class="w-full py-2 rounded-lg bg-white border border-slate-300 hover:bg-slate-50 text-slate-800 font-semibold text-xs flex items-center justify-center gap-1.5 transition-colors" id="modal-upvote-btn">
 <span class="text-amber-500 font-bold">★</span>
-<span class="">⭐ Für Gruppe abstimmen (+1 Vote)</span>
+<span class="">Für Gruppe abstimmen (+1 Vote)</span>
 </button>
 </div>
-<div class="pt-2 border-t border-slate-100 flex items-center justify-between gap-2 flex-wrap text-xs text-slate-500">
-<button class="text-emerald-700 hover:underline font-medium flex items-center gap-1" id="modal-creator-btn">
-<span class="material-symbols-outlined text-[14px]">account_circle</span>
-<span id="modal-creator-label">Ersteller — Profil ansehen</span>
+<div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-2 flex-wrap">
+<button class="group flex items-center gap-2 text-left hover:bg-slate-50 rounded-lg px-1.5 py-1 -ml-1.5 transition-colors" id="modal-creator-btn">
+<span class="w-7 h-7 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[16px]">account_circle</span>
+</span>
+<span class="flex flex-col leading-tight">
+<span class="text-[10px] text-slate-400">Erstellt von</span>
+<span class="text-xs font-semibold text-emerald-700 group-hover:underline" id="modal-creator-label">Ersteller — Profil ansehen</span>
+</span>
 </button>
 <span class="text-[11px] text-red-600 font-bold shrink-0">Ab 18+ Verifiziert</span>
+</div>
 </div>
 </div>
 </div>
@@ -2551,6 +2574,7 @@ Gruppen verwalten
     const mJoinLink = document.getElementById('modal-whatsapp-link');
     const mCreatorBtn = document.getElementById('modal-creator-btn');
     const mCreatorLabel = document.getElementById('modal-creator-label');
+    const mQrImg = document.getElementById('modal-qr-img');
 
     let currentCardId = null;
     let currentVotes = 0;
@@ -2591,6 +2615,11 @@ Gruppen verwalten
         mDesc.textContent = desc;
         mVotes.textContent = votes + ' Stimmen';
         mJoinLink.href = link;
+
+        if (mQrImg) {
+          mQrImg.src = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&margin=0&color=0d5c46&data=' + encodeURIComponent(link);
+          mQrImg.alt = 'QR-Code für ' + title;
+        }
 
         if (mCreatorBtn && mCreatorLabel) {
           const isGuest = !submittedBy || submittedBy.toLowerCase().startsWith('gast-');
