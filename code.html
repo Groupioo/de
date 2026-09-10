@@ -1,0 +1,1772 @@
+<!DOCTYPE html><html lang="de"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Groupio - Deutsche Adult WhatsApp Gruppen 2026</title>
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Plus+Jakarta+Sans:wght@600;700;800&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "groupio-dark": "#0a523e",
+            "groupio-banner": "#0d5c46",
+            "groupio-accent": "#00a884",
+            "groupio-btn": "#25d366",
+            "primary": "#006b53",
+            "primary-container": "#00a884",
+            "surface-dim": "#d2d9f4",
+            "tertiary": "#006d2f",
+            "on-primary": "#ffffff",
+            "surface-container-low": "#f8fafc",
+            "surface-container-lowest": "#ffffff",
+            "surface-container": "#f1f5f9",
+            "surface-container-high": "#e2e8f0",
+            "on-surface": "#0f172a",
+            "on-surface-variant": "#475569",
+            "outline": "#94a3b8",
+            "outline-variant": "#cbd5e1",
+            "error-container": "#fee2e2",
+            "on-error-container": "#991b1b"
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            display: ['Plus Jakarta Sans', 'sans-serif']
+          }
+        }
+      }
+    };
+  </script>
+<style>
+    @layer base {
+      html, body { margin: 0; padding: 0; }
+      body { background-color: #f1f5f9; color: #0f172a; font-family: 'Inter', sans-serif; }
+    }
+    .custom-scroll::-webkit-scrollbar { height: 4px; }
+    .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+  </style>
+</head>
+<body class="bg-[#f2f5f7] min-h-screen flex flex-col font-sans antialiased text-slate-800 selection:bg-emerald-200">
+<!-- 1. AUTHENTIC GROUPIO HEADER & TOP NAVIGATION -->
+<header class="w-full bg-[#0d5c46] text-white shadow-md sticky top-0 z-40">
+<div class="max-w-[1240px] mx-auto px-3 sm:px-6 h-16 flex items-center justify-between gap-2 sm:gap-3">
+<!-- Logo -->
+<a class="flex items-center gap-2 text-white font-bold text-xl sm:text-2xl tracking-tight shrink-0 font-display" href="#" id="main-logo-link">
+<span class="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center text-emerald-300 font-bold border border-white/15 shadow-inner shrink-0">
+<span class="material-symbols-outlined text-[24px]">forum</span>
+</span>
+<span class="">Groupio</span>
+</a>
+<!-- Search Input in Header (versteckt auf Mobile, ersetzt durch Such-Icon) -->
+<div class="hidden sm:flex flex-1 max-w-xl mx-2 sm:mx-6">
+<div class="relative w-full flex items-center">
+<input class="w-full bg-white text-slate-800 placeholder-slate-400 pl-4 pr-10 py-1.5 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 shadow-sm transition-all" id="header-search" placeholder="Suche nach Gruppen..." type="text">
+<button class="absolute right-1 w-7 h-7 bg-emerald-700 hover:bg-emerald-800 text-white rounded-full flex items-center justify-center transition-colors" id="header-search-btn" title="Suchen">
+<span class="material-symbols-outlined text-[16px]">search</span>
+</button>
+</div>
+</div>
+<!-- Right Action Buttons -->
+<div class="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
+<!-- Mobile search toggle (nur auf Mobile sichtbar) -->
+<button class="sm:hidden w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 text-white flex items-center justify-center transition-all cursor-pointer shrink-0" id="mobile-search-toggle" title="Suche" onclick="toggleMobileSearch()">
+<span class="material-symbols-outlined text-[18px]">search</span>
+</button>
+<button class="inline-flex items-center gap-0 sm:gap-1.5 w-9 h-9 sm:w-auto sm:h-auto px-0 sm:px-3.5 py-0 sm:py-1.5 justify-center bg-[#00a884] hover:bg-[#008f70] text-white text-xs font-semibold rounded-full shadow-sm transition-all cursor-pointer shrink-0" id="add-group-top" onclick="openAddGroupModal()" title="Gruppe eintragen">
+<span class="material-symbols-outlined text-[18px] sm:text-[16px]">add</span>
+<span class="hidden sm:inline">Gruppe eintragen</span>
+</button>
+<!-- Admin quick-access (nur sichtbar wenn als Administrator angemeldet) -->
+<button class="hidden relative items-center gap-0 sm:gap-1.5 w-9 h-9 sm:w-auto sm:h-auto px-0 sm:px-3 py-0 sm:py-1.5 justify-center bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold rounded-full shadow-sm transition-all cursor-pointer shrink-0" id="admin-panel-btn" onclick="openAdminPanel()" title="Admin-Panel">
+<span class="material-symbols-outlined text-[18px] sm:text-[15px]">shield_person</span>
+<span class="hidden sm:inline">Admin-Panel</span>
+<span class="hidden absolute -top-1 -right-1 sm:static sm:ml-0.5 min-w-[16px] h-4 px-1 rounded-full bg-white text-amber-600 text-[10px] font-bold items-center justify-center" id="admin-pending-badge">0</span>
+</button>
+<!-- User Profile Pill / Login trigger (Gast-Zustand) -->
+<button class="flex items-center gap-0 sm:gap-1.5 w-9 h-9 sm:w-auto sm:h-auto px-0 sm:px-3 py-0 sm:py-1.5 justify-center bg-sky-500 hover:bg-sky-600 text-white text-xs font-semibold rounded-full shadow-sm transition-all cursor-pointer shrink-0" id="user-profile-btn" onclick="openAuthModal('login')" title="Login">
+<span class="material-symbols-outlined text-[18px] sm:text-[15px]">person</span>
+<span class="hidden sm:inline">Login</span>
+</button>
+<!-- Profil-Pille (angemeldeter Zustand, standardmäßig versteckt) -->
+<button class="hidden items-center gap-0 sm:gap-2 w-9 h-9 sm:w-auto sm:h-auto pl-0 sm:pl-1.5 pr-0 sm:pr-3 py-0 sm:py-1 justify-center bg-white/10 hover:bg-white/20 border border-white/20 text-white text-xs font-semibold rounded-full shadow-sm transition-all cursor-pointer shrink-0" id="logged-in-pill" onclick="openProfilePage()" title="Profil">
+<span class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center overflow-hidden shrink-0">
+<span class="material-symbols-outlined text-[15px]">person</span>
+</span>
+<span class="hidden sm:inline" id="logged-in-name">Benutzer</span>
+</button>
+</div>
+</div>
+<!-- Mobile Search Row (nur auf Mobile, per Icon umschaltbar) -->
+<div class="sm:hidden hidden px-3 pb-3" id="mobile-search-row">
+<div class="relative w-full flex items-center">
+<input class="w-full bg-white text-slate-800 placeholder-slate-400 pl-4 pr-10 py-2 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 shadow-sm transition-all" id="header-search-mobile" placeholder="Suche nach Gruppen..." type="text">
+<button class="absolute right-1 w-7 h-7 bg-emerald-700 hover:bg-emerald-800 text-white rounded-full flex items-center justify-center transition-colors" id="header-search-mobile-btn" title="Suchen">
+<span class="material-symbols-outlined text-[16px]">search</span>
+</button>
+</div>
+</div>
+</header>
+
+<!-- MODAL: NEUE GRUPPE HINZUFÜGEN / EINTRAGEN -->
+<div class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto" id="add-group-modal">
+  <div class="bg-white rounded-2xl max-w-xl w-full p-5 sm:p-7 shadow-2xl flex flex-col gap-4 relative animate-in fade-in zoom-in-95 duration-150 my-auto max-h-[92vh] overflow-y-auto custom-scroll">
+    <!-- Close Button -->
+    <button class="absolute top-4 right-4 p-1.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 transition-colors" id="add-group-close" onclick="closeAddGroupModal()" title="Schließen">
+      <span class="material-symbols-outlined text-[20px] block">close</span>
+    </button>
+
+    <!-- Modal Header -->
+    <div class="flex items-center gap-3 pt-1 border-b border-slate-100 pb-3.5">
+      <div class="w-11 h-11 rounded-xl bg-[#00a884]/15 text-[#006b53] flex items-center justify-center shrink-0 border border-[#00a884]/30">
+        <span class="material-symbols-outlined text-[24px]">group_add</span>
+      </div>
+      <div class="flex flex-col">
+        <h2 class="font-bold text-slate-900 text-lg leading-tight font-display">WhatsApp Gruppe hinzufügen</h2>
+        <span class="text-xs text-slate-500">Erreiche tausende aktive Mitglieder auf Groupio</span>
+      </div>
+    </div>
+
+    <!-- Alert / Feedback Box -->
+    <div class="hidden p-3.5 rounded-xl text-xs font-medium" id="add-group-feedback"></div>
+
+    <!-- Group Form -->
+    <form class="flex flex-col gap-3.5" id="new-group-form" onsubmit="handleAddGroupSubmit(event)">
+      <!-- 1. Gruppen Link -->
+      <div class="flex flex-col gap-1">
+        <label class="text-xs font-semibold text-slate-700" for="group-link-input">Gruppen Link <span class="text-red-500">*</span></label>
+        <div class="relative flex items-center">
+          <span class="absolute left-3 text-slate-400 material-symbols-outlined text-[18px]">link</span>
+          <input class="w-full bg-slate-50 border border-slate-200 text-slate-800 placeholder-slate-400 pl-9 pr-3 py-2.5 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:bg-white transition-all" id="group-link-input" name="link" placeholder="Gruppen Link" required="" type="url">
+        </div>
+
+        <!-- Gruppenbild-Vorschau (wird automatisch anhand des Links geladen) -->
+        <div class="flex items-center gap-3 mt-1.5 p-2 rounded-lg bg-slate-50 border border-slate-200" id="group-image-preview">
+          <div class="relative w-12 h-12 rounded-full overflow-hidden bg-white border border-slate-200 shrink-0 flex items-center justify-center">
+            <img alt="Gruppenbild Vorschau" class="w-full h-full object-cover hidden" id="group-image-preview-img" src="">
+            <span class="material-symbols-outlined text-slate-300 text-[24px]" id="group-image-preview-placeholder">groups</span>
+            <div class="absolute inset-0 bg-white/70 items-center justify-center hidden" id="group-image-preview-spinner">
+              <span class="w-4 h-4 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin block"></span>
+            </div>
+          </div>
+          <p class="text-[11px] text-slate-400 leading-snug" id="group-image-preview-status">Gib einen WhatsApp-Gruppenlink ein, um die Vorschau zu laden.</p>
+        </div>
+      </div>
+
+      <!-- 2. Kategorie -->
+      <div class="flex flex-col gap-1">
+        <label class="text-xs font-semibold text-slate-700" for="group-cat-select">Kategorie <span class="text-red-500">*</span></label>
+        <div class="relative flex items-center">
+          <span class="absolute left-3 text-slate-400 material-symbols-outlined text-[18px]">category</span>
+          <select class="w-full bg-slate-50 border border-slate-200 text-slate-800 pl-9 pr-8 py-2.5 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:bg-white transition-all appearance-none cursor-pointer" id="group-cat-select" name="category" required="">
+            <option value="" disabled="" selected="">Kategorie wählen</option>
+            <option value="Adult">Adult (18+)</option>
+            <option value="Gaming">Gaming</option>
+            <option value="Fan Gruppen">Fan Gruppen</option>
+            <option value="Flohmarkt">Flohmarkt</option>
+            <option value="Musik">Musik</option>
+            <option value="Selbsthilfe">Selbsthilfe</option>
+            <option value="Serien &amp; Filme">Serien &amp; Filme</option>
+            <option value="Freundschaft">Freundschaft</option>
+            <option value="Finanzen">Finanzen</option>
+            <option value="Anime &amp; Manga">Anime &amp; Manga</option>
+            <option value="Allgemein">Allgemein</option>
+          </select>
+          <span class="absolute right-2.5 pointer-events-none text-slate-400 material-symbols-outlined text-[18px]">expand_more</span>
+        </div>
+      </div>
+
+      <!-- 3. Beschreibung zur Gruppe -->
+      <div class="flex flex-col gap-1">
+        <label class="text-xs font-semibold text-slate-700" for="group-desc-input">Beschreibung zur Gruppe <span class="text-red-500">*</span></label>
+        <div class="relative">
+          <textarea class="w-full bg-slate-50 border border-slate-200 text-slate-800 placeholder-slate-400 pl-3 pr-10 py-2.5 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:bg-white transition-all resize-none" id="group-desc-input" name="description" placeholder="Beschreibung zur Gruppe" required="" rows="3"></textarea>
+          <button type="button" class="absolute right-2.5 top-2.5 text-lg leading-none hover:scale-110 transition-transform" onclick="insertDescEmoji('😊')" title="Emoji einfügen">😊</button>
+        </div>
+      </div>
+
+      <!-- 4. Hashtags -->
+      <div class="flex flex-col gap-1">
+        <label class="text-xs font-semibold text-slate-700" for="group-tags-input">Hashtags #</label>
+        <div class="relative flex items-center">
+          <span class="absolute left-3 text-slate-400 material-symbols-outlined text-[18px]">tag</span>
+          <input class="w-full bg-slate-50 border border-slate-200 text-slate-800 placeholder-slate-400 pl-9 pr-3 py-2.5 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:bg-white transition-all" id="group-tags-input" name="tags" placeholder="Hashtags hinzufügen" type="text">
+        </div>
+      </div>
+
+      <!-- 5. Row: Alter ab / Alter bis -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div class="flex flex-col gap-1">
+          <label class="text-xs font-semibold text-slate-700" for="group-age-from-select">Alter ab</label>
+          <div class="relative flex items-center">
+            <select class="w-full bg-slate-50 border border-slate-200 text-slate-800 pl-3 pr-8 py-2.5 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:bg-white transition-all appearance-none cursor-pointer" id="group-age-from-select" name="age_from">
+              <option value="">Alter ab (egal)</option>
+              <option value="13">13</option>
+              <option value="16">16</option>
+              <option value="18">18</option>
+              <option value="21">21</option>
+              <option value="25">25</option>
+            </select>
+            <span class="absolute right-2.5 pointer-events-none text-slate-400 material-symbols-outlined text-[18px]">expand_more</span>
+          </div>
+        </div>
+        <div class="flex flex-col gap-1">
+          <label class="text-xs font-semibold text-slate-700" for="group-age-to-select">Alter bis</label>
+          <div class="relative flex items-center">
+            <select class="w-full bg-slate-50 border border-slate-200 text-slate-800 pl-3 pr-8 py-2.5 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:bg-white transition-all appearance-none cursor-pointer" id="group-age-to-select" name="age_to">
+              <option value="">Alter bis (egal)</option>
+              <option value="25">25</option>
+              <option value="30">30</option>
+              <option value="40">40</option>
+              <option value="50">50</option>
+              <option value="99">99+</option>
+            </select>
+            <span class="absolute right-2.5 pointer-events-none text-slate-400 material-symbols-outlined text-[18px]">expand_more</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 6. Land -->
+      <div class="flex flex-col gap-1">
+        <label class="text-xs font-semibold text-slate-700" for="group-lang-select">Land</label>
+        <div class="relative flex items-center">
+          <span class="absolute left-3 text-slate-400 material-symbols-outlined text-[18px]">public</span>
+          <select class="w-full bg-slate-50 border border-slate-200 text-slate-800 pl-9 pr-8 py-2.5 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:bg-white transition-all appearance-none cursor-pointer" id="group-lang-select" name="language">
+            <option value="de">🇩🇪 Deutschland</option>
+            <option value="ch">🇨🇭 Schweiz</option>
+            <option value="at">🇦🇹 Österreich</option>
+            <option value="us">🇺🇸 USA</option>
+          </select>
+          <span class="absolute right-2.5 pointer-events-none text-slate-400 material-symbols-outlined text-[18px]">expand_more</span>
+        </div>
+      </div>
+
+      <!-- Hint -->
+      <p class="text-[11px] text-slate-500 pt-1">
+        Hinweis: Die Gruppe wird nur gelistet, wenn ein Gruppenbild vorhanden ist.
+      </p>
+
+      <!-- Action Buttons -->
+      <div class="flex items-center justify-end gap-2.5 pt-2 border-t border-slate-100">
+        <button type="button" class="px-4 py-2.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-600 font-semibold text-xs sm:text-sm transition-colors" onclick="closeAddGroupModal()">
+          Abbrechen
+        </button>
+        <button type="submit" class="px-6 py-2.5 rounded-lg bg-[#25d366] hover:bg-[#1fb959] text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-sm transition-all" id="submit-group-btn">
+          <span class="material-symbols-outlined text-[18px]">publish</span>
+          <span>Gruppe eintragen</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- AUTH MODAL: LOGIN / REGISTRIEREN -->
+<div class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto" id="auth-modal">
+  <div class="bg-white rounded-2xl max-w-md w-full p-5 sm:p-7 shadow-2xl flex flex-col gap-4 relative animate-in fade-in zoom-in-95 duration-150 my-auto max-h-[92vh] overflow-y-auto custom-scroll">
+    <!-- Close Button -->
+    <button class="absolute top-4 right-4 p-1.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 transition-colors" id="auth-modal-close" title="Schließen">
+      <span class="material-symbols-outlined text-[20px] block">close</span>
+    </button>
+
+    <!-- Header & Brand -->
+    <div class="flex items-center gap-3 pt-1">
+      <div class="w-11 h-11 rounded-xl bg-[#00a884]/15 text-[#006b53] flex items-center justify-center shrink-0 border border-[#00a884]/30">
+        <span class="material-symbols-outlined text-[24px]">person</span>
+      </div>
+      <div class="flex flex-col">
+        <h2 class="font-bold text-slate-900 text-lg leading-tight font-display" id="auth-modal-title">Willkommen bei Groupio</h2>
+        <span class="text-xs text-slate-500">Community-Zugang verwalten</span>
+      </div>
+    </div>
+
+    <!-- Tabs Switcher -->
+    <div class="flex items-center p-1 bg-slate-100 rounded-xl mt-1">
+      <button type="button" class="flex-1 py-1.5 px-3 text-xs font-semibold rounded-lg transition-all bg-white text-[#006b53] shadow-xs" id="tab-login-btn" onclick="switchAuthTab('login')">
+        Anmelden
+      </button>
+      <button type="button" class="flex-1 py-1.5 px-3 text-xs font-semibold rounded-lg transition-all text-slate-500 hover:text-slate-800" id="tab-register-btn" onclick="switchAuthTab('register')">
+        Registrieren
+      </button>
+    </div>
+
+    <!-- Alert Feedback Message -->
+    <div class="hidden p-3 rounded-lg text-xs font-medium" id="auth-feedback-msg"></div>
+
+    <!-- FORM 1: LOGIN -->
+    <form class="flex flex-col gap-3.5" id="login-form" onsubmit="handleAuthSubmit(event, 'login')">
+      <div class="flex flex-col gap-1">
+        <label class="text-xs font-semibold text-slate-700" for="login-username">Benutzername</label>
+        <div class="relative flex items-center">
+          <span class="absolute left-3 text-slate-400 material-symbols-outlined text-[18px]">person_outline</span>
+          <input class="w-full bg-slate-50 border border-slate-200 text-slate-800 placeholder-slate-400 pl-9 pr-3 py-2 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:bg-white transition-all" id="login-username" name="username" placeholder="Benutzername eingeben" required="" type="text">
+        </div>
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <div class="flex items-center justify-between">
+          <label class="text-xs font-semibold text-slate-700" for="login-password">Passwort</label>
+        </div>
+        <div class="relative flex items-center">
+          <span class="absolute left-3 text-slate-400 material-symbols-outlined text-[18px]">lock</span>
+          <input class="w-full bg-slate-50 border border-slate-200 text-slate-800 placeholder-slate-400 pl-9 pr-3 py-2 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:bg-white transition-all" id="login-password" name="password" placeholder="••••••••" required="" type="password">
+        </div>
+      </div>
+
+      <button class="w-full mt-1 py-2.5 rounded-lg bg-[#00a884] hover:bg-[#008f70] text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-xs transition-colors" type="submit">
+        <span class="material-symbols-outlined text-[18px]">login</span>
+        <span class="">Anmelden</span>
+      </button>
+
+      <div class="text-center pt-2 text-xs text-slate-500">
+        <span class="">Noch kein Konto? </span>
+        <button type="button" class="text-[#006b53] font-semibold hover:underline" onclick="switchAuthTab('register')">Jetzt registrieren</button>
+      </div>
+    </form>
+
+    <!-- FORM 2: REGISTER -->
+    <form class="flex flex-col gap-3.5 hidden" id="register-form" onsubmit="handleAuthSubmit(event, 'register')">
+      <div class="flex flex-col gap-1">
+        <label class="text-xs font-semibold text-slate-700" for="reg-username">Benutzername</label>
+        <div class="relative flex items-center">
+          <span class="absolute left-3 text-slate-400 material-symbols-outlined text-[18px]">person_outline</span>
+          <input class="w-full bg-slate-50 border border-slate-200 text-slate-800 placeholder-slate-400 pl-9 pr-3 py-2 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:bg-white transition-all" id="reg-username" name="username" placeholder="Wähle einen Benutzernamen" required="" type="text">
+        </div>
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <label class="text-xs font-semibold text-slate-700" for="reg-password">Passwort</label>
+        <div class="relative flex items-center">
+          <span class="absolute left-3 text-slate-400 material-symbols-outlined text-[18px]">lock</span>
+          <input class="w-full bg-slate-50 border border-slate-200 text-slate-800 placeholder-slate-400 pl-9 pr-3 py-2 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:bg-white transition-all" id="reg-password" name="password" placeholder="Mindestens 6 Zeichen" required="" type="password">
+        </div>
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <label class="text-xs font-semibold text-slate-700" for="reg-password-confirm">Passwort bestätigen</label>
+        <div class="relative flex items-center">
+          <span class="absolute left-3 text-slate-400 material-symbols-outlined text-[18px]">verified_user</span>
+          <input class="w-full bg-slate-50 border border-slate-200 text-slate-800 placeholder-slate-400 pl-9 pr-3 py-2 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:bg-white transition-all" id="reg-password-confirm" name="confirm_password" placeholder="Passwort wiederholen" required="" type="password">
+        </div>
+      </div>
+
+      <button class="w-full mt-1 py-2.5 rounded-lg bg-[#00a884] hover:bg-[#008f70] text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-xs transition-colors" type="submit">
+        <span class="material-symbols-outlined text-[18px]">person_add</span>
+        <span class="">Konto erstellen</span>
+      </button>
+
+      <div class="text-center pt-2 text-xs text-slate-500">
+        <span class="">Bereits registriert? </span>
+        <button type="button" class="text-[#006b53] font-semibold hover:underline" onclick="switchAuthTab('login')">Hier anmelden</button>
+      </div>
+    </form>
+  </div>
+</div>
+<!-- MAIN CONTENT WRAPPER -->
+<main class="w-full max-w-[1240px] mx-auto px-3 sm:px-6 py-5 flex-1 flex flex-col gap-5">
+<!-- 2. CATEGORY ICONS BAR (Horizontal rounded circles matching screenshot IMAGE_18) -->
+<div class="bg-white rounded-xl shadow-xs border border-slate-200/80 p-3 sm:p-4">
+<div class="flex items-center justify-between gap-4 mb-2">
+<span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Kategorien</span>
+<div class="flex items-center gap-2">
+<span class="text-xs text-slate-400 font-medium">Ansicht:</span>
+<div class="inline-flex rounded-lg border border-slate-200 p-0.5 bg-slate-50 text-slate-600">
+<button class="p-1 rounded bg-[#00a884] text-white shadow-xs" id="grid-mode-btn" title="Rasteransicht">
+<span class="material-symbols-outlined text-[16px] block">grid_view</span>
+</button>
+<button class="p-1 rounded text-slate-500 hover:text-slate-800" id="list-mode-btn" title="Listenansicht">
+<span class="material-symbols-outlined text-[16px] block">view_list</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Categories Scroll Row -->
+<div class="flex items-start justify-center gap-4 sm:gap-6 overflow-x-auto custom-scroll pb-2 pt-1 text-center">
+<!-- Allgemein -->
+<a class="group flex flex-col items-center gap-1.5 shrink-0 w-16" href="#">
+<div class="w-12 h-12 rounded-full overflow-hidden border-2 border-slate-200 group-hover:border-emerald-500 transition-all shadow-xs bg-slate-100 flex items-center justify-center">
+<img alt="Allgemein" class="w-full h-full object-cover group-hover:scale-105 transition-transform" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC6r7EDsr5JOe5srgRdG2bg6dlRXxQSNjR1xPiw-Vsa4Ox6XOjSQWn8WGGX23F1Ll1q5mcTjt5RE3Fwhp61vhQQu-60GJpmD8qycUgOrb6xonMWDeR6G2kovhcptPDUz6f58MTGklkTX-f_6m4tk_DqHX7Ke63VQG6phv0G2WmzazEJ_Na0rBkMg9SRf7YGNiwKDCbNFgX9gp2T43Uqe69vCCgkaY1noLtPDeu7mGLxlmXmB17ACFHW">
+</div>
+<span class="text-[11px] font-medium text-slate-600 group-hover:text-emerald-700 leading-tight">Allgemein</span>
+</a>
+<!-- Gaming -->
+<a class="group flex flex-col items-center gap-1.5 shrink-0 w-16" href="#">
+<div class="w-12 h-12 rounded-full overflow-hidden border-2 border-slate-200 group-hover:border-emerald-500 transition-all shadow-xs bg-slate-100 flex items-center justify-center">
+<img alt="Gaming" class="w-full h-full object-cover group-hover:scale-105 transition-transform" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCFu4Ujm1EMOH7GFepfK0GOEJXk2TnDmPU33yOrAsIHOt0jo3QENWf-fTSSNrJmo7w-GCcVgkhJWsT8i_6ERQ1EhCZixM6F9QXFq6zoPZCLs5dOvl8wQPu5ULluri-hAmW-zpnBMCVI4TZwyC5_7cnnPLfWEw5k0GFuVePTgPCmKUQ9ryHtYutKnbNO7HcTiknSNovc1JEWyl59B0trlNQp3tEZSMvu_hc1ZxWwigHnY3hcjIEqzEw4">
+</div>
+<span class="text-[11px] font-medium text-slate-600 group-hover:text-emerald-700 leading-tight">Gaming</span>
+</a>
+<!-- Fan Gruppen -->
+<a class="group flex flex-col items-center gap-1.5 shrink-0 w-16" href="#">
+<div class="w-12 h-12 rounded-full overflow-hidden border-2 border-slate-200 group-hover:border-emerald-500 transition-all shadow-xs bg-slate-100 flex items-center justify-center">
+<img alt="Fan Gruppen" class="w-full h-full object-cover group-hover:scale-105 transition-transform" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCaRiJw5uGqoXuvIXa_E0jeS1k2ToiCt8yWZJnfHdTIhBVEQtyClisPX2ZuC3bjJ2AbFqlbuL7bEFZ379uKzlIrGkZAQsWz2sakVuzsKdeGdJv7bTi-_FJC9wE0DNuGg0e1A9zhbIwMEdA9k-RqiuctG6k2ox2EbRQn4iMsWPYwu_QNHAPOrzGLP2SoFu7VL9ai2dCewoHwZ0iASopcJGw1XWvQts9wVG0U714-K_WKLm5vNA0uRbq_">
+</div>
+<span class="text-[11px] font-medium text-slate-600 group-hover:text-emerald-700 leading-tight">Fan Gruppen</span>
+</a>
+<!-- Flohmarkt -->
+<a class="group flex flex-col items-center gap-1.5 shrink-0 w-16" href="#">
+<div class="w-12 h-12 rounded-full overflow-hidden border-2 border-slate-200 group-hover:border-emerald-500 transition-all shadow-xs bg-slate-100 flex items-center justify-center">
+<img alt="Flohmarkt" class="w-full h-full object-cover group-hover:scale-105 transition-transform" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAiAGqyQPGczq_12dHEQPDe9U8ilS-bYMFtDJIHFU-6fssVFBquq0bfuTPEljUN-p5E2VpQIPRRb2sU4JBqT2YRcjVM8yydZ8Ryak8XjNPKhwFT0y8SCOR5gLKVf3Wh9FLU4dKTwh6noC0ehZoZaeOwjcrJMM-4itrWhu67bR6-xBh_xUq0OK6BC8wgRlStGCt9FsQEZ-ZMgALGUiypxlyUHvI27shlBdzQv35jSsfgCEFYiJitBn1R">
+</div>
+<span class="text-[11px] font-medium text-slate-600 group-hover:text-emerald-700 leading-tight">Flohmarkt</span>
+</a>
+<!-- Musik -->
+<a class="group flex flex-col items-center gap-1.5 shrink-0 w-16" href="#">
+<div class="w-12 h-12 rounded-full overflow-hidden border-2 border-slate-200 group-hover:border-emerald-500 transition-all shadow-xs bg-slate-100 flex items-center justify-center">
+<img alt="Musik" class="w-full h-full object-cover group-hover:scale-105 transition-transform" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB_gANC0qzqSkIl28UWTiIdhlRpXeDNBvf6PRTNgleTBh6HUPUVtWtJaxHAu2b_08vkWY4xxiAB9zZMzXgbMiWHzCgtUmU-DlWOxaFQO0CoCafu1Pv0TgJwk9F3g5QmiqOBEPkvjWR8f1E3A10h1pUJpUYnK9I0PW5_kVW_-ZfLaL0sUqDhxK42s8hK1hdSSbbTI_k7qD-zidwxlkA3rWlpIplQhbCoG6_NJq6jOwNaUEQVW8S-YkS9">
+</div>
+<span class="text-[11px] font-medium text-slate-600 group-hover:text-emerald-700 leading-tight">Musik</span>
+</a>
+<!-- Selbsthilfe -->
+<a class="group flex flex-col items-center gap-1.5 shrink-0 w-16" href="#">
+<div class="w-12 h-12 rounded-full overflow-hidden border-2 border-slate-200 group-hover:border-emerald-500 transition-all shadow-xs bg-slate-100 flex items-center justify-center">
+<img alt="Selbsthilfe" class="w-full h-full object-cover group-hover:scale-105 transition-transform" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCFvUr70sZamMdRhGjZ556wmQwJPSTMgB5PrOzKxYqp7ymchdPftWFnu8wo9EuhgNpFLRsimJX-XUnY3FGFFnAedyUd8lCqQUcLzUAD0Xuj4iABdfeZmSTqbQJEVG3mYbk0LA9y_9av5_-jEvwtinYeiNLAtdSEiheHMcmjtxjV6XgLEW8nqtsTFih8D2M9d-S2R98R42MghK32GMUy5jlqTEffXDKWEgxNSq6-IMTOnVvytT3g8gdz">
+</div>
+<span class="text-[11px] font-medium text-slate-600 group-hover:text-emerald-700 leading-tight">Selbsthilfe</span>
+</a>
+<!-- Serien & Filme -->
+<a class="group flex flex-col items-center gap-1.5 shrink-0 w-16" href="#">
+<div class="w-12 h-12 rounded-full overflow-hidden border-2 border-slate-200 group-hover:border-emerald-500 transition-all shadow-xs bg-black text-white flex items-center justify-center font-bold text-[10px]">
+            NETFLIX
+          </div>
+<span class="text-[11px] font-medium text-slate-600 group-hover:text-emerald-700 leading-tight">Serien &amp; Filme</span>
+</a>
+<!-- Freundschaft -->
+<a class="group flex flex-col items-center gap-1.5 shrink-0 w-16" href="#">
+<div class="w-12 h-12 rounded-full overflow-hidden border-2 border-slate-200 group-hover:border-emerald-500 transition-all shadow-xs bg-slate-100 flex items-center justify-center">
+<img alt="Freundschaft" class="w-full h-full object-cover group-hover:scale-105 transition-transform" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCrf6YwILNm-yErgxqWjQUg_T1sS5Ix4N2eNdsAPD71Tc5rwikZ9fHphLPznjHKJNIE5OllCwKB3s-rPLOIReF7FoMt5HZcE0a8_Wr0ZNn1zORyi_c0XhxNOdn8SNruxT2O42azdQdF4WMAHfrqCgbrW13FFHRXnBJ7oTMUxqjEQf6kQAqANbhn_4eOraPZe5hyyVlt001Dw6Ai8cia7sc0jWweOcAVx8Yz7BaIj2bVVaHhBsNxAaiR">
+</div>
+<span class="text-[11px] font-medium text-slate-600 group-hover:text-emerald-700 leading-tight">Freundschaft</span>
+</a>
+<!-- Adult (Active selected in reference) -->
+<a class="group flex flex-col items-center gap-1.5 shrink-0 w-16" href="#">
+<div class="w-12 h-12 rounded-full overflow-hidden border-2 border-red-500 ring-2 ring-red-400/40 bg-red-600 text-white font-extrabold text-sm flex items-center justify-center shadow-xs">
+            18+
+          </div>
+<span class="text-[11px] font-bold text-red-600 leading-tight">Adult</span>
+</a>
+<!-- Finanzen -->
+<a class="group flex flex-col items-center gap-1.5 shrink-0 w-16" href="#">
+<div class="w-12 h-12 rounded-full overflow-hidden border-2 border-slate-200 group-hover:border-emerald-500 transition-all shadow-xs bg-amber-500 text-white flex items-center justify-center">
+<span class="material-symbols-outlined text-[20px]">currency_bitcoin</span>
+</div>
+<span class="text-[11px] font-medium text-slate-600 group-hover:text-emerald-700 leading-tight">Finanzen</span>
+</a>
+<!-- Anime & Manga -->
+<a class="group flex flex-col items-center gap-1.5 shrink-0 w-16" href="#">
+<div class="w-12 h-12 rounded-full overflow-hidden border-2 border-slate-200 group-hover:border-emerald-500 transition-all shadow-xs bg-purple-100 flex items-center justify-center">
+<img alt="Anime" class="w-full h-full object-cover group-hover:scale-105 transition-transform" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD8aTVfccAsSLPEnEISGNjoPzOViiPRo9BMEAPxaTnQ0npKu5dTigyWB-r5pSCRBNZJrXW9Da6me-x8gpQHjvUbXm_6hfmupQX1TT7NWPmxDSs5lFaJNMmMSYCksraHtHQLuXR_HW5TCidQwaAfTozrrjUFBI9AmOqji3GHnckyZYrj9eNe6RJFM6xBqUX28HKD8XF59TrdpfkstweGReQzWoguoneKo5gQvBiWT3oxEINK4bXgHp1A">
+</div>
+<span class="text-[11px] font-medium text-slate-600 group-hover:text-emerald-700 leading-tight">Anime &amp; Manga</span>
+</a>
+</div>
+</div>
+<!-- 3. DIRECTORY SUBHEADER -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
+<div class="flex items-center gap-2 flex-wrap">
+<h1 class="text-xl sm:text-2xl font-bold text-slate-900 font-display flex items-center gap-2">
+<span class="">Deutsche Adult WhatsApp Gruppen 2026</span>
+<button class="text-amber-500 hover:text-amber-600 inline-flex items-center" id="rss-btn" title="RSS Feed abonnieren">
+<span class="material-symbols-outlined text-[22px]">rss_feed</span>
+</button>
+</h1>
+</div>
+<!-- Quick stats & info -->
+<div class="flex items-center gap-3 text-xs text-slate-500 w-full sm:w-auto">
+<span class="font-medium bg-white px-2.5 py-1 rounded-full border border-slate-200 shadow-2xs inline-block max-w-full truncate" id="page-summary-top">
+          Página 1 de 2 (12 grupos por página) | Total: 24 Gruppen
+        </span>
+</div>
+</div>
+<!-- 4. GROUP CARDS (Grid 4 cols desktop, 3 cols tablet, 2 cols mobile) -->
+<!-- Wird dynamisch aus Firestore befuellt (siehe Firebase-Skript am Seitenende) -->
+<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3.5 sm:gap-4 transition-all duration-200" id="grid-page-1">
+<div class="col-span-2 md:col-span-3 lg:col-span-4 flex flex-col items-center justify-center gap-2 py-12 text-slate-400" id="groups-loading-state">
+<span class="w-6 h-6 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin block"></span>
+<span class="text-xs">Gruppen werden geladen...</span>
+</div>
+</div>
+<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3.5 sm:gap-4 transition-all duration-200 hidden" id="grid-page-2"></div>
+<!-- Kein Ergebnis Meldung (bei Suche) -->
+<div class="hidden bg-white rounded-xl border border-slate-200/80 p-8 text-center flex-col items-center gap-2" id="no-search-results">
+<span class="material-symbols-outlined text-slate-300 text-[40px]">search_off</span>
+<p class="text-sm font-semibold text-slate-700">Keine Gruppen gefunden</p>
+<p class="text-xs text-slate-400">Versuche einen anderen Suchbegriff.</p>
+</div>
+<!-- 5. PAGINATION CONTROLS -->
+<div class="bg-white rounded-xl border border-slate-200/80 p-3 sm:p-4 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-2xs" id="pagination-bar">
+<div class="flex items-center gap-2 text-xs text-slate-500">
+<span class="material-symbols-outlined text-[18px] text-emerald-600">verified</span>
+<span id="page-summary-bottom" class="">Zeige 1-12 von 24 WhatsApp Gruppen</span>
+</div>
+<nav aria-label="Seiten-Navigation" class="flex items-center gap-1.5">
+<button class="px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed text-xs font-semibold flex items-center gap-1 transition-colors" disabled="" id="btn-prev">
+<span class="material-symbols-outlined text-[15px]">chevron_left</span>
+<span class="">Anterior</span>
+</button>
+<button class="w-8 h-8 rounded-lg bg-emerald-700 text-white font-bold text-xs flex items-center justify-center shadow-xs" id="btn-page-1">
+          1
+        </button>
+<button class="w-8 h-8 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 font-bold text-xs flex items-center justify-center transition-colors" id="btn-page-2">
+          2
+        </button>
+<button class="px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 text-xs font-semibold flex items-center gap-1 transition-colors" id="btn-next">
+<span class="">Siguiente</span>
+<span class="material-symbols-outlined text-[15px]">chevron_right</span>
+</button>
+</nav>
+</div>
+<!-- BOTTOM BANNER: EXACT AS IN SCREENSHOT IMAGE_18 -->
+<div class="rounded-xl bg-[#00a884] text-white p-4 sm:p-5 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
+<div class="flex items-center gap-3.5">
+<div class="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[28px] text-white">chat</span>
+</div>
+<div class="flex flex-col">
+<h3 class="font-bold text-base sm:text-lg text-white leading-tight">Encuentra contactos en línea / WhatsApp Chats beitreten</h3>
+<p class="text-xs sm:text-sm text-emerald-100">Trete über 150.000 aktiven Teilnehmern in Deutschland, Österreich und der Schweiz bei.</p>
+</div>
+</div>
+<a class="w-full md:w-auto px-6 py-2.5 rounded-full bg-white text-emerald-800 font-bold text-xs sm:text-sm shadow hover:bg-emerald-50 transition-all flex items-center justify-center gap-1.5 shrink-0" id="banner-open-btn" href="https://t.me/+ulN6q0NzX_A5ZDMx" target="_blank" rel="noopener noreferrer">
+<span class="">Öffnen</span>
+<span class="material-symbols-outlined text-[16px]">open_in_new</span>
+</a>
+</div>
+</main>
+<!-- INTERACTIVE MODAL 1: JOIN & VOTE GROUP (TRIGGERED BY CLICKING ANY GROUP CARD) -->
+<div class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto" id="join-modal">
+<div class="bg-white rounded-2xl max-w-md w-full p-5 sm:p-6 shadow-2xl flex flex-col gap-4 relative animate-in fade-in zoom-in-95 duration-150 my-auto max-h-[92vh] overflow-y-auto custom-scroll">
+<button class="absolute top-4 right-4 p-1 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500" id="modal-close-btn">
+<span class="material-symbols-outlined text-[18px]">close</span>
+</button>
+<div class="flex items-center gap-3 pt-1">
+<div class="w-12 h-12 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[26px]">forum</span>
+</div>
+<div class="flex flex-col pr-6">
+<span class="text-[11px] uppercase tracking-wider font-semibold text-emerald-600" id="modal-group-cat">Adult</span>
+<h3 class="font-bold text-slate-900 text-base leading-tight" id="modal-group-title">Gruppe Beitreten</h3>
+</div>
+</div>
+<p class="text-xs text-slate-600 bg-slate-50 p-3 rounded-lg border border-slate-100" id="modal-group-desc">
+        Du wirst nun direkt zur offiziellen WhatsApp-Einladungsseite weitergeleitet.
+      </p>
+<div class="flex items-center justify-between p-3 rounded-lg bg-emerald-50/70 border border-emerald-200/60">
+<div class="flex items-center gap-1.5 text-xs text-emerald-900 font-medium">
+<span class="text-amber-500">★</span>
+<span class="">Community Bewertung:</span>
+</div>
+<span class="font-bold text-sm text-emerald-800" id="modal-votes-count">406 Stimmen</span>
+</div>
+<div class="flex flex-col gap-2 pt-2">
+<a class="w-full py-2.5 rounded-lg bg-[#25d366] hover:bg-[#20bd5a] text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-xs transition-colors" href="https://chat.whatsapp.com/invite/groupio-demo" id="modal-whatsapp-link" rel="noopener noreferrer" target="_blank">
+<span class="material-symbols-outlined text-[18px]">chat</span>
+<span class="">💬 Gruppe beitreten (WhatsApp)</span>
+</a>
+<button class="w-full py-2 rounded-lg bg-white border border-slate-300 hover:bg-slate-50 text-slate-800 font-semibold text-xs flex items-center justify-center gap-1.5 transition-colors" id="modal-upvote-btn">
+<span class="text-amber-500 font-bold">★</span>
+<span class="">⭐ Für Gruppe abstimmen (+1 Vote)</span>
+</button>
+</div>
+<div class="pt-2 border-t border-slate-100 flex items-center justify-between gap-2 flex-wrap text-xs text-slate-500">
+<button class="text-emerald-700 hover:underline font-medium flex items-center gap-1" onclick="openChrisModal();">
+<span class="material-symbols-outlined text-[14px]">account_circle</span>
+<span class="">Erstellt von Chris — Profil ansehen</span>
+</button>
+<span class="text-[11px] text-red-600 font-bold shrink-0">Ab 18+ Verifiziert</span>
+</div>
+</div>
+</div>
+<!-- INTERACTIVE MODAL 2: AUTHOR 'CHRIS' PROFILE -->
+<div class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto" id="chris-modal">
+<div class="bg-white rounded-2xl max-w-md w-full p-5 sm:p-6 shadow-2xl flex flex-col gap-4 relative animate-in fade-in zoom-in-95 duration-150 my-auto max-h-[92vh] overflow-y-auto custom-scroll">
+<button class="absolute top-4 right-4 p-1 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500" id="chris-modal-close">
+<span class="material-symbols-outlined text-[18px]">close</span>
+</button>
+<div class="flex items-center gap-3">
+<div class="w-14 h-14 rounded-full bg-emerald-800 text-white font-bold text-xl flex items-center justify-center shadow-inner">
+          CH
+        </div>
+<div class="flex flex-col">
+<div class="flex items-center gap-1">
+<h3 class="font-bold text-slate-900 text-base">Chris1887x</h3>
+<span class="material-symbols-outlined text-[16px] text-emerald-600">verified</span>
+</div>
+<span class="text-xs text-slate-500">Hamburg, Deutschland • Host seit 2019</span>
+</div>
+</div>
+<div class="grid grid-cols-3 gap-2 text-center py-1">
+<div class="bg-slate-50 border border-slate-100 p-2 rounded-lg">
+<span class="font-bold text-slate-800 text-sm block">6</span>
+<span class="text-[10px] text-slate-400 uppercase">Gruppen</span>
+</div>
+<div class="bg-slate-50 border border-slate-100 p-2 rounded-lg">
+<span class="font-bold text-emerald-700 text-sm block">4.9 ★</span>
+<span class="text-[10px] text-slate-400 uppercase">Bewertung</span>
+</div>
+<div class="bg-slate-50 border border-slate-100 p-2 rounded-lg">
+<span class="font-bold text-slate-800 text-sm block">2.4k</span>
+<span class="text-[10px] text-slate-400 uppercase">Mitglieder</span>
+</div>
+</div>
+<p class="text-xs text-slate-600 leading-relaxed">
+        Verifizierter Moderator der norddeutschen LGBTQ+ und Freizeit-Communitys. Regelmäßige Treffen an der Alster und Reeperbahn.
+      </p>
+<div class="flex flex-col gap-2 pt-2 border-t border-slate-100">
+<a class="w-full py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-xs font-semibold text-center transition-colors" href="#">
+          Alle Gruppen von Chris anzeigen
+        </a>
+<button class="w-full py-1.5 text-xs text-slate-500 hover:text-slate-800" onclick="document.getElementById('chris-modal').classList.add('hidden');">
+          Schließen
+        </button>
+</div>
+</div>
+</div>
+<!-- INTERACTIVE PAGE: USER / ADMIN PROFILE (füllt die gesamte Seite) -->
+<div class="fixed inset-0 z-50 bg-slate-100 hidden overflow-y-auto custom-scroll" id="profile-page-modal">
+<!-- Eigener Seiten-Header (identisch zum Haupt-Header) -->
+<header class="w-full bg-[#0d5c46] text-white shadow-md sticky top-0 z-40">
+<div class="max-w-[1240px] mx-auto px-3 sm:px-6 h-16 flex items-center justify-between gap-2 sm:gap-3">
+<!-- Logo -->
+<a class="flex items-center gap-2 text-white font-bold text-xl sm:text-2xl tracking-tight shrink-0 font-display cursor-pointer" id="profile-header-logo" title="Zur Startseite">
+<span class="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center text-emerald-300 font-bold border border-white/15 shadow-inner shrink-0">
+<span class="material-symbols-outlined text-[24px]">forum</span>
+</span>
+<span class="">Groupio</span>
+</a>
+<!-- Search Input in Header (versteckt auf Mobile, ersetzt durch Such-Icon) -->
+<div class="hidden sm:flex flex-1 max-w-xl mx-2 sm:mx-6">
+<div class="relative w-full flex items-center">
+<input class="w-full bg-white text-slate-800 placeholder-slate-400 pl-4 pr-10 py-1.5 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 shadow-sm transition-all" id="profile-header-search" placeholder="Suche nach Gruppen..." type="text">
+<button class="absolute right-1 w-7 h-7 bg-emerald-700 hover:bg-emerald-800 text-white rounded-full flex items-center justify-center transition-colors" id="profile-header-search-btn" title="Suchen">
+<span class="material-symbols-outlined text-[16px]">search</span>
+</button>
+</div>
+</div>
+<!-- Right Action Buttons -->
+<div class="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
+<button class="sm:hidden w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 text-white flex items-center justify-center transition-all cursor-pointer shrink-0" id="profile-mobile-search-toggle" title="Suche">
+<span class="material-symbols-outlined text-[18px]">search</span>
+</button>
+<button class="inline-flex items-center gap-0 sm:gap-1.5 w-9 h-9 sm:w-auto sm:h-auto px-0 sm:px-3.5 py-0 sm:py-1.5 justify-center bg-[#00a884] hover:bg-[#008f70] text-white text-xs font-semibold rounded-full shadow-sm transition-all cursor-pointer shrink-0" title="Gruppe eintragen" onclick="closeProfilePage(); openAddGroupModal();">
+<span class="material-symbols-outlined text-[18px] sm:text-[16px]">add</span>
+<span class="hidden sm:inline">Gruppe eintragen</span>
+</button>
+<!-- Admin quick-access (nur sichtbar wenn als Administrator angemeldet) -->
+<button class="hidden relative items-center gap-0 sm:gap-1.5 w-9 h-9 sm:w-auto sm:h-auto px-0 sm:px-3 py-0 sm:py-1.5 justify-center bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold rounded-full shadow-sm transition-all cursor-pointer shrink-0" id="profile-admin-panel-btn" title="Admin-Panel" onclick="closeProfilePage(); openAdminPanel();">
+<span class="material-symbols-outlined text-[18px] sm:text-[15px]">shield_person</span>
+<span class="hidden sm:inline">Admin-Panel</span>
+<span class="hidden absolute -top-1 -right-1 sm:static sm:ml-0.5 min-w-[16px] h-4 px-1 rounded-full bg-white text-amber-600 text-[10px] font-bold items-center justify-center" id="profile-admin-pending-badge">0</span>
+</button>
+<!-- Zurück-Button (ersetzt die Profil-Pille, da wir bereits im Profil sind) -->
+<button class="flex items-center gap-0 sm:gap-1.5 w-9 h-9 sm:w-auto sm:h-auto px-0 sm:px-3 py-0 sm:py-1.5 justify-center bg-white/10 hover:bg-white/20 border border-white/20 text-white text-xs font-semibold rounded-full shadow-sm transition-all cursor-pointer shrink-0" id="profile-page-close" title="Schließen">
+<span class="material-symbols-outlined text-[18px] sm:text-[15px]">close</span>
+<span class="hidden sm:inline">Schließen</span>
+</button>
+</div>
+</div>
+<!-- Mobile Search Row (nur auf Mobile, per Icon umschaltbar) -->
+<div class="sm:hidden hidden px-3 pb-3" id="profile-mobile-search-row">
+<div class="relative w-full flex items-center">
+<input class="w-full bg-white text-slate-800 placeholder-slate-400 pl-4 pr-10 py-2 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 shadow-sm transition-all" id="profile-header-search-mobile" placeholder="Suche nach Gruppen..." type="text">
+<button class="absolute right-1 w-7 h-7 bg-emerald-700 hover:bg-emerald-800 text-white rounded-full flex items-center justify-center transition-colors">
+<span class="material-symbols-outlined text-[16px]">search</span>
+</button>
+</div>
+</div>
+</header>
+
+<div class="w-full max-w-[960px] mx-auto px-3 sm:px-6 pt-8 pb-10">
+<div class="w-full bg-white rounded-2xl shadow-sm overflow-hidden">
+<!-- Banner + Avatar -->
+<div class="relative">
+<div class="h-36 sm:h-48 md:h-56 w-full bg-gradient-to-br from-[#0a523e] via-[#0d8a5f] to-[#22c55e]"></div>
+<div class="absolute -bottom-12 sm:-bottom-14 left-1/2 -translate-x-1/2">
+<div class="w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-white p-1 shadow-md">
+<div class="w-full h-full rounded-full bg-emerald-100 flex items-center justify-center overflow-hidden">
+<span class="material-symbols-outlined text-emerald-600 text-[52px] sm:text-[60px]">person</span>
+</div>
+</div>
+</div>
+</div>
+
+<div class="w-full pt-14 sm:pt-16 pb-10 px-4 sm:px-8 flex flex-col items-center gap-3 text-center">
+<div class="flex flex-col items-center gap-0.5">
+<div class="flex items-center gap-1.5">
+<h2 class="font-bold text-slate-900 text-xl font-display" id="profile-display-name">Chris1887x</h2>
+<span class="hidden text-[10px] font-bold bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full" id="profile-admin-badge">ADMIN</span>
+</div>
+<span class="text-slate-400 text-sm" id="profile-username-handle">@Chris1887x</span>
+</div>
+
+<!-- Info Pills row 1 -->
+<div class="flex items-center gap-2 flex-wrap justify-center">
+<span class="inline-flex items-center gap-1.5 bg-slate-100 text-slate-700 text-xs font-medium px-3 py-1.5 rounded-full">
+<span id="profile-gender-icon">♂</span> <span id="profile-gender">männlich</span>
+</span>
+<span class="inline-flex items-center gap-1.5 bg-slate-100 text-slate-700 text-xs font-medium px-3 py-1.5 rounded-full">
+<span class="material-symbols-outlined text-[14px]">cake</span> <span id="profile-age">26 Jahre</span>
+</span>
+</div>
+
+<!-- Info Pills row 2 -->
+<div class="flex items-center gap-2 flex-wrap justify-center">
+<span class="inline-flex items-center gap-1.5 bg-slate-100 text-slate-700 text-xs font-medium px-3 py-1.5 rounded-full">
+<span class="material-symbols-outlined text-[14px]">location_on</span> <span id="profile-location">22529 Hamburg Lokstedt · Deutschland</span>
+</span>
+<span class="inline-flex items-center gap-1.5 bg-slate-100 text-slate-700 text-xs font-medium px-3 py-1.5 rounded-full">
+<span class="material-symbols-outlined text-[14px]">calendar_month</span> <span id="profile-joindate">09/2021</span>
+</span>
+</div>
+
+<!-- Admin-Hinweisbox (nur für Administrator sichtbar) -->
+<div class="hidden w-full mt-1 p-3 rounded-xl bg-amber-50 border border-amber-200 text-center" id="profile-admin-box">
+<div class="flex items-center justify-center gap-2 mb-1">
+<span class="material-symbols-outlined text-amber-600 text-[18px]">shield_person</span>
+<span class="text-xs font-bold text-amber-800">Administrator-Zugriff</span>
+</div>
+<p class="text-[11px] text-amber-700 leading-relaxed mb-2">Du kannst eingereichte Gruppen prüfen und annehmen oder ablehnen.</p>
+<button class="w-full py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-colors" onclick="closeProfilePage(); openAdminPanel();">
+<span class="material-symbols-outlined text-[16px]">fact_check</span>
+Gruppen verwalten
+<span class="ml-1 min-w-[18px] h-[18px] px-1 rounded-full bg-white text-amber-600 text-[10px] font-bold flex items-center justify-center" id="profile-admin-pending-count">0</span>
+</button>
+</div>
+
+<!-- Stats Row -->
+<div class="w-full max-w-md grid grid-cols-3 divide-x divide-slate-100 border-t border-b border-slate-100">
+<div class="flex flex-col items-center py-3.5">
+<span class="font-extrabold text-emerald-700 text-xl" id="profile-stat-groups">2</span>
+<span class="text-[10px] font-semibold uppercase text-slate-400 tracking-wide">Gruppen</span>
+</div>
+<div class="flex flex-col items-center py-3.5">
+<span class="font-extrabold text-emerald-700 text-xl" id="profile-stat-subs">0</span>
+<span class="text-[10px] font-semibold uppercase text-slate-400 tracking-wide">Abonnenten</span>
+</div>
+<div class="flex flex-col items-center py-3.5">
+<span class="font-extrabold text-emerald-700 text-xl" id="profile-stat-views">533</span>
+<span class="text-[10px] font-semibold uppercase text-slate-400 tracking-wide">Profilaufrufe</span>
+</div>
+</div>
+
+<!-- Gruppen des Benutzers -->
+<div class="w-full pt-5 sm:pt-6 flex flex-col items-center gap-3">
+<div class="flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-emerald-600 text-[20px]">stacks</span>
+<h3 class="font-bold text-slate-800 text-sm" id="profile-groups-heading">Gruppen von Chris1887x</h3>
+</div>
+<div class="w-full grid grid-cols-2 sm:grid-cols-3 gap-3" id="profile-groups-grid">
+<!-- wird dynamisch befüllt -->
+</div>
+</div>
+
+<div class="w-full max-w-xs pt-2">
+<button class="w-full py-2 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-600 text-xs font-semibold transition-colors" onclick="logoutUser()">Abmelden</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<!-- INTERACTIVE MODAL 4: ADMIN PANEL - AUSSTEHENDE GRUPPEN -->
+<div class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center p-3 sm:p-4 overflow-y-auto" id="admin-panel-modal">
+<div class="bg-white rounded-2xl max-w-2xl w-full p-5 sm:p-7 shadow-2xl flex flex-col gap-4 relative animate-in fade-in zoom-in-95 duration-150 my-auto max-h-[92vh] overflow-y-auto custom-scroll">
+<button class="absolute top-4 right-4 p-1.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 transition-colors" id="admin-panel-close" title="Schließen">
+<span class="material-symbols-outlined text-[20px] block">close</span>
+</button>
+<div class="flex items-center gap-3 border-b border-slate-100 pb-3.5">
+<div class="w-11 h-11 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center shrink-0 border border-amber-200">
+<span class="material-symbols-outlined text-[24px]">shield_person</span>
+</div>
+<div class="flex flex-col">
+<h2 class="font-bold text-slate-900 text-lg leading-tight font-display">Admin-Panel — Gruppen verwalten</h2>
+<span class="text-xs text-slate-500">Neu eingereichte WhatsApp-Gruppen prüfen und freigeben</span>
+</div>
+</div>
+
+<div class="hidden p-3.5 rounded-xl text-xs font-medium" id="admin-panel-feedback"></div>
+
+<div class="flex flex-col gap-3" id="admin-pending-list">
+<!-- wird dynamisch befüllt -->
+</div>
+<div class="hidden flex-col items-center justify-center gap-2 py-10 text-slate-400" id="admin-empty-state">
+<span class="material-symbols-outlined text-[40px]">inbox</span>
+<span class="text-sm font-medium">Keine ausstehenden Gruppen</span>
+</div>
+</div>
+</div>
+
+<!-- SIMPLE FOOTER -->
+<footer class="w-full bg-white border-t border-slate-200 mt-10 py-6 text-xs text-slate-500">
+<div class="max-w-[1240px] mx-auto px-4 flex flex-col sm:flex-row items-center justify-center sm:justify-between gap-3 text-center">
+<div class="flex items-center gap-2 flex-wrap justify-center">
+<span class="font-bold text-emerald-800 font-display">Groupio</span>
+<span class="">© 2026 Groupio Platform. Alle Rechte vorbehalten.</span>
+</div>
+<div class="flex items-center gap-3 sm:gap-4 flex-wrap justify-center">
+<a class="hover:text-emerald-700" href="#">Datenschutz</a>
+<a class="hover:text-emerald-700" href="#">Nutzungsbedingungen</a>
+<a class="hover:text-emerald-700" href="#">Gruppenregeln</a>
+<a class="hover:text-emerald-700" href="#">Kontakt</a>
+</div>
+</div>
+</footer>
+<!-- SCRIPT: FUNCTIONALITY & PAGINATION -->
+<!-- ====== UI-ONLY LOGIC (Modals, Vorschau, Suche/Pagination Grundgeruest) ====== -->
+<script>
+    // ====== ADD GROUP MODAL ======
+    window.openAddGroupModal = function() {
+      const modal = document.getElementById('add-group-modal');
+      const feedback = document.getElementById('add-group-feedback');
+      if (feedback) { feedback.classList.add('hidden'); feedback.textContent = ''; }
+      if (window.resetGroupImagePreview) window.resetGroupImagePreview();
+      modal.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+    };
+
+    window.closeAddGroupModal = function() {
+      document.getElementById('add-group-modal').classList.add('hidden');
+      document.body.style.overflow = '';
+      if (window.resetGroupImagePreview) window.resetGroupImagePreview();
+    };
+
+    // ====== WHATSAPP GRUPPENBILD-VORSCHAU (Cloudflare Worker Proxy) ======
+    (function() {
+      const WHATSAPP_PROXY_URL = 'https://groupio-whatsapp.cristhianzh1994.workers.dev?url=';
+      let fetchToken = 0;
+      let debounceTimer = null;
+
+      window.currentGroupImageUrl = null; // wird beim Absenden des Formulars verwendet
+
+      function isValidWhatsappGroupLink(url) {
+        try {
+          const u = new URL(url);
+          return u.hostname === 'chat.whatsapp.com' && u.pathname.replace(/\/$/, '').length > 1;
+        } catch (e) {
+          return false;
+        }
+      }
+      window.isValidWhatsappGroupLink = isValidWhatsappGroupLink;
+
+      function setPreviewState(state, imageUrl) {
+        const img = document.getElementById('group-image-preview-img');
+        const placeholder = document.getElementById('group-image-preview-placeholder');
+        const spinner = document.getElementById('group-image-preview-spinner');
+        const status = document.getElementById('group-image-preview-status');
+        if (!img || !placeholder || !spinner || !status) return;
+
+        img.classList.add('hidden');
+        placeholder.classList.add('hidden');
+        spinner.classList.add('hidden');
+        spinner.classList.remove('flex');
+
+        if (state === 'loading') {
+          spinner.classList.remove('hidden');
+          spinner.classList.add('flex');
+          status.textContent = 'Gruppenbild wird geladen...';
+          status.className = 'text-[11px] text-slate-500 leading-snug';
+        } else if (state === 'success') {
+          img.src = imageUrl;
+          img.classList.remove('hidden');
+          status.textContent = '✓ Gruppenbild gefunden.';
+          status.className = 'text-[11px] text-emerald-600 font-medium leading-snug';
+        } else if (state === 'error') {
+          placeholder.classList.remove('hidden');
+          status.textContent = 'Kein Gruppenbild gefunden. Es wird ein Platzhalter verwendet.';
+          status.className = 'text-[11px] text-red-500 font-medium leading-snug';
+        } else if (state === 'invalid') {
+          placeholder.classList.remove('hidden');
+          status.textContent = 'Bitte gib einen gültigen WhatsApp-Gruppenlink ein (https://chat.whatsapp.com/...).';
+          status.className = 'text-[11px] text-amber-600 leading-snug';
+        } else {
+          // idle
+          placeholder.classList.remove('hidden');
+          status.textContent = 'Gib einen WhatsApp-Gruppenlink ein, um die Vorschau zu laden.';
+          status.className = 'text-[11px] text-slate-400 leading-snug';
+        }
+      }
+
+      async function fetchGroupImage(link) {
+        const token = ++fetchToken;
+        window.currentGroupImageUrl = null;
+        setPreviewState('loading');
+        try {
+          const response = await fetch(WHATSAPP_PROXY_URL + encodeURIComponent(link));
+          if (token !== fetchToken) return; // ein neuerer Aufruf läuft bereits
+          if (!response.ok) throw new Error('Worker antwortete mit Status ' + response.status);
+          const data = await response.json();
+          if (token !== fetchToken) return;
+          if (data && data.imageUrl) {
+            window.currentGroupImageUrl = data.imageUrl;
+            setPreviewState('success', data.imageUrl);
+          } else {
+            setPreviewState('error');
+          }
+        } catch (err) {
+          if (token !== fetchToken) return;
+          console.error('Fehler beim Abrufen des WhatsApp-Gruppenbilds:', err);
+          setPreviewState('error');
+        }
+      }
+
+      window.resetGroupImagePreview = function() {
+        fetchToken++; // laufende Anfragen verwerfen
+        window.currentGroupImageUrl = null;
+        clearTimeout(debounceTimer);
+        const img = document.getElementById('group-image-preview-img');
+        if (img) img.src = '';
+        setPreviewState('idle');
+      };
+
+      const groupLinkInput = document.getElementById('group-link-input');
+      if (groupLinkInput) {
+        const handleLinkChange = function() {
+          const val = (groupLinkInput.value || '').trim();
+          clearTimeout(debounceTimer);
+          fetchToken++; // vorherige Anfrage verwerfen
+          window.currentGroupImageUrl = null;
+
+          if (!val) {
+            setPreviewState('idle');
+            return;
+          }
+          if (!isValidWhatsappGroupLink(val)) {
+            setPreviewState('invalid');
+            return;
+          }
+          // kurze Verzögerung, damit nicht bei jedem Tastenanschlag ein Request gefeuert wird
+          debounceTimer = setTimeout(() => fetchGroupImage(val), 500);
+        };
+        groupLinkInput.addEventListener('input', handleLinkChange);
+        groupLinkInput.addEventListener('change', handleLinkChange);
+      }
+    })();
+
+    window.insertDescEmoji = function(emoji) {
+      const textarea = document.getElementById('group-desc-input');
+      if (!textarea) return;
+      const start = textarea.selectionStart || textarea.value.length;
+      const end = textarea.selectionEnd || textarea.value.length;
+      textarea.value = textarea.value.slice(0, start) + emoji + textarea.value.slice(end);
+      textarea.focus();
+      const cursor = start + emoji.length;
+      textarea.setSelectionRange(cursor, cursor);
+    };
+
+    // Close add-group modal when clicking the backdrop
+    document.getElementById('add-group-modal').addEventListener('click', function(e) {
+      if (e.target === this) closeAddGroupModal();
+    });
+
+    // ====== AUTH MODAL (LOGIN / REGISTER) ======
+    window.openAuthModal = function(tab) {
+      document.getElementById('auth-modal').classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+      switchAuthTab(tab || 'login');
+    };
+
+    window.closeAuthModal = function() {
+      document.getElementById('auth-modal').classList.add('hidden');
+      document.body.style.overflow = '';
+    };
+
+    window.switchAuthTab = function(tab) {
+      const loginForm = document.getElementById('login-form');
+      const registerForm = document.getElementById('register-form');
+      const tabLoginBtn = document.getElementById('tab-login-btn');
+      const tabRegisterBtn = document.getElementById('tab-register-btn');
+      const title = document.getElementById('auth-modal-title');
+      const feedback = document.getElementById('auth-feedback-msg');
+      if (feedback) { feedback.classList.add('hidden'); feedback.textContent = ''; }
+
+      const activeCls = "flex-1 py-1.5 px-3 text-xs font-semibold rounded-lg transition-all bg-white text-[#006b53] shadow-xs";
+      const inactiveCls = "flex-1 py-1.5 px-3 text-xs font-semibold rounded-lg transition-all text-slate-500 hover:text-slate-800";
+
+      if (tab === 'register') {
+        loginForm.classList.add('hidden');
+        registerForm.classList.remove('hidden');
+        tabRegisterBtn.className = activeCls;
+        tabLoginBtn.className = inactiveCls;
+        if (title) title.textContent = 'Konto erstellen';
+      } else {
+        registerForm.classList.add('hidden');
+        loginForm.classList.remove('hidden');
+        tabLoginBtn.className = activeCls;
+        tabRegisterBtn.className = inactiveCls;
+        if (title) title.textContent = 'Willkommen bei Groupio';
+      }
+    };
+
+    const authCloseBtn = document.getElementById('auth-modal-close');
+    if (authCloseBtn) authCloseBtn.addEventListener('click', closeAuthModal);
+    const authModalEl = document.getElementById('auth-modal');
+    if (authModalEl) authModalEl.addEventListener('click', function(e) { if (e.target === this) closeAuthModal(); });
+
+    // ====== CHRIS PROFILE MODAL ======
+    window.openChrisModal = function() {
+      document.getElementById('chris-modal').classList.remove('hidden');
+    };
+    const chrisModalEl = document.getElementById('chris-modal');
+    const chrisModalClose = document.getElementById('chris-modal-close');
+    if (chrisModalClose) chrisModalClose.addEventListener('click', () => chrisModalEl.classList.add('hidden'));
+    if (chrisModalEl) chrisModalEl.addEventListener('click', function(e) { if (e.target === this) this.classList.add('hidden'); });
+
+    // Close any open modal with Escape key
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        document.getElementById('add-group-modal').classList.add('hidden');
+        document.getElementById('auth-modal').classList.add('hidden');
+        document.getElementById('chris-modal').classList.add('hidden');
+        const pp = document.getElementById('profile-page-modal');
+        if (pp) { pp.classList.add('hidden'); pp.classList.remove('flex'); }
+        const ap = document.getElementById('admin-panel-modal');
+        if (ap) { ap.classList.add('hidden'); ap.classList.remove('flex'); }
+        document.body.style.overflow = '';
+      }
+    });
+
+    // RSS Button
+    const rssBtn = document.getElementById('rss-btn');
+    if (rssBtn) rssBtn.addEventListener('click', () => {
+      alert('RSS Feed URL für Deutsche Adult WhatsApp Gruppen in die Zwischenablage kopiert!');
+    });
+
+    // View mode toggles (Grid / List)
+    (function() {
+      const gridBtn = document.getElementById('grid-mode-btn');
+      const listBtn = document.getElementById('list-mode-btn');
+      const p1 = document.getElementById('grid-page-1');
+      const p2 = document.getElementById('grid-page-2');
+      if (!gridBtn || !listBtn || !p1 || !p2) return;
+      listBtn.addEventListener('click', () => {
+        gridBtn.className = "p-1 rounded text-slate-500 hover:text-slate-800";
+        listBtn.className = "p-1 rounded bg-[#00a884] text-white shadow-xs";
+        [p1, p2].forEach(grid => {
+          grid.classList.remove('grid-cols-2', 'md:grid-cols-3', 'lg:grid-cols-4');
+          grid.classList.add('grid-cols-1');
+        });
+      });
+      gridBtn.addEventListener('click', () => {
+        listBtn.className = "p-1 rounded text-slate-500 hover:text-slate-800";
+        gridBtn.className = "p-1 rounded bg-[#00a884] text-white shadow-xs";
+        [p1, p2].forEach(grid => {
+          grid.classList.remove('grid-cols-1');
+          grid.classList.add('grid-cols-2', 'md:grid-cols-3', 'lg:grid-cols-4');
+        });
+      });
+    })();
+  </script>
+
+  <!-- ====== FIREBASE (Firestore) — SESSION, GRUPPEN, ADMIN & HOME-GRID ====== -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
+    import {
+      getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, getDoc, getDocs,
+      setDoc, query, where, orderBy, serverTimestamp, increment, arrayUnion
+    } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
+    import {
+      getAuth, signInAnonymously, onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
+
+    // Your web app's Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyBp6Irj2Bvrdph0KuGpgf2AEXdR0LL6tXE",
+      authDomain: "groupio-58815.firebaseapp.com",
+      projectId: "groupio-58815",
+      storageBucket: "groupio-58815.firebasestorage.app",
+      messagingSenderId: "228660636572",
+      appId: "1:228660636572:web:45dc3ea49383b923457659",
+      measurementId: "G-CDB5F2T3QF"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    // Analytics ist optional und schlägt lokal (file://) oder ohne echte Domain fehl,
+    // daher laden wir es nur bei Bedarf und ohne den Rest der Seite zu blockieren.
+    import("https://www.gstatic.com/firebasejs/10.13.2/firebase-analytics.js")
+      .then(({ getAnalytics }) => { try { getAnalytics(app); } catch (e) { /* z.B. lokale Vorschau ohne echte Domain */ } })
+      .catch(() => {});
+
+    const groupsCol = collection(db, 'groups');
+    const usersCol = collection(db, 'users');
+
+    const SESSION_KEY = 'groupio_session';
+    const ADMIN_USERNAME = 'admin';
+    const ADMIN_PASSWORD = '2772274032';
+
+    function getSession() {
+      try { return JSON.parse(localStorage.getItem(SESSION_KEY)); } catch (e) { return null; }
+    }
+    function setSession(session) { localStorage.setItem(SESSION_KEY, JSON.stringify(session)); }
+    function clearSession() { localStorage.removeItem(SESSION_KEY); }
+
+    // ---------- FIREBASE ANONYME AUTHENTIFIZIERUNG ----------
+    // Jeder Besucher bekommt automatisch eine stabile, anonyme Firebase-UID
+    // (bleibt im selben Browser erhalten). Damit erkennen wir zuverlässiger als
+    // mit reinem localStorage, ob jemand für eine Gruppe schon abgestimmt hat.
+    let anonUid = null;
+    let anonReadyResolve;
+    const anonReady = new Promise(resolve => { anonReadyResolve = resolve; });
+
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        anonUid = user.uid;
+        anonReadyResolve(user.uid);
+      }
+    });
+    signInAnonymously(auth).catch((err) => {
+      console.error('Fehler bei der anonymen Firebase-Anmeldung:', err);
+      anonReadyResolve(null); // nicht ewig blockieren, falls es fehlschlägt
+    });
+
+    function escapeHtml(str) {
+      return String(str == null ? '' : str).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+
+    function formatDate(ts) {
+      try {
+        const d = ts && typeof ts.toDate === 'function' ? ts.toDate() : new Date(ts);
+        if (isNaN(d.getTime())) return '';
+        return d.toLocaleDateString('de-DE');
+      } catch (e) { return ''; }
+    }
+
+    // ---------- HEADER STATE ----------
+    async function updateHeaderForSession() {
+      const session = getSession();
+      const guestBtn = document.getElementById('user-profile-btn');
+      const loggedPill = document.getElementById('logged-in-pill');
+      const loggedName = document.getElementById('logged-in-name');
+      const adminBtn = document.getElementById('admin-panel-btn');
+      const adminBadge = document.getElementById('admin-pending-badge');
+      const profileAdminBtn = document.getElementById('profile-admin-panel-btn');
+      const profileAdminBadge = document.getElementById('profile-admin-pending-badge');
+      if (!guestBtn || !loggedPill) return;
+
+      if (session && session.username) {
+        guestBtn.classList.add('hidden');
+        loggedPill.classList.remove('hidden');
+        loggedPill.classList.add('flex');
+        loggedName.textContent = session.displayName || session.username;
+
+        if (session.role === 'admin') {
+          adminBtn.classList.remove('hidden');
+          adminBtn.classList.add('flex');
+          let count = 0;
+          try {
+            const snap = await getDocs(query(groupsCol, where('status', '==', 'pending')));
+            count = snap.size;
+          } catch (e) { console.error('Fehler beim Zählen ausstehender Gruppen:', e); }
+          if (count > 0) {
+            adminBadge.textContent = count;
+            adminBadge.classList.remove('hidden');
+            adminBadge.classList.add('flex');
+          } else {
+            adminBadge.classList.add('hidden');
+            adminBadge.classList.remove('flex');
+          }
+          if (profileAdminBtn) { profileAdminBtn.classList.remove('hidden'); profileAdminBtn.classList.add('flex'); }
+          if (profileAdminBadge) {
+            if (count > 0) {
+              profileAdminBadge.textContent = count;
+              profileAdminBadge.classList.remove('hidden');
+              profileAdminBadge.classList.add('flex');
+            } else {
+              profileAdminBadge.classList.add('hidden');
+              profileAdminBadge.classList.remove('flex');
+            }
+          }
+        } else {
+          adminBtn.classList.add('hidden');
+          adminBtn.classList.remove('flex');
+          if (profileAdminBtn) { profileAdminBtn.classList.add('hidden'); profileAdminBtn.classList.remove('flex'); }
+        }
+      } else {
+        guestBtn.classList.remove('hidden');
+        loggedPill.classList.add('hidden');
+        loggedPill.classList.remove('flex');
+        adminBtn.classList.add('hidden');
+        adminBtn.classList.remove('flex');
+        if (profileAdminBtn) { profileAdminBtn.classList.add('hidden'); profileAdminBtn.classList.remove('flex'); }
+      }
+    }
+
+    window.logoutUser = function() {
+      clearSession();
+      updateHeaderForSession();
+      window.closeProfilePage();
+    };
+
+    // ---------- LOGIN / REGISTER (Firestore-Collection "users", einfache Klartext-Prüfung) ----------
+    window.handleAuthSubmit = async function(event, type) {
+      event.preventDefault();
+      const feedback = document.getElementById('auth-feedback-msg');
+      function showFeedback(message, isError) {
+        feedback.className = isError
+          ? 'p-3 rounded-lg text-xs font-medium bg-red-50 text-red-700 border border-red-200'
+          : 'p-3 rounded-lg text-xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-200';
+        feedback.textContent = message;
+        feedback.classList.remove('hidden');
+      }
+
+      if (type === 'login') {
+        const username = (document.getElementById('login-username').value || '').trim();
+        const password = document.getElementById('login-password').value || '';
+        if (!username || !password) { showFeedback('Bitte Benutzername und Passwort eingeben.', true); return; }
+
+        if (username.toLowerCase() === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+          setSession({ username: username, displayName: 'Administrator', role: 'admin' });
+          await updateHeaderForSession();
+          showFeedback('✓ Als Administrator angemeldet!', false);
+          setTimeout(closeAuthModal, 1000);
+          return;
+        }
+
+        try {
+          const snap = await getDoc(doc(db, 'users', username.toLowerCase()));
+          if (!snap.exists()) { showFeedback('Benutzer nicht gefunden. Bitte zuerst registrieren.', true); return; }
+          const data = snap.data();
+          if (data.password !== password) { showFeedback('Falsches Passwort.', true); return; }
+          setSession({ username: data.username, displayName: data.username, role: data.role || 'user' });
+          await updateHeaderForSession();
+          showFeedback('✓ Anmeldung erfolgreich!', false);
+          setTimeout(closeAuthModal, 1000);
+        } catch (err) {
+          console.error('Login-Fehler:', err);
+          showFeedback('Fehler beim Anmelden. Bitte später erneut versuchen.', true);
+        }
+      } else {
+        const username = (document.getElementById('reg-username').value || '').trim();
+        const password = document.getElementById('reg-password').value || '';
+        const confirmPassword = document.getElementById('reg-password-confirm') ? document.getElementById('reg-password-confirm').value : password;
+
+        if (!username || !password) { showFeedback('Bitte Benutzername und Passwort eingeben.', true); return; }
+        if (password.length < 6) { showFeedback('Das Passwort muss mindestens 6 Zeichen haben.', true); return; }
+        if (password !== confirmPassword) { showFeedback('Die Passwörter stimmen nicht überein.', true); return; }
+        if (username.toLowerCase() === ADMIN_USERNAME) { showFeedback('Dieser Benutzername ist reserviert.', true); return; }
+
+        try {
+          const userRef = doc(db, 'users', username.toLowerCase());
+          const existing = await getDoc(userRef);
+          if (existing.exists()) { showFeedback('Dieser Benutzername ist bereits vergeben.', true); return; }
+          await setDoc(userRef, { username: username, password: password, role: 'user', createdAt: serverTimestamp() });
+          showFeedback('✓ Konto erfolgreich erstellt! Du kannst dich jetzt anmelden.', false);
+          setTimeout(() => switchAuthTab('login'), 1200);
+        } catch (err) {
+          console.error('Registrierungs-Fehler:', err);
+          showFeedback('Fehler beim Erstellen des Kontos. Bitte später erneut versuchen.', true);
+        }
+      }
+    };
+
+    // ---------- ADD GROUP (Firestore-Collection "groups", status "pending") ----------
+    window.handleAddGroupSubmit = async function(event) {
+      event.preventDefault();
+      const feedback = document.getElementById('add-group-feedback');
+      const submitBtn = document.getElementById('submit-group-btn');
+      const form = document.getElementById('new-group-form');
+      const session = getSession();
+      const link = (document.getElementById('group-link-input').value || '').trim();
+
+      if (!window.isValidWhatsappGroupLink || !window.isValidWhatsappGroupLink(link)) {
+        feedback.className = 'p-3.5 rounded-xl text-xs font-medium bg-red-50 text-red-700 border border-red-200';
+        feedback.textContent = 'Bitte gib einen gültigen WhatsApp-Gruppenlink ein (https://chat.whatsapp.com/...).';
+        feedback.classList.remove('hidden');
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.classList.add('opacity-60', 'cursor-not-allowed');
+
+      try {
+        await addDoc(groupsCol, {
+          link: link,
+          country: document.getElementById('group-lang-select').value || 'de',
+          category: document.getElementById('group-cat-select').value || 'Allgemein',
+          description: (document.getElementById('group-desc-input') ? document.getElementById('group-desc-input').value : '').trim(),
+          tags: (document.getElementById('group-tags-input') ? document.getElementById('group-tags-input').value : '').trim(),
+          ageFrom: document.getElementById('group-age-from-select') ? document.getElementById('group-age-from-select').value : '',
+          ageTo: document.getElementById('group-age-to-select') ? document.getElementById('group-age-to-select').value : '',
+          image: window.currentGroupImageUrl || '',
+          votes: 0,
+          votedBy: [],
+          submittedBy: session ? session.username : ('Gast-' + (anonUid || 'anon').slice(0, 6)),
+          submittedByUid: anonUid || null,
+          submittedAt: serverTimestamp(),
+          status: 'pending'
+        });
+
+        feedback.className = 'p-3.5 rounded-xl text-xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-200';
+        feedback.textContent = '✓ Danke! Deine Gruppe wurde eingetragen und wird nun vom Administrator geprüft.';
+        feedback.classList.remove('hidden');
+        await updateHeaderForSession();
+
+        setTimeout(() => {
+          form.reset();
+          if (window.resetGroupImagePreview) window.resetGroupImagePreview();
+          submitBtn.disabled = false;
+          submitBtn.classList.remove('opacity-60', 'cursor-not-allowed');
+          closeAddGroupModal();
+        }, 1400);
+      } catch (err) {
+        console.error('Fehler beim Eintragen der Gruppe:', err);
+        feedback.className = 'p-3.5 rounded-xl text-xs font-medium bg-red-50 text-red-700 border border-red-200';
+        feedback.textContent = 'Fehler beim Eintragen der Gruppe. Bitte später erneut versuchen.';
+        feedback.classList.remove('hidden');
+        submitBtn.disabled = false;
+        submitBtn.classList.remove('opacity-60', 'cursor-not-allowed');
+      }
+    };
+
+    // ---------- PROFILE PAGE (eigene Gruppen aus Firestore) ----------
+    function profileGroupCardTemplate(item) {
+      const isPending = item.status === 'pending';
+      const imgTag = item.image
+        ? '<img alt="' + escapeHtml(item.category || 'Gruppe') + '" class="w-full h-full object-cover" src="' + escapeHtml(item.image) + '">'
+        : '<span class="material-symbols-outlined text-slate-300 text-[48px]">forum</span>';
+      return '<div class="relative rounded-xl overflow-hidden bg-slate-100 border border-slate-200 aspect-square flex items-center justify-center">'
+        + (isPending
+            ? '<span class="absolute top-2 left-2 inline-flex items-center gap-1 bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full text-[10px] font-semibold">In Prüfung</span>'
+            : '<span class="absolute top-2 left-2 inline-flex items-center gap-0.5 bg-white/90 px-1.5 py-0.5 rounded-full text-[10px] font-bold text-slate-700 shadow-xs"><span class="text-amber-500">★</span> ' + (item.votes || 0) + '</span>')
+        + imgTag
+        + '</div>';
+    }
+
+    window.openProfilePage = async function() {
+      const session = getSession();
+      if (!session) { window.openAuthModal('login'); return; }
+
+      document.getElementById('profile-display-name').textContent = session.displayName || session.username;
+      document.getElementById('profile-username-handle').textContent = '@' + session.username;
+
+      const adminBadge = document.getElementById('profile-admin-badge');
+      const adminBox = document.getElementById('profile-admin-box');
+      if (session.role === 'admin') {
+        adminBadge.classList.remove('hidden');
+        adminBox.classList.remove('hidden');
+        try {
+          const pendingSnap = await getDocs(query(groupsCol, where('status', '==', 'pending')));
+          document.getElementById('profile-admin-pending-count').textContent = pendingSnap.size;
+        } catch (e) { console.error(e); }
+      } else {
+        adminBadge.classList.add('hidden');
+        adminBox.classList.add('hidden');
+      }
+
+      document.getElementById('profile-groups-heading').textContent = 'Gruppen von ' + (session.displayName || session.username);
+
+      const grid = document.getElementById('profile-groups-grid');
+      grid.innerHTML = '<p class="col-span-2 text-xs text-slate-400 text-center py-4">Lädt...</p>';
+
+      try {
+        const snap = await getDocs(query(groupsCol, where('submittedBy', '==', session.username)));
+        const items = snap.docs.map(d => Object.assign({ id: d.id }, d.data()));
+        grid.innerHTML = items.length
+          ? items.map(profileGroupCardTemplate).join('')
+          : '<p class="col-span-2 text-xs text-slate-400 text-center py-4">Noch keine Gruppen eingetragen.</p>';
+        document.getElementById('profile-stat-groups').textContent = items.filter(i => i.status === 'approved').length;
+      } catch (err) {
+        console.error('Fehler beim Laden der eigenen Gruppen:', err);
+        grid.innerHTML = '<p class="col-span-2 text-xs text-red-400 text-center py-4">Fehler beim Laden.</p>';
+      }
+
+      const modal = document.getElementById('profile-page-modal');
+      modal.classList.remove('hidden');
+      modal.scrollTop = 0;
+      document.body.style.overflow = 'hidden';
+    };
+
+    window.closeProfilePage = function() {
+      const modal = document.getElementById('profile-page-modal');
+      modal.classList.add('hidden');
+      document.body.style.overflow = '';
+    };
+
+    const profileCloseBtn = document.getElementById('profile-page-close');
+    if (profileCloseBtn) profileCloseBtn.addEventListener('click', window.closeProfilePage);
+    const profileModalEl = document.getElementById('profile-page-modal');
+    if (profileModalEl) profileModalEl.addEventListener('click', function(e) { if (e.target === this) window.closeProfilePage(); });
+
+    const profileHeaderLogo = document.getElementById('profile-header-logo');
+    if (profileHeaderLogo) profileHeaderLogo.addEventListener('click', window.closeProfilePage);
+
+    const profileMobileToggle = document.getElementById('profile-mobile-search-toggle');
+    if (profileMobileToggle) profileMobileToggle.addEventListener('click', function() {
+      const row = document.getElementById('profile-mobile-search-row');
+      if (!row) return;
+      const willShow = row.classList.contains('hidden');
+      row.classList.toggle('hidden');
+      if (willShow) {
+        const input = document.getElementById('profile-header-search-mobile');
+        if (input) setTimeout(() => input.focus(), 50);
+      }
+    });
+    const profileHeaderSearchBtn = document.getElementById('profile-header-search-btn');
+    if (profileHeaderSearchBtn) profileHeaderSearchBtn.addEventListener('click', function() {
+      const val = document.getElementById('profile-header-search').value;
+      const mainSearch = document.getElementById('header-search');
+      const mainSearchMobile = document.getElementById('header-search-mobile');
+      if (mainSearch) mainSearch.value = val;
+      if (mainSearchMobile) mainSearchMobile.value = val;
+      if (window.applyGroupSearch) window.applyGroupSearch(val);
+      window.closeProfilePage();
+    });
+
+    // ---------- ADMIN PANEL (Gruppen annehmen / ablehnen, Firestore) ----------
+    function pendingItemTemplate(item) {
+      const dateStr = formatDate(item.submittedAt);
+      return '<div class="flex flex-col sm:flex-row sm:items-center gap-3 p-3.5 rounded-xl border border-slate-200 bg-slate-50" data-pending-id="' + escapeHtml(item.id) + '">'
+        + '<div class="w-14 h-14 rounded-lg overflow-hidden bg-slate-100 border border-slate-200 shrink-0 flex items-center justify-center">'
+        + (item.image ? '<img alt="Vorschau" class="w-full h-full object-cover" src="' + escapeHtml(item.image) + '">' : '<span class="material-symbols-outlined text-slate-300 text-[24px]">groups</span>')
+        + '</div>'
+        + '<div class="flex-1 min-w-0 flex flex-col gap-1">'
+        + '<div class="flex items-center gap-2 flex-wrap">'
+        + '<span class="text-[10px] uppercase font-bold tracking-wide bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">' + escapeHtml(item.category) + '</span>'
+        + '<span class="text-[11px] text-slate-400">' + dateStr + '</span></div>'
+        + '<a href="' + escapeHtml(item.link) + '" target="_blank" rel="noopener noreferrer" class="text-sm font-semibold text-slate-800 hover:underline truncate">' + escapeHtml(item.link) + '</a>'
+        + '<p class="text-xs text-slate-500">' + escapeHtml(item.description || 'Keine Beschreibung angegeben.') + '</p>'
+        + '<span class="text-[11px] text-slate-400">Eingereicht von: ' + escapeHtml(item.submittedBy || 'Gast') + (item.country ? ' · ' + escapeHtml(item.country.toUpperCase()) : '') + '</span>'
+        + '</div>'
+        + '<div class="flex sm:flex-col gap-2 shrink-0">'
+        + '<button class="px-3 py-2 rounded-lg bg-[#00a884] hover:bg-[#008f70] text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-colors" onclick="approvePendingGroup(\'' + escapeHtml(item.id) + '\')">'
+        + '<span class="material-symbols-outlined text-[16px]">check</span> Annehmen</button>'
+        + '<button class="px-3 py-2 rounded-lg bg-white border border-red-200 hover:bg-red-50 text-red-600 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors" onclick="rejectPendingGroup(\'' + escapeHtml(item.id) + '\')">'
+        + '<span class="material-symbols-outlined text-[16px]">close</span> Ablehnen</button>'
+        + '</div></div>';
+    }
+
+    async function renderPendingList() {
+      const container = document.getElementById('admin-pending-list');
+      const empty = document.getElementById('admin-empty-state');
+      container.innerHTML = '<p class="text-xs text-slate-400 text-center py-4">Lädt...</p>';
+      try {
+        const snap = await getDocs(query(groupsCol, where('status', '==', 'pending')));
+        const list = snap.docs.map(d => Object.assign({ id: d.id }, d.data()));
+        if (!list.length) {
+          container.innerHTML = '';
+          empty.classList.remove('hidden');
+          empty.classList.add('flex');
+          return;
+        }
+        empty.classList.add('hidden');
+        empty.classList.remove('flex');
+        container.innerHTML = list.map(pendingItemTemplate).join('');
+      } catch (err) {
+        console.error('Fehler beim Laden ausstehender Gruppen:', err);
+        container.innerHTML = '<p class="text-xs text-red-400 text-center py-4">Fehler beim Laden.</p>';
+      }
+    }
+
+    window.openAdminPanel = async function() {
+      const session = getSession();
+      if (!session || session.role !== 'admin') { window.openAuthModal('login'); return; }
+      const modal = document.getElementById('admin-panel-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      document.body.style.overflow = 'hidden';
+      await renderPendingList();
+    };
+
+    window.closeAdminPanel = function() {
+      const modal = document.getElementById('admin-panel-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+      document.body.style.overflow = '';
+    };
+
+    const adminCloseBtn = document.getElementById('admin-panel-close');
+    if (adminCloseBtn) adminCloseBtn.addEventListener('click', window.closeAdminPanel);
+    const adminModalEl = document.getElementById('admin-panel-modal');
+    if (adminModalEl) adminModalEl.addEventListener('click', function(e) { if (e.target === this) window.closeAdminPanel(); });
+
+    function showAdminFeedback(message, isError) {
+      const fb = document.getElementById('admin-panel-feedback');
+      fb.className = isError
+        ? 'p-3.5 rounded-xl text-xs font-medium bg-red-50 text-red-700 border border-red-200'
+        : 'p-3.5 rounded-xl text-xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-200';
+      fb.textContent = message;
+      fb.classList.remove('hidden');
+      setTimeout(() => fb.classList.add('hidden'), 2200);
+    }
+
+    window.approvePendingGroup = async function(id) {
+      try {
+        await updateDoc(doc(db, 'groups', id), { status: 'approved', approvedAt: serverTimestamp() });
+        await renderPendingList();
+        await updateHeaderForSession();
+        showAdminFeedback('✓ Gruppe wurde angenommen und ist jetzt öffentlich sichtbar.', false);
+        if (window.reloadApprovedGroups) window.reloadApprovedGroups();
+      } catch (err) {
+        console.error('Fehler beim Annehmen der Gruppe:', err);
+        showAdminFeedback('Fehler beim Annehmen der Gruppe.', true);
+      }
+    };
+
+    window.rejectPendingGroup = async function(id) {
+      try {
+        await deleteDoc(doc(db, 'groups', id));
+        await renderPendingList();
+        await updateHeaderForSession();
+        showAdminFeedback('Gruppe wurde abgelehnt und entfernt.', true);
+      } catch (err) {
+        console.error('Fehler beim Ablehnen der Gruppe:', err);
+        showAdminFeedback('Fehler beim Ablehnen der Gruppe.', true);
+      }
+    };
+
+    // ---------- MOBILE SEARCH TOGGLE ----------
+    window.toggleMobileSearch = function() {
+      const row = document.getElementById('mobile-search-row');
+      if (!row) return;
+      const willShow = row.classList.contains('hidden');
+      row.classList.toggle('hidden');
+      if (willShow) {
+        const input = document.getElementById('header-search-mobile');
+        if (input) setTimeout(() => input.focus(), 50);
+      }
+    };
+
+    // ---------- STARTSEITE: GRUPPEN AUS FIRESTORE LADEN, PAGINIEREN, SUCHEN, ABSTIMMEN ----------
+    const PAGE_SIZE = 12;
+    let allApprovedGroups = [];
+    let currentPage = 1;
+    let currentQuery = '';
+
+    const p1 = document.getElementById('grid-page-1');
+    const p2 = document.getElementById('grid-page-2');
+    const btnP1 = document.getElementById('btn-page-1');
+    const btnP2 = document.getElementById('btn-page-2');
+    const btnPrev = document.getElementById('btn-prev');
+    const btnNext = document.getElementById('btn-next');
+    const sumTop = document.getElementById('page-summary-top');
+    const sumBottom = document.getElementById('page-summary-bottom');
+    const paginationBar = document.getElementById('pagination-bar');
+    const noResultsBox = document.getElementById('no-search-results');
+
+    function groupCardHtml(item) {
+      const desc = item.tags ? (item.tags + ' ' + (item.description || '')) : (item.description || '');
+      const imgTag = item.image
+        ? '<img alt="Avatar" class="w-full h-full object-cover" src="' + escapeHtml(item.image) + '">'
+        : '<span class="material-symbols-outlined text-slate-300 text-[28px]">groups</span>';
+      const dateStr = formatDate(item.approvedAt || item.submittedAt) || '';
+      return '<div class="group-card bg-white rounded-xl border border-slate-200/90 shadow-2xs hover:shadow-md hover:border-emerald-300 transition-all p-3.5 flex flex-col justify-between cursor-pointer relative"'
+        + ' data-id="' + escapeHtml(item.id) + '" data-link="' + escapeHtml(item.link || '') + '" data-cat="' + escapeHtml(item.category || 'Allgemein') + '"'
+        + ' data-date="' + escapeHtml(dateStr) + '" data-desc="' + escapeHtml(desc) + '" data-group="' + escapeHtml(item.description ? (item.description.slice(0, 40)) : (item.category || 'WhatsApp Gruppe')) + '"'
+        + ' data-title="' + escapeHtml(item.category + (item.tags ? ' · ' + item.tags : '')) + '" data-votes="' + (item.votes || 0) + '">'
+        + '<div class="flex flex-col">'
+        + '<div class="flex items-center justify-between min-h-[22px]">'
+        + '<span class="text-[11px] text-slate-400"></span>'
+        + '<span class="text-xs font-bold text-slate-700 flex items-center gap-0.5"><span class="text-amber-500">★</span> ' + (item.votes || 0) + '</span>'
+        + '</div>'
+        + '<div class="flex justify-center my-3"><div class="relative">'
+        + '<div class="w-16 h-16 sm:w-18 sm:h-18 rounded-full overflow-hidden border border-slate-200 shadow-inner bg-slate-100 flex items-center justify-center">' + imgTag + '</div>'
+        + '<span class="absolute bottom-0 right-0.5 w-3.5 h-3.5 bg-emerald-500 border-2 border-white rounded-full"></span>'
+        + '</div></div>'
+        + '<div class="text-center flex flex-col gap-1">'
+        + '<h2 class="font-bold text-slate-900 text-sm sm:text-[15px] line-clamp-1 hover:text-emerald-700 transition-colors">' + escapeHtml(item.tags ? item.tags.split(' ')[0] : (item.category || 'WhatsApp Gruppe')) + '</h2>'
+        + '<span class="inline-block self-center px-2 py-0.5 text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/60 rounded-full">' + escapeHtml(item.category || 'Allgemein') + '</span>'
+        + '<p class="text-xs text-slate-500 line-clamp-2 mt-1 px-1">' + escapeHtml(item.description || '') + '</p>'
+        + '</div></div>'
+        + '<div class="flex items-center justify-between pt-3 mt-2 border-t border-slate-100 text-[11px]">'
+        + '<span class="text-slate-400">' + escapeHtml(dateStr) + '</span>'
+        + (item.category === 'Adult' ? '<span class="px-1.5 py-0.5 bg-red-600 text-white font-bold rounded text-[10px] tracking-wide">Ab 18+</span>' : '<span></span>')
+        + '</div></div>';
+    }
+
+    function renderGrid(page) {
+      currentPage = page;
+      const start = (page - 1) * PAGE_SIZE;
+      const pageItems = allApprovedGroups.slice(start, start + PAGE_SIZE);
+
+      p1.innerHTML = pageItems.map(groupCardHtml).join('') || '<div class="col-span-2 md:col-span-3 lg:col-span-4 text-center py-10 text-xs text-slate-400">Noch keine Gruppen vorhanden.</div>';
+      p1.classList.remove('hidden');
+      p2.classList.add('hidden');
+      p2.innerHTML = '';
+
+      const totalPages = Math.max(1, Math.ceil(allApprovedGroups.length / PAGE_SIZE));
+      btnP1.classList.toggle('hidden', totalPages < 1);
+      btnP2.classList.toggle('hidden', totalPages < 2);
+      btnP1.className = page === 1 ? "w-8 h-8 rounded-lg bg-emerald-700 text-white font-bold text-xs flex items-center justify-center shadow-xs" : "w-8 h-8 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 font-bold text-xs flex items-center justify-center transition-colors";
+      btnP2.className = page === 2 ? "w-8 h-8 rounded-lg bg-emerald-700 text-white font-bold text-xs flex items-center justify-center shadow-xs" : "w-8 h-8 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 font-bold text-xs flex items-center justify-center transition-colors";
+      btnPrev.disabled = page <= 1;
+      btnNext.disabled = page >= totalPages;
+
+      const shown = pageItems.length;
+      sumTop.textContent = 'Seite ' + page + ' von ' + totalPages + ' (' + PAGE_SIZE + ' Gruppen pro Seite) | Total: ' + allApprovedGroups.length + ' Gruppen';
+      sumBottom.textContent = 'Zeige ' + (shown ? (start + 1) + '-' + (start + shown) : '0') + ' von ' + allApprovedGroups.length + ' WhatsApp Gruppen';
+    }
+
+    function setPage(page) { renderGrid(page); }
+    btnP1.addEventListener('click', () => setPage(1));
+    btnP2.addEventListener('click', () => setPage(2));
+    btnPrev.addEventListener('click', () => { if (currentPage > 1) setPage(currentPage - 1); });
+    btnNext.addEventListener('click', () => { const totalPages = Math.max(1, Math.ceil(allApprovedGroups.length / PAGE_SIZE)); if (currentPage < totalPages) setPage(currentPage + 1); });
+
+    function normalize(str) { return (str || '').toString().toLowerCase(); }
+
+    function applySearch(rawQuery) {
+      currentQuery = rawQuery || '';
+      const query_ = normalize(currentQuery).trim();
+
+      if (!query_) {
+        noResultsBox.classList.add('hidden');
+        paginationBar.classList.remove('hidden');
+        renderGrid(1);
+        return;
+      }
+
+      paginationBar.classList.add('hidden');
+      const filtered = allApprovedGroups.filter(item => {
+        const haystack = normalize(item.description) + ' ' + normalize(item.tags) + ' ' + normalize(item.category);
+        return haystack.includes(query_);
+      });
+
+      p1.classList.remove('hidden');
+      p2.classList.add('hidden');
+      p1.innerHTML = filtered.map(groupCardHtml).join('');
+      p2.innerHTML = '';
+
+      sumTop.textContent = filtered.length + ' Ergebnis' + (filtered.length === 1 ? '' : 'se') + ' für "' + currentQuery.trim() + '"';
+      sumBottom.textContent = filtered.length + ' von ' + allApprovedGroups.length + ' WhatsApp Gruppen gefunden';
+      noResultsBox.classList.toggle('hidden', filtered.length !== 0);
+    }
+    window.applyGroupSearch = applySearch;
+
+    // ---------- JOIN & VOTE MODAL (Event-Delegation, funktioniert für dynamisch gerenderte Karten) ----------
+    const joinModal = document.getElementById('join-modal');
+    const modalClose = document.getElementById('modal-close-btn');
+    const mTitle = document.getElementById('modal-group-title');
+    const mCat = document.getElementById('modal-group-cat');
+    const mDesc = document.getElementById('modal-group-desc');
+    const mVotes = document.getElementById('modal-votes-count');
+    const mUpvote = document.getElementById('modal-upvote-btn');
+    const mJoinLink = document.getElementById('modal-whatsapp-link');
+
+    let currentCardId = null;
+    let currentVotes = 0;
+
+    function attachCardClickDelegation(container) {
+      container.addEventListener('click', function(e) {
+        const card = e.target.closest('.group-card');
+        if (!card) return;
+        currentCardId = card.getAttribute('data-id');
+        const votes = parseInt(card.getAttribute('data-votes'), 10) || 0;
+        const cat = card.getAttribute('data-cat') || 'Allgemein';
+        const desc = card.getAttribute('data-desc') || 'WhatsApp Gruppe';
+        const link = card.getAttribute('data-link') || '#';
+        const title = card.getAttribute('data-title') || cat;
+
+        currentVotes = votes;
+        mTitle.textContent = title;
+        mCat.textContent = cat;
+        mDesc.textContent = desc;
+        mVotes.textContent = votes + ' Stimmen';
+        mJoinLink.href = link;
+
+        const item = allApprovedGroups.find(g => g.id === currentCardId);
+        const alreadyVoted = !!(item && Array.isArray(item.votedBy) && anonUid && item.votedBy.includes(anonUid));
+        mUpvote.disabled = alreadyVoted;
+        mUpvote.innerHTML = alreadyVoted
+          ? '<span class="text-emerald-600 font-bold">✓ Vote gezählt!</span>'
+          : '<span>⭐ Für Gruppe abstimmen (+1 Vote)</span>';
+
+        joinModal.classList.remove('hidden');
+      });
+    }
+    attachCardClickDelegation(p1);
+    attachCardClickDelegation(p2);
+
+    modalClose.addEventListener('click', () => joinModal.classList.add('hidden'));
+    joinModal.addEventListener('click', (e) => { if (e.target === joinModal) joinModal.classList.add('hidden'); });
+
+    mUpvote.addEventListener('click', async function() {
+      if (!currentCardId) return;
+      mUpvote.disabled = true;
+      mUpvote.innerHTML = '<span>Einen Moment...</span>';
+      try {
+        // Auf die anonyme Firebase-Anmeldung warten, falls sie noch nicht abgeschlossen ist
+        const uid = anonUid || await anonReady;
+        if (!uid) throw new Error('Keine anonyme Firebase-UID verfügbar');
+
+        const item = allApprovedGroups.find(g => g.id === currentCardId);
+        if (item && Array.isArray(item.votedBy) && item.votedBy.includes(uid)) {
+          mUpvote.innerHTML = '<span class="text-emerald-600 font-bold">✓ Vote gezählt!</span>';
+          return;
+        }
+
+        await updateDoc(doc(db, 'groups', currentCardId), { votes: increment(1), votedBy: arrayUnion(uid) });
+        currentVotes += 1;
+        mVotes.textContent = currentVotes + ' Stimmen';
+        mUpvote.innerHTML = '<span class="text-emerald-600 font-bold">✓ Vote gezählt!</span>';
+        if (item) {
+          item.votes = currentVotes;
+          item.votedBy = Array.isArray(item.votedBy) ? item.votedBy.concat(uid) : [uid];
+        }
+        // Karte im DOM live aktualisieren, ohne alles neu zu laden
+        document.querySelectorAll('.group-card[data-id="' + currentCardId + '"]').forEach(card => {
+          card.setAttribute('data-votes', currentVotes);
+          const starEl = card.querySelector('.text-amber-500');
+          if (starEl && starEl.parentElement) starEl.parentElement.innerHTML = '<span class="text-amber-500">★</span> ' + currentVotes;
+        });
+      } catch (err) {
+        console.error('Fehler beim Abstimmen:', err);
+        mUpvote.disabled = false;
+        mUpvote.innerHTML = '<span>⭐ Für Gruppe abstimmen (+1 Vote)</span>';
+      }
+    });
+
+    // ---------- GRUPPEN AUS FIRESTORE LADEN (status === approved) ----------
+    window.reloadApprovedGroups = async function() {
+      const loadingState = document.getElementById('groups-loading-state');
+      try {
+        const snap = await getDocs(query(groupsCol, where('status', '==', 'approved')));
+        const items = snap.docs.map(d => Object.assign({ id: d.id }, d.data()));
+        items.sort((a, b) => (b.votes || 0) - (a.votes || 0));
+        allApprovedGroups = items;
+      } catch (err) {
+        console.error('Fehler beim Laden der Gruppen:', err);
+        allApprovedGroups = [];
+        p1.innerHTML = '<div class="col-span-2 md:col-span-3 lg:col-span-4 text-center py-10 text-xs text-red-400">Fehler beim Laden der Gruppen. Bitte Firestore-Regeln und Verbindung prüfen.</div>';
+        p2.innerHTML = '';
+        return;
+      }
+      if (loadingState) loadingState.remove();
+      applySearch(currentQuery);
+    };
+
+    // Suche & mobile Suchleiste
+    const desktopSearch = document.getElementById('header-search');
+    const mobileSearch = document.getElementById('header-search-mobile');
+    if (desktopSearch && mobileSearch) {
+      desktopSearch.addEventListener('input', () => { mobileSearch.value = desktopSearch.value; window.applyGroupSearch(desktopSearch.value); });
+      mobileSearch.addEventListener('input', () => { desktopSearch.value = mobileSearch.value; window.applyGroupSearch(mobileSearch.value); });
+      desktopSearch.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); window.applyGroupSearch(desktopSearch.value); } });
+      mobileSearch.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); window.applyGroupSearch(mobileSearch.value); } });
+    }
+    const desktopSearchBtn = document.getElementById('header-search-btn');
+    const mobileSearchBtn = document.getElementById('header-search-mobile-btn');
+    if (desktopSearchBtn) desktopSearchBtn.addEventListener('click', () => window.applyGroupSearch(desktopSearch.value));
+    if (mobileSearchBtn) mobileSearchBtn.addEventListener('click', () => window.applyGroupSearch(mobileSearch.value));
+
+    // ---------- LOGO: zurücksetzen & nach oben scrollen ----------
+    const mainLogoLink = document.getElementById('main-logo-link');
+    if (mainLogoLink) {
+      mainLogoLink.addEventListener('click', function(e) {
+        e.preventDefault();
+        if (desktopSearch) desktopSearch.value = '';
+        if (mobileSearch) mobileSearch.value = '';
+        window.applyGroupSearch('');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+    }
+
+    // ---------- INIT ----------
+    updateHeaderForSession();
+    window.reloadApprovedGroups();
+  </script>
+</body>
+</html>
