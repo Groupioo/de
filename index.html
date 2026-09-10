@@ -2,6 +2,19 @@
 <meta charset="utf-8">
 <meta content="width=device-width, initial-scale=1.0" name="viewport">
 <title>Groupio - Deutsche Adult WhatsApp Gruppen 2026</title>
+<!-- Open Graph / Social-Sharing-Vorschau (WhatsApp, Facebook, Telegram, X, etc.) -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Groupio">
+<meta property="og:title" content="Groupio - Deutsche Adult WhatsApp Gruppen 2026">
+<meta property="og:description" content="Entdecke und teile die besten deutschen WhatsApp-Gruppen: Gaming, Musik, Adult, Finanzen, Anime und mehr.">
+<meta property="og:image" content="https://groupioo.github.io/de/apple-touch-icon.png">
+<meta property="og:image:width" content="512">
+<meta property="og:image:height" content="512">
+<meta property="og:url" content="https://groupioo.github.io/de/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Groupio - Deutsche Adult WhatsApp Gruppen 2026">
+<meta name="twitter:description" content="Entdecke und teile die besten deutschen WhatsApp-Gruppen.">
+<meta name="twitter:image" content="https://groupioo.github.io/de/apple-touch-icon.png">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230d5c46'/%3E%3Crect x='14' y='16' width='36' height='24' rx='8' fill='%236ee7b7'/%3E%3Cpolygon points='22,40 20,50 32,40' fill='%236ee7b7'/%3E%3Ccircle cx='24' cy='28' r='2.6' fill='%230d5c46'/%3E%3Ccircle cx='32' cy='28' r='2.6' fill='%230d5c46'/%3E%3Ccircle cx='40' cy='28' r='2.6' fill='%230d5c46'/%3E%3C/svg%3E">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="manifest" href="manifest.json">
@@ -706,72 +719,72 @@
 </main>
 <!-- INTERACTIVE MODAL 1: JOIN & VOTE GROUP (TRIGGERED BY CLICKING ANY GROUP CARD) -->
 <div class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto" id="join-modal">
-<div class="bg-white rounded-2xl max-w-md w-full shadow-2xl flex flex-col relative animate-in fade-in zoom-in-95 duration-150 my-auto max-h-[92vh] overflow-y-auto custom-scroll">
+<div class="bg-white rounded-2xl max-w-md sm:max-w-lg w-full shadow-2xl flex flex-col relative animate-in fade-in zoom-in-95 duration-150 my-auto max-h-[92vh] overflow-y-auto custom-scroll">
 <!-- Kopfbereich mit Farbverlauf -->
-<div class="relative bg-gradient-to-br from-[#0d5c46] to-[#00a884] rounded-t-2xl px-5 sm:px-6 pt-5 pb-8">
-<button class="absolute top-4 right-4 w-7 h-7 rounded-full bg-white/15 hover:bg-white/25 text-white flex items-center justify-center transition-colors" id="modal-close-btn">
-<span class="material-symbols-outlined text-[18px] notranslate" translate="no">close</span>
+<div class="relative bg-gradient-to-br from-[#0d5c46] to-[#00a884] rounded-t-2xl px-5 sm:px-8 pt-5 sm:pt-7 pb-8 sm:pb-10">
+<button class="absolute top-4 right-4 sm:top-5 sm:right-5 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/15 hover:bg-white/25 text-white flex items-center justify-center transition-colors" id="modal-close-btn">
+<span class="material-symbols-outlined text-[18px] sm:text-[20px] notranslate" translate="no">close</span>
 </button>
-<div class="flex items-center gap-3 pr-8">
-<div class="w-12 h-12 rounded-full bg-white/15 border border-white/25 text-emerald-200 flex items-center justify-center shrink-0 shadow-inner overflow-hidden">
+<div class="flex items-center gap-3 sm:gap-4 pr-8">
+<div class="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-white/15 border border-white/25 text-emerald-200 flex items-center justify-center shrink-0 shadow-inner overflow-hidden">
 <img alt="Gruppenbild" class="w-full h-full object-cover hidden" id="modal-group-photo" src="" onerror="this.classList.add('hidden'); document.getElementById('modal-group-photo-fallback').classList.remove('hidden');">
-<span class="material-symbols-outlined text-[26px] notranslate" id="modal-group-photo-fallback" translate="no">forum</span>
+<span class="material-symbols-outlined text-[26px] sm:text-[32px] notranslate" id="modal-group-photo-fallback" translate="no">forum</span>
 </div>
 <div class="flex flex-col min-w-0">
-<span class="text-[11px] uppercase tracking-wider font-bold text-emerald-100" id="modal-group-cat">Adult</span>
-<h3 class="font-bold text-white text-base leading-tight truncate" id="modal-group-title">Gruppe Beitreten</h3>
+<span class="text-[11px] sm:text-xs uppercase tracking-wider font-bold text-emerald-100" id="modal-group-cat">Adult</span>
+<h3 class="font-bold text-white text-base sm:text-xl leading-tight truncate" id="modal-group-title">Gruppe Beitreten</h3>
 </div>
 </div>
 </div>
 <!-- Inhalt -->
-<div class="flex flex-col gap-4 p-5 sm:p-6 -mt-4">
-<div class="bg-white rounded-xl shadow-sm border border-slate-100 p-3">
-<p class="text-xs text-slate-600 leading-relaxed" id="modal-group-desc">
+<div class="flex flex-col gap-4 sm:gap-5 p-5 sm:p-8 -mt-4">
+<div class="bg-white rounded-xl shadow-sm border border-slate-100 p-3 sm:p-4">
+<p class="text-xs sm:text-sm text-slate-600 leading-relaxed" id="modal-group-desc">
           Du wirst nun direkt zur offiziellen WhatsApp-Einladungsseite weitergeleitet.
         </p>
 </div>
-<div class="flex items-center justify-between px-3.5 py-2.5 rounded-lg bg-emerald-50/70 border border-emerald-200/60">
-<div class="flex items-center gap-1.5 text-xs text-emerald-900 font-medium">
-<span class="text-amber-500">★</span>
+<div class="flex items-center justify-between px-3.5 sm:px-5 py-2.5 sm:py-3.5 rounded-lg bg-emerald-50/70 border border-emerald-200/60">
+<div class="flex items-center gap-1.5 text-xs sm:text-sm text-emerald-900 font-medium">
+<span class="text-amber-500 sm:text-base">★</span>
 <span class="">Community Bewertung:</span>
 </div>
-<span class="font-bold text-sm text-emerald-800" id="modal-votes-count">406 Stimmen</span>
+<span class="font-bold text-sm sm:text-base text-emerald-800" id="modal-votes-count">406 Stimmen</span>
 </div>
 <!-- QR-Code zum Scannen -->
-<div class="flex items-center gap-4 p-3.5 rounded-xl border border-slate-200 bg-slate-50/60">
-<div class="w-[92px] h-[92px] shrink-0 rounded-lg bg-white border border-slate-200 shadow-sm flex items-center justify-center overflow-hidden p-1">
+<div class="flex items-center gap-4 sm:gap-5 p-3.5 sm:p-5 rounded-xl border border-slate-200 bg-slate-50/60">
+<div class="w-[92px] h-[92px] sm:w-[110px] sm:h-[110px] shrink-0 rounded-lg bg-white border border-slate-200 shadow-sm flex items-center justify-center overflow-hidden p-1">
 <img alt="QR-Code zum Beitreten" class="w-full h-full object-contain" id="modal-qr-img" src="">
 </div>
-<div class="flex flex-col gap-0.5 min-w-0">
-<span class="text-xs font-bold text-slate-800">📱 Mit Handy scannen</span>
-<span class="text-[11px] text-slate-500 leading-snug">Öffne die Kamera-App und scanne den QR-Code, um der Gruppe direkt über WhatsApp beizutreten.</span>
+<div class="flex flex-col gap-0.5 sm:gap-1 min-w-0">
+<span class="text-xs sm:text-sm font-bold text-slate-800">📱 Mit Handy scannen</span>
+<span class="text-[11px] sm:text-xs text-slate-500 leading-snug">Öffne die Kamera-App und scanne den QR-Code, um der Gruppe direkt über WhatsApp beizutreten.</span>
 </div>
 </div>
-<div class="flex flex-col gap-2">
-<a class="w-full py-2.5 rounded-lg bg-[#25d366] hover:bg-[#20bd5a] text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-sm transition-colors" href="https://chat.whatsapp.com/invite/groupio-demo" id="modal-whatsapp-link" rel="noopener noreferrer" target="_blank">
-<span class="material-symbols-outlined text-[18px] notranslate" translate="no">chat</span>
+<div class="flex flex-col gap-2 sm:gap-2.5">
+<a class="w-full py-2.5 sm:py-3.5 rounded-lg bg-[#25d366] hover:bg-[#20bd5a] text-white font-bold text-xs sm:text-base flex items-center justify-center gap-2 shadow-sm transition-colors" href="https://chat.whatsapp.com/invite/groupio-demo" id="modal-whatsapp-link" rel="noopener noreferrer" target="_blank">
+<span class="material-symbols-outlined text-[18px] sm:text-[20px] notranslate" translate="no">chat</span>
 <span class="">Gruppe beitreten (WhatsApp)</span>
 </a>
-<button class="w-full py-2 rounded-lg bg-white border border-slate-300 hover:bg-slate-50 text-slate-800 font-semibold text-xs flex items-center justify-center gap-1.5 transition-colors" id="modal-upvote-btn">
-<span class="text-amber-500 font-bold">★</span>
+<button class="w-full py-2 sm:py-3 rounded-lg bg-white border border-slate-300 hover:bg-slate-50 text-slate-800 font-semibold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition-colors" id="modal-upvote-btn">
+<span class="text-amber-500 font-bold sm:text-base">★</span>
 <span class="">Für Gruppe abstimmen (+1 Vote)</span>
 </button>
-<button class="w-full py-2 rounded-lg bg-white border border-slate-300 hover:bg-slate-50 text-slate-800 font-semibold text-xs flex items-center justify-center gap-1.5 transition-colors" id="modal-share-btn" type="button">
-<span class="material-symbols-outlined text-[16px] notranslate" translate="no" id="modal-share-icon">share</span>
+<button class="w-full py-2 sm:py-3 rounded-lg bg-white border border-slate-300 hover:bg-slate-50 text-slate-800 font-semibold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition-colors" id="modal-share-btn" type="button">
+<span class="material-symbols-outlined text-[16px] sm:text-[18px] notranslate" translate="no" id="modal-share-icon">share</span>
 <span id="modal-share-label">Gruppe teilen</span>
 </button>
 </div>
-<div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-2 flex-wrap">
+<div class="pt-3 sm:pt-4 border-t border-slate-100 flex items-center justify-between gap-2 flex-wrap">
 <button class="group flex items-center gap-2 text-left hover:bg-slate-50 rounded-lg px-1.5 py-1 -ml-1.5 transition-colors" id="modal-creator-btn">
-<span class="w-7 h-7 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
-<span class="material-symbols-outlined text-[16px] notranslate" translate="no">account_circle</span>
+<span class="w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[16px] sm:text-[20px] notranslate" translate="no">account_circle</span>
 </span>
 <span class="flex flex-col leading-tight">
-<span class="text-[10px] text-slate-400">Erstellt von</span>
-<span class="text-xs font-semibold text-emerald-700 group-hover:underline" id="modal-creator-label">Ersteller — Profil ansehen</span>
+<span class="text-[10px] sm:text-xs text-slate-400">Erstellt von</span>
+<span class="text-xs sm:text-sm font-semibold text-emerald-700 group-hover:underline" id="modal-creator-label">Ersteller — Profil ansehen</span>
 </span>
 </button>
-<span class="text-[11px] text-red-600 font-bold shrink-0">Ab 18+ Verifiziert</span>
+<span class="text-[11px] sm:text-xs text-red-600 font-bold shrink-0">Ab 18+ Verifiziert</span>
 </div>
 </div>
 </div>
