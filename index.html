@@ -884,7 +884,7 @@ Gruppen verwalten
 <span class="material-symbols-outlined text-emerald-600 text-[20px]">stacks</span>
 <h3 class="font-bold text-slate-800 text-sm" id="profile-groups-heading">Gruppen von Chris1887x</h3>
 </div>
-<div class="w-full grid grid-cols-2 sm:grid-cols-3 gap-3" id="profile-groups-grid">
+<div class="w-full grid grid-cols-2 md:grid-cols-3 gap-3.5 sm:gap-4" id="profile-groups-grid">
 <!-- wird dynamisch befüllt -->
 </div>
 </div>
@@ -1666,15 +1666,36 @@ Gruppen verwalten
     // ---------- PROFILE PAGE (eigene Gruppen aus Firestore) ----------
     function profileGroupCardTemplate(item) {
       const isPending = item.status === 'pending';
+      const groupTitle = item.name || (item.tags ? item.tags.split(' ')[0] : (item.category || 'WhatsApp Gruppe'));
+      const desc = item.tags ? (item.tags + ' ' + (item.description || '')) : (item.description || '');
       const imgTag = item.image
-        ? '<img alt="' + escapeHtml(item.category || 'Gruppe') + '" class="w-full h-full object-cover" src="' + escapeHtml(item.image) + '">'
-        : '<span class="material-symbols-outlined text-slate-300 text-[48px]">forum</span>';
-      return '<div class="relative rounded-xl overflow-hidden bg-slate-100 border border-slate-200 aspect-square flex items-center justify-center">'
-        + (isPending
-            ? '<span class="absolute top-2 left-2 inline-flex items-center gap-1 bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full text-[10px] font-semibold">In Prüfung</span>'
-            : '<span class="absolute top-2 left-2 inline-flex items-center gap-0.5 bg-white/90 px-1.5 py-0.5 rounded-full text-[10px] font-bold text-slate-700 shadow-xs"><span class="text-amber-500">★</span> ' + (item.votes || 0) + '</span>')
-        + imgTag
-        + '</div>';
+        ? '<img alt="Avatar" class="w-full h-full object-cover" src="' + escapeHtml(item.image) + '">'
+        : '<span class="material-symbols-outlined text-slate-300 text-[40px]">groups</span>';
+      const dateStr = formatDate(item.approvedAt || item.submittedAt) || '';
+      const statusBadge = isPending
+        ? '<span class="inline-flex items-center gap-1 bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full text-[10px] font-semibold">In Prüfung</span>'
+        : '<span class="text-xs font-bold text-slate-700 flex items-center gap-0.5"><span class="text-amber-500">★</span> ' + (item.votes || 0) + '</span>';
+      return '<div class="group-card bg-white rounded-xl border border-slate-200/90 shadow-2xs hover:shadow-md hover:border-emerald-300 transition-all p-3.5 flex flex-col justify-between cursor-pointer relative"'
+        + ' data-id="' + escapeHtml(item.id) + '" data-link="' + escapeHtml(item.link || '') + '" data-cat="' + escapeHtml(item.category || 'Allgemein') + '"'
+        + ' data-date="' + escapeHtml(dateStr) + '" data-desc="' + escapeHtml(desc) + '" data-group="' + escapeHtml(groupTitle) + '"'
+        + ' data-title="' + escapeHtml(groupTitle) + '" data-votes="' + (item.votes || 0) + '" data-submitted-by="' + escapeHtml(item.submittedBy || '') + '">'
+        + '<div class="flex flex-col">'
+        + '<div class="flex items-center justify-end min-h-[22px]">'
+        + statusBadge
+        + '</div>'
+        + '<div class="flex justify-center my-3"><div class="relative">'
+        + '<div class="w-24 h-24 sm:w-28 sm:h-28 rounded-full overflow-hidden border border-slate-200 shadow-inner bg-slate-100 flex items-center justify-center">' + imgTag + '</div>'
+        + '<span class="absolute bottom-1 right-1.5 w-5 h-5 bg-emerald-500 border-2 border-white rounded-full"></span>'
+        + '</div></div>'
+        + '<div class="text-center flex flex-col gap-1">'
+        + '<h2 class="font-bold text-slate-900 text-sm sm:text-[15px] line-clamp-1 hover:text-emerald-700 transition-colors">' + escapeHtml(groupTitle) + '</h2>'
+        + '<span class="inline-block self-center px-2 py-0.5 text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/60 rounded-full">' + escapeHtml(item.category || 'Allgemein') + '</span>'
+        + '<p class="text-xs text-slate-500 line-clamp-2 mt-1 px-1">' + escapeHtml(item.description || '') + '</p>'
+        + '</div></div>'
+        + '<div class="flex items-center justify-between pt-3 mt-2 border-t border-slate-100 text-[11px]">'
+        + '<span class="text-slate-400">' + escapeHtml(dateStr) + '</span>'
+        + (item.category === 'Adult' ? '<span class="px-1.5 py-0.5 bg-red-600 text-white font-bold rounded text-[10px] tracking-wide">Ab 18+</span>' : '<span></span>')
+        + '</div></div>';
     }
 
     const SOCIAL_ICON_CONFIG = {
@@ -1796,7 +1817,7 @@ Gruppen verwalten
       document.getElementById('profile-username-handle').textContent = isGuest ? 'Gast (kein Konto)' : '@' + uname;
       document.getElementById('profile-groups-heading').textContent = 'Gruppen von ' + (uname || 'Gast');
       applyProfileData({ username: uname, displayName: uname }, {});
-      grid.innerHTML = '<p class="col-span-2 sm:col-span-3 text-xs text-slate-400 text-center py-4">Lädt...</p>';
+      grid.innerHTML = '<p class="col-span-2 md:col-span-3 text-xs text-slate-400 text-center py-4">Lädt...</p>';
 
       modal.classList.remove('hidden');
       modal.scrollTop = 0;
@@ -1804,7 +1825,7 @@ Gruppen verwalten
 
       if (isGuest) {
         document.getElementById('profile-username-handle').textContent = 'Als Gast eingereicht (kein Konto)';
-        grid.innerHTML = '<p class="col-span-2 sm:col-span-3 text-xs text-slate-400 text-center py-4">Für Gast-Einträge gibt es kein Profil.</p>';
+        grid.innerHTML = '<p class="col-span-2 md:col-span-3 text-xs text-slate-400 text-center py-4">Für Gast-Einträge gibt es kein Profil.</p>';
         return;
       }
 
@@ -1819,11 +1840,11 @@ Gruppen verwalten
         const items = groupsSnap.docs.map(d => Object.assign({ id: d.id }, d.data()));
         grid.innerHTML = items.length
           ? items.map(profileGroupCardTemplate).join('')
-          : '<p class="col-span-2 sm:col-span-3 text-xs text-slate-400 text-center py-4">Noch keine Gruppen eingetragen.</p>';
+          : '<p class="col-span-2 md:col-span-3 text-xs text-slate-400 text-center py-4">Noch keine Gruppen eingetragen.</p>';
         document.getElementById('profile-stat-groups').textContent = items.length;
       } catch (err) {
         console.error('Fehler beim Laden des Ersteller-Profils:', err);
-        grid.innerHTML = '<p class="col-span-2 sm:col-span-3 text-xs text-red-400 text-center py-4">Fehler beim Laden.</p>';
+        grid.innerHTML = '<p class="col-span-2 md:col-span-3 text-xs text-red-400 text-center py-4">Fehler beim Laden.</p>';
       }
     };
 
@@ -2588,6 +2609,8 @@ Gruppen verwalten
     }
     attachCardClickDelegation(p1);
     attachCardClickDelegation(p2);
+    const profileGroupsGrid = document.getElementById('profile-groups-grid');
+    if (profileGroupsGrid) attachCardClickDelegation(profileGroupsGrid);
 
     modalClose.addEventListener('click', () => joinModal.classList.add('hidden'));
     joinModal.addEventListener('click', (e) => { if (e.target === joinModal) joinModal.classList.add('hidden'); });
