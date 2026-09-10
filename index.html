@@ -2051,9 +2051,6 @@ Gruppen verwalten
     import {
       getAuth, signInAnonymously, onAuthStateChanged
     } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
-    import {
-      initializeAppCheck, ReCaptchaEnterpriseProvider
-    } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app-check.js";
 
     // Your web app's Firebase configuration
     const firebaseConfig = {
@@ -2067,14 +2064,6 @@ Gruppen verwalten
     };
 
     const app = initializeApp(firebaseConfig);
-
-    // App Check: debe inicializarse ANTES de getFirestore()/getAuth(), para que
-    // todas las llamadas posteriores ya lleven el token adjunto automáticamente.
-    initializeAppCheck(app, {
-      provider: new ReCaptchaEnterpriseProvider("6LdHe7QtAAAAAPWi7CRvVUQhRP9Cpa2AQGW4KPOW"),
-      isTokenAutoRefreshEnabled: true
-    });
-
     const db = getFirestore(app);
     const auth = getAuth(app);
 
