@@ -3801,6 +3801,17 @@ Gruppen verwalten
       }
 
       let deferredInstallPrompt = null;
+      const PWA_INSTALLED_KEY = 'groupio_pwa_installed';
+
+      function rememberInstalled() {
+        try { localStorage.setItem(PWA_INSTALLED_KEY, '1'); } catch (e) {}
+      }
+      function forgetInstalled() {
+        try { localStorage.removeItem(PWA_INSTALLED_KEY); } catch (e) {}
+      }
+      function wasInstalledBefore() {
+        try { return localStorage.getItem(PWA_INSTALLED_KEY) === '1'; } catch (e) { return false; }
+      }
 
       function showInstalledBanner() {
         icon.textContent = 'check_circle';
@@ -3839,21 +3850,38 @@ Gruppen verwalten
           installBtn.disabled = true;
           deferredInstallPrompt.prompt();
           try {
-            await deferredInstallPrompt.userChoice;
+            const choice = await deferredInstallPrompt.userChoice;
+            if (choice && choice.outcome === 'accepted') {
+              rememberInstalled();
+              showInstalledBanner();
+            }
           } catch (e) {}
           deferredInstallPrompt = null;
           installBtn.disabled = false;
         });
       }
 
-      // Bereits installiert -> immer den "bereits installiert"-Hinweis zeigen
+      // Bereits installiert (standalone-Modus erkannt) -> immer den "bereits installiert"-Hinweis zeigen
       if (isStandaloneMode()) {
+        rememberInstalled();
         showInstalledBanner();
         return;
       }
 
+      // Chrome/Android: über getInstalledRelatedApps() prüfen, ob die App bereits installiert ist,
+      // auch wenn die Seite gerade in einem normalen Browser-Tab geöffnet ist.
+      if (navigator.getInstalledRelatedApps) {
+        navigator.getInstalledRelatedApps().then(function(apps) {
+          if (apps && apps.length > 0) {
+            rememberInstalled();
+            showInstalledBanner();
+          }
+        }).catch(function() {});
+      }
+
       window.addEventListener('appinstalled', function() {
         deferredInstallPrompt = null;
+        rememberInstalled();
         showInstalledBanner();
       });
 
@@ -3861,12 +3889,23 @@ Gruppen verwalten
       window.addEventListener('beforeinstallprompt', function(e) {
         e.preventDefault();
         deferredInstallPrompt = e;
+        // Chrome bietet den Prompt nur an, wenn die App noch NICHT installiert ist.
+        forgetInstalled();
         showInstallableBanner();
       });
 
-      // iOS Safari feuert kein beforeinstallprompt -> eigene Anleitung anzeigen
+      // iOS Safari feuert kein beforeinstallprompt und bietet keine Installationserkennung.
+      // Falls wir uns aus einer früheren Sitzung merken, dass installiert wurde, zeigen wir das an.
       if (isIos()) {
-        showIosInstructionsBanner();
+        if (wasInstalledBefore()) {
+          showInstalledBanner();
+        } else {
+          showIosInstructionsBanner();
+        }
+      } else if (wasInstalledBefore() && !navigator.getInstalledRelatedApps) {
+        // Fallback für Browser ohne getInstalledRelatedApps(): auf gespeicherten Status verlassen,
+        // bis ein neues beforeinstallprompt-Ereignis das Gegenteil zeigt.
+        showInstalledBanner();
       }
     })();
   </script>
