@@ -153,7 +153,7 @@
   <div class="groupio-loader-wrap">
     <div class="groupio-loader-ring"></div>
     <div class="groupio-loader-badge">
-      <span class="material-symbols-outlined">forum</span>
+      <span class="material-symbols-outlined notranslate" translate="no">forum</span>
     </div>
   </div>
   <div style="text-align:center;">
@@ -179,7 +179,7 @@
 <!-- Logo -->
 <a class="flex items-center gap-2 text-white font-bold text-xl sm:text-2xl tracking-tight shrink-0 font-display" href="#" id="main-logo-link">
 <span class="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center text-emerald-300 font-bold border border-white/15 shadow-inner shrink-0">
-<span class="material-symbols-outlined text-[24px]">forum</span>
+<span class="material-symbols-outlined text-[24px] notranslate" translate="no">forum</span>
 </span>
 <span class="">Groupio</span>
 </a>
@@ -188,7 +188,7 @@
 <div class="relative w-full flex items-center">
 <input class="w-full bg-white text-slate-800 placeholder-slate-400 pl-4 pr-10 py-1.5 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 shadow-sm transition-all" id="header-search" placeholder="Suche nach Gruppen..." type="text">
 <button class="absolute right-1 w-7 h-7 bg-emerald-700 hover:bg-emerald-800 text-white rounded-full flex items-center justify-center transition-colors" id="header-search-btn" title="Suchen">
-<span class="material-symbols-outlined text-[16px]">search</span>
+<span class="material-symbols-outlined text-[16px] notranslate" translate="no">search</span>
 </button>
 </div>
 </div>
@@ -196,28 +196,28 @@
 <div class="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
 <!-- Mobile search toggle (nur auf Mobile sichtbar) -->
 <button class="sm:hidden w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 text-white flex items-center justify-center transition-all cursor-pointer shrink-0" id="mobile-search-toggle" title="Suche" onclick="toggleMobileSearch()">
-<span class="material-symbols-outlined text-[18px]">search</span>
+<span class="material-symbols-outlined text-[18px] notranslate" translate="no">search</span>
 </button>
 <button class="inline-flex items-center gap-0 sm:gap-1.5 w-9 h-9 sm:w-auto sm:h-auto px-0 sm:px-3.5 py-0 sm:py-1.5 justify-center bg-[#00a884] hover:bg-[#008f70] text-white text-xs font-semibold rounded-full shadow-sm transition-all cursor-pointer shrink-0" id="add-group-top" onclick="openAddGroupModal()" title="Gruppe eintragen">
-<span class="material-symbols-outlined text-[18px] sm:text-[16px]">add</span>
+<span class="material-symbols-outlined text-[18px] sm:text-[16px] notranslate" translate="no">add</span>
 <span class="hidden sm:inline">Gruppe eintragen</span>
 </button>
 <!-- Admin quick-access (nur sichtbar wenn als Administrator angemeldet) -->
 <button class="hidden relative items-center gap-0 sm:gap-1.5 w-9 h-9 sm:w-auto sm:h-auto px-0 sm:px-3 py-0 sm:py-1.5 justify-center bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold rounded-full shadow-sm transition-all cursor-pointer shrink-0" id="admin-panel-btn" onclick="openAdminPanel()" title="Admin-Panel">
-<span class="material-symbols-outlined text-[18px] sm:text-[15px]">shield_person</span>
+<span class="material-symbols-outlined text-[18px] sm:text-[15px] notranslate" translate="no">shield_person</span>
 <span class="hidden sm:inline">Admin-Panel</span>
 <span class="hidden absolute -top-1 -right-1 sm:static sm:ml-0.5 min-w-[16px] h-4 px-1 rounded-full bg-white text-amber-600 text-[10px] font-bold items-center justify-center" id="admin-pending-badge">0</span>
 </button>
 <!-- User Profile Pill / Login trigger (Gast-Zustand) -->
 <button class="flex items-center gap-0 sm:gap-1.5 w-9 h-9 sm:w-auto sm:h-auto px-0 sm:px-3 py-0 sm:py-1.5 justify-center bg-sky-500 hover:bg-sky-600 text-white text-xs font-semibold rounded-full shadow-sm transition-all cursor-pointer shrink-0" id="user-profile-btn" onclick="openAuthModal('login')" title="Login">
-<span class="material-symbols-outlined text-[18px] sm:text-[15px]">person</span>
+<span class="material-symbols-outlined text-[18px] sm:text-[15px] notranslate" translate="no">person</span>
 <span class="hidden sm:inline">Login</span>
 </button>
 <!-- Profil-Pille (angemeldeter Zustand, standardmäßig versteckt) -->
 <button class="hidden items-center gap-0 sm:gap-2 w-9 h-9 sm:w-auto sm:h-auto pl-0 sm:pl-1.5 pr-0 sm:pr-3 py-0 sm:py-1 justify-center bg-white/10 hover:bg-white/20 border border-white/20 text-white text-xs font-semibold rounded-full shadow-sm transition-all cursor-pointer shrink-0" id="logged-in-pill" onclick="openProfilePage()" title="Profil">
 <span class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center overflow-hidden shrink-0">
 <img alt="Profilbild" class="hidden w-full h-full object-cover" id="logged-in-avatar-img" src="">
-<span class="material-symbols-outlined text-[15px]" id="logged-in-avatar-placeholder">person</span>
+<span class="material-symbols-outlined text-[15px] notranslate" id="logged-in-avatar-placeholder" translate="no">person</span>
 </span>
 <span class="hidden sm:inline" id="logged-in-name">Benutzer</span>
 </button>
@@ -228,7 +228,7 @@
 <div class="relative w-full flex items-center">
 <input class="w-full bg-white text-slate-800 placeholder-slate-400 pl-4 pr-10 py-2 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 shadow-sm transition-all" id="header-search-mobile" placeholder="Suche nach Gruppen..." type="text">
 <button class="absolute right-1 w-7 h-7 bg-emerald-700 hover:bg-emerald-800 text-white rounded-full flex items-center justify-center transition-colors" id="header-search-mobile-btn" title="Suchen">
-<span class="material-symbols-outlined text-[16px]">search</span>
+<span class="material-symbols-outlined text-[16px] notranslate" translate="no">search</span>
 </button>
 </div>
 </div>
@@ -239,13 +239,13 @@
   <div class="bg-white rounded-2xl max-w-xl w-full p-5 sm:p-7 shadow-2xl flex flex-col gap-4 relative animate-in fade-in zoom-in-95 duration-150 my-auto max-h-[92vh] overflow-y-auto custom-scroll">
     <!-- Close Button -->
     <button class="absolute top-4 right-4 p-1.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 transition-colors" id="add-group-close" onclick="closeAddGroupModal()" title="Schließen">
-      <span class="material-symbols-outlined text-[20px] block">close</span>
+      <span class="material-symbols-outlined text-[20px] block notranslate" translate="no">close</span>
     </button>
 
     <!-- Modal Header -->
     <div class="flex items-center gap-3 pt-1 border-b border-slate-100 pb-3.5">
       <div class="w-11 h-11 rounded-xl bg-[#00a884]/15 text-[#006b53] flex items-center justify-center shrink-0 border border-[#00a884]/30">
-        <span class="material-symbols-outlined text-[24px]">group_add</span>
+        <span class="material-symbols-outlined text-[24px] notranslate" translate="no">group_add</span>
       </div>
       <div class="flex flex-col">
         <h2 class="font-bold text-slate-900 text-lg leading-tight font-display">WhatsApp Gruppe hinzufügen</h2>
@@ -262,7 +262,7 @@
       <div class="flex flex-col gap-1">
         <label class="text-xs font-semibold text-slate-700" for="group-link-input">Gruppen Link <span class="text-red-500">*</span></label>
         <div class="relative flex items-center">
-          <span class="absolute left-3 text-slate-400 material-symbols-outlined text-[18px]">link</span>
+          <span class="absolute left-3 text-slate-400 material-symbols-outlined text-[18px] notranslate" translate="no">link</span>
           <input class="w-full bg-slate-50 border border-slate-200 text-slate-800 placeholder-slate-400 pl-9 pr-3 py-2.5 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:bg-white transition-all" id="group-link-input" name="link" placeholder="Gruppen Link" required="" type="url">
         </div>
 
@@ -270,7 +270,7 @@
         <div class="flex items-center gap-3 mt-1.5 p-2 rounded-lg bg-slate-50 border border-slate-200" id="group-image-preview">
           <div class="relative w-12 h-12 rounded-full overflow-hidden bg-white border border-slate-200 shrink-0 flex items-center justify-center">
             <img alt="Gruppenbild Vorschau" class="w-full h-full object-cover hidden" id="group-image-preview-img" src="">
-            <span class="material-symbols-outlined text-slate-300 text-[24px]" id="group-image-preview-placeholder">groups</span>
+            <span class="material-symbols-outlined text-slate-300 text-[24px] notranslate" id="group-image-preview-placeholder" translate="no">groups</span>
             <div class="absolute inset-0 bg-white/70 items-center justify-center hidden" id="group-image-preview-spinner">
               <span class="w-4 h-4 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin block"></span>
             </div>
@@ -283,7 +283,7 @@
       <div class="flex flex-col gap-1">
         <label class="text-xs font-semibold text-slate-700" for="group-name-input">Gruppenname <span class="text-red-500">*</span></label>
         <div class="relative flex items-center">
-          <span class="absolute left-3 text-slate-400 material-symbols-outlined text-[18px]">badge</span>
+          <span class="absolute left-3 text-slate-400 material-symbols-outlined text-[18px] notranslate" translate="no">badge</span>
           <input class="w-full bg-slate-50 border border-slate-200 text-slate-800 placeholder-slate-400 pl-9 pr-3 py-2.5 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:bg-white transition-all" id="group-name-input" name="name" placeholder="z. B. Musik Fans Deutschland" required="" type="text" maxlength="60">
         </div>
       </div>
@@ -292,7 +292,7 @@
       <div class="flex flex-col gap-1">
         <label class="text-xs font-semibold text-slate-700" for="group-cat-select">Kategorie <span class="text-red-500">*</span></label>
         <div class="relative flex items-center">
-          <span class="absolute left-3 text-slate-400 material-symbols-outlined text-[18px]">category</span>
+          <span class="absolute left-3 text-slate-400 material-symbols-outlined text-[18px] notranslate" translate="no">category</span>
           <select class="w-full bg-slate-50 border border-slate-200 text-slate-800 pl-9 pr-8 py-2.5 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:bg-white transition-all appearance-none cursor-pointer" id="group-cat-select" name="category" required="">
             <option value="" disabled="" selected="">Kategorie wählen</option>
             <option value="Adult">Adult (18+)</option>
@@ -307,7 +307,7 @@
             <option value="Anime &amp; Manga">Anime &amp; Manga</option>
             <option value="Allgemein">Allgemein</option>
           </select>
-          <span class="absolute right-2.5 pointer-events-none text-slate-400 material-symbols-outlined text-[18px]">expand_more</span>
+          <span class="absolute right-2.5 pointer-events-none text-slate-400 material-symbols-outlined text-[18px] notranslate" translate="no">expand_more</span>
         </div>
       </div>
 
@@ -324,7 +324,7 @@
       <div class="flex flex-col gap-1">
         <label class="text-xs font-semibold text-slate-700" for="group-tags-input">Hashtags <span class="font-normal text-slate-400">(optional)</span></label>
         <div class="relative flex items-center">
-          <span class="absolute left-3 text-slate-400 material-symbols-outlined text-[18px]">tag</span>
+          <span class="absolute left-3 text-slate-400 material-symbols-outlined text-[18px] notranslate" translate="no">tag</span>
           <input class="w-full bg-slate-50 border border-slate-200 text-slate-800 placeholder-slate-400 pl-9 pr-3 py-2.5 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:bg-white transition-all" id="group-tags-input" name="tags" placeholder="z. B. #Musik #Chat #Deutschland" type="text">
         </div>
         <p class="text-[11px] text-slate-400 leading-snug">Mehrere Hashtags mit Leerzeichen trennen, jeweils mit # davor.</p>
@@ -343,7 +343,7 @@
               <option value="21">21</option>
               <option value="25">25</option>
             </select>
-            <span class="absolute right-2.5 pointer-events-none text-slate-400 material-symbols-outlined text-[18px]">expand_more</span>
+            <span class="absolute right-2.5 pointer-events-none text-slate-400 material-symbols-outlined text-[18px] notranslate" translate="no">expand_more</span>
           </div>
         </div>
         <div class="flex flex-col gap-1">
@@ -357,7 +357,7 @@
               <option value="50">50</option>
               <option value="99">99+</option>
             </select>
-            <span class="absolute right-2.5 pointer-events-none text-slate-400 material-symbols-outlined text-[18px]">expand_more</span>
+            <span class="absolute right-2.5 pointer-events-none text-slate-400 material-symbols-outlined text-[18px] notranslate" translate="no">expand_more</span>
           </div>
         </div>
       </div>
@@ -366,14 +366,14 @@
       <div class="flex flex-col gap-1">
         <label class="text-xs font-semibold text-slate-700" for="group-lang-select">Land</label>
         <div class="relative flex items-center">
-          <span class="absolute left-3 text-slate-400 material-symbols-outlined text-[18px]">public</span>
+          <span class="absolute left-3 text-slate-400 material-symbols-outlined text-[18px] notranslate" translate="no">public</span>
           <select class="w-full bg-slate-50 border border-slate-200 text-slate-800 pl-9 pr-8 py-2.5 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:bg-white transition-all appearance-none cursor-pointer" id="group-lang-select" name="language">
             <option value="de">🇩🇪 Deutschland</option>
             <option value="ch">🇨🇭 Schweiz</option>
             <option value="at">🇦🇹 Österreich</option>
             <option value="us">🇺🇸 USA</option>
           </select>
-          <span class="absolute right-2.5 pointer-events-none text-slate-400 material-symbols-outlined text-[18px]">expand_more</span>
+          <span class="absolute right-2.5 pointer-events-none text-slate-400 material-symbols-outlined text-[18px] notranslate" translate="no">expand_more</span>
         </div>
       </div>
 
@@ -388,7 +388,7 @@
           Abbrechen
         </button>
         <button type="submit" class="px-6 py-2.5 rounded-lg bg-[#25d366] hover:bg-[#1fb959] text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-sm transition-all" id="submit-group-btn">
-          <span class="material-symbols-outlined text-[18px]">publish</span>
+          <span class="material-symbols-outlined text-[18px] notranslate" translate="no">publish</span>
           <span>Gruppe eintragen</span>
         </button>
       </div>
@@ -401,13 +401,13 @@
   <div class="bg-white rounded-2xl max-w-md w-full p-5 sm:p-7 shadow-2xl flex flex-col gap-4 relative animate-in fade-in zoom-in-95 duration-150 my-auto max-h-[92vh] overflow-y-auto custom-scroll">
     <!-- Close Button -->
     <button class="absolute top-4 right-4 p-1.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 transition-colors" id="auth-modal-close" title="Schließen">
-      <span class="material-symbols-outlined text-[20px] block">close</span>
+      <span class="material-symbols-outlined text-[20px] block notranslate" translate="no">close</span>
     </button>
 
     <!-- Header & Brand -->
     <div class="flex items-center gap-3 pt-1">
       <div class="w-11 h-11 rounded-xl bg-[#00a884]/15 text-[#006b53] flex items-center justify-center shrink-0 border border-[#00a884]/30">
-        <span class="material-symbols-outlined text-[24px]">person</span>
+        <span class="material-symbols-outlined text-[24px] notranslate" translate="no">person</span>
       </div>
       <div class="flex flex-col">
         <h2 class="font-bold text-slate-900 text-lg leading-tight font-display" id="auth-modal-title">Willkommen bei Groupio</h2>
@@ -433,7 +433,7 @@
       <div class="flex flex-col gap-1">
         <label class="text-xs font-semibold text-slate-700" for="login-username">Benutzername</label>
         <div class="relative flex items-center">
-          <span class="absolute left-3 text-slate-400 material-symbols-outlined text-[18px]">person_outline</span>
+          <span class="absolute left-3 text-slate-400 material-symbols-outlined text-[18px] notranslate" translate="no">person_outline</span>
           <input class="w-full bg-slate-50 border border-slate-200 text-slate-800 placeholder-slate-400 pl-9 pr-3 py-2 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:bg-white transition-all" id="login-username" name="username" placeholder="Benutzername eingeben" required="" type="text">
         </div>
       </div>
@@ -443,13 +443,13 @@
           <label class="text-xs font-semibold text-slate-700" for="login-password">Passwort</label>
         </div>
         <div class="relative flex items-center">
-          <span class="absolute left-3 text-slate-400 material-symbols-outlined text-[18px]">lock</span>
+          <span class="absolute left-3 text-slate-400 material-symbols-outlined text-[18px] notranslate" translate="no">lock</span>
           <input class="w-full bg-slate-50 border border-slate-200 text-slate-800 placeholder-slate-400 pl-9 pr-3 py-2 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:bg-white transition-all" id="login-password" name="password" placeholder="••••••••" required="" type="password">
         </div>
       </div>
 
       <button class="w-full mt-1 py-2.5 rounded-lg bg-[#00a884] hover:bg-[#008f70] text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-xs transition-colors" type="submit">
-        <span class="material-symbols-outlined text-[18px]">login</span>
+        <span class="material-symbols-outlined text-[18px] notranslate" translate="no">login</span>
         <span class="">Anmelden</span>
       </button>
 
@@ -464,7 +464,7 @@
       <div class="flex flex-col gap-1">
         <label class="text-xs font-semibold text-slate-700" for="reg-username">Benutzername</label>
         <div class="relative flex items-center">
-          <span class="absolute left-3 text-slate-400 material-symbols-outlined text-[18px]">person_outline</span>
+          <span class="absolute left-3 text-slate-400 material-symbols-outlined text-[18px] notranslate" translate="no">person_outline</span>
           <input class="w-full bg-slate-50 border border-slate-200 text-slate-800 placeholder-slate-400 pl-9 pr-3 py-2 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:bg-white transition-all" id="reg-username" name="username" placeholder="Wähle einen Benutzernamen" required="" type="text">
         </div>
       </div>
@@ -472,7 +472,7 @@
       <div class="flex flex-col gap-1">
         <label class="text-xs font-semibold text-slate-700" for="reg-password">Passwort</label>
         <div class="relative flex items-center">
-          <span class="absolute left-3 text-slate-400 material-symbols-outlined text-[18px]">lock</span>
+          <span class="absolute left-3 text-slate-400 material-symbols-outlined text-[18px] notranslate" translate="no">lock</span>
           <input class="w-full bg-slate-50 border border-slate-200 text-slate-800 placeholder-slate-400 pl-9 pr-3 py-2 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:bg-white transition-all" id="reg-password" name="password" placeholder="Mindestens 6 Zeichen" required="" type="password">
         </div>
       </div>
@@ -480,13 +480,13 @@
       <div class="flex flex-col gap-1">
         <label class="text-xs font-semibold text-slate-700" for="reg-password-confirm">Passwort bestätigen</label>
         <div class="relative flex items-center">
-          <span class="absolute left-3 text-slate-400 material-symbols-outlined text-[18px]">verified_user</span>
+          <span class="absolute left-3 text-slate-400 material-symbols-outlined text-[18px] notranslate" translate="no">verified_user</span>
           <input class="w-full bg-slate-50 border border-slate-200 text-slate-800 placeholder-slate-400 pl-9 pr-3 py-2 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:bg-white transition-all" id="reg-password-confirm" name="confirm_password" placeholder="Passwort wiederholen" required="" type="password">
         </div>
       </div>
 
       <button class="w-full mt-1 py-2.5 rounded-lg bg-[#00a884] hover:bg-[#008f70] text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-xs transition-colors" type="submit">
-        <span class="material-symbols-outlined text-[18px]">person_add</span>
+        <span class="material-symbols-outlined text-[18px] notranslate" translate="no">person_add</span>
         <span class="">Konto erstellen</span>
       </button>
 
@@ -507,10 +507,10 @@
 <span class="text-xs text-slate-400 font-medium">Ansicht:</span>
 <div class="inline-flex rounded-lg border border-slate-200 p-0.5 bg-slate-50 text-slate-600">
 <button class="p-1 rounded bg-[#00a884] text-white shadow-xs" id="grid-mode-btn" title="Rasteransicht">
-<span class="material-symbols-outlined text-[16px] block">grid_view</span>
+<span class="material-symbols-outlined text-[16px] block notranslate" translate="no">grid_view</span>
 </button>
 <button class="p-1 rounded text-slate-500 hover:text-slate-800" id="list-mode-btn" title="Listenansicht">
-<span class="material-symbols-outlined text-[16px] block">view_list</span>
+<span class="material-symbols-outlined text-[16px] block notranslate" translate="no">view_list</span>
 </button>
 </div>
 </div>
@@ -583,7 +583,7 @@
 <!-- Finanzen -->
 <a class="group flex flex-col items-center gap-1.5 shrink-0 w-16" href="#">
 <div class="w-12 h-12 rounded-full overflow-hidden border-2 border-slate-200 group-hover:border-emerald-500 transition-all shadow-xs bg-amber-500 text-white flex items-center justify-center">
-<span class="material-symbols-outlined text-[20px]">currency_bitcoin</span>
+<span class="material-symbols-outlined text-[20px] notranslate" translate="no">currency_bitcoin</span>
 </div>
 <span class="text-[11px] font-medium text-slate-600 group-hover:text-emerald-700 leading-tight">Finanzen</span>
 </a>
@@ -602,7 +602,7 @@
 <h1 class="text-xl sm:text-2xl font-bold text-slate-900 font-display flex items-center gap-2">
 <span class="">Deutsche Adult WhatsApp Gruppen 2026</span>
 <button class="text-amber-500 hover:text-amber-600 inline-flex items-center" id="rss-btn" title="RSS Feed abonnieren">
-<span class="material-symbols-outlined text-[22px]">rss_feed</span>
+<span class="material-symbols-outlined text-[22px] notranslate" translate="no">rss_feed</span>
 </button>
 </h1>
 </div>
@@ -624,19 +624,19 @@
 <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3.5 sm:gap-4 transition-all duration-200 hidden" id="grid-page-2"></div>
 <!-- Kein Ergebnis Meldung (bei Suche) -->
 <div class="hidden bg-white rounded-xl border border-slate-200/80 p-8 text-center flex-col items-center gap-2" id="no-search-results">
-<span class="material-symbols-outlined text-slate-300 text-[40px]">search_off</span>
+<span class="material-symbols-outlined text-slate-300 text-[40px] notranslate" translate="no">search_off</span>
 <p class="text-sm font-semibold text-slate-700">Keine Gruppen gefunden</p>
 <p class="text-xs text-slate-400">Versuche einen anderen Suchbegriff.</p>
 </div>
 <!-- 5. PAGINATION CONTROLS -->
 <div class="bg-white rounded-xl border border-slate-200/80 p-3 sm:p-4 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-2xs" id="pagination-bar">
 <div class="flex items-center gap-2 text-xs text-slate-500">
-<span class="material-symbols-outlined text-[18px] text-emerald-600">verified</span>
+<span class="material-symbols-outlined text-[18px] text-emerald-600 notranslate" translate="no">verified</span>
 <span id="page-summary-bottom" class="">Zeige 1-12 von 24 WhatsApp Gruppen</span>
 </div>
 <nav aria-label="Seiten-Navigation" class="flex items-center gap-1.5">
 <button class="px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed text-xs font-semibold flex items-center gap-1 transition-colors" disabled="" id="btn-prev">
-<span class="material-symbols-outlined text-[15px]">chevron_left</span>
+<span class="material-symbols-outlined text-[15px] notranslate" translate="no">chevron_left</span>
 <span class="">Zurück</span>
 </button>
 <button class="w-8 h-8 rounded-lg bg-emerald-700 text-white font-bold text-xs flex items-center justify-center shadow-xs" id="btn-page-1">
@@ -647,7 +647,7 @@
         </button>
 <button class="px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 text-xs font-semibold flex items-center gap-1 transition-colors" id="btn-next">
 <span class="">Weiter</span>
-<span class="material-symbols-outlined text-[15px]">chevron_right</span>
+<span class="material-symbols-outlined text-[15px] notranslate" translate="no">chevron_right</span>
 </button>
 </nav>
 </div>
@@ -655,7 +655,7 @@
 <div class="rounded-xl bg-[#00a884] text-white p-4 sm:p-5 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
 <div class="flex items-center gap-3.5">
 <div class="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
-<span class="material-symbols-outlined text-[28px] text-white">chat</span>
+<span class="material-symbols-outlined text-[28px] text-white notranslate" translate="no">chat</span>
 </div>
 <div class="flex flex-col">
 <h3 class="font-bold text-base sm:text-lg text-white leading-tight">Finde Online-Kontakte / WhatsApp Chats beitreten</h3>
@@ -664,7 +664,7 @@
 </div>
 <a class="w-full md:w-auto px-6 py-2.5 rounded-full bg-white text-emerald-800 font-bold text-xs sm:text-sm shadow hover:bg-emerald-50 transition-all flex items-center justify-center gap-1.5 shrink-0" id="banner-open-btn" href="https://t.me/+ulN6q0NzX_A5ZDMx" target="_blank" rel="noopener noreferrer">
 <span class="">Öffnen</span>
-<span class="material-symbols-outlined text-[16px]">open_in_new</span>
+<span class="material-symbols-outlined text-[16px] notranslate" translate="no">open_in_new</span>
 </a>
 </div>
 </main>
@@ -674,11 +674,11 @@
 <!-- Kopfbereich mit Farbverlauf -->
 <div class="relative bg-gradient-to-br from-[#0d5c46] to-[#00a884] rounded-t-2xl px-5 sm:px-6 pt-5 pb-8">
 <button class="absolute top-4 right-4 w-7 h-7 rounded-full bg-white/15 hover:bg-white/25 text-white flex items-center justify-center transition-colors" id="modal-close-btn">
-<span class="material-symbols-outlined text-[18px]">close</span>
+<span class="material-symbols-outlined text-[18px] notranslate" translate="no">close</span>
 </button>
 <div class="flex items-center gap-3 pr-8">
 <div class="w-12 h-12 rounded-full bg-white/15 border border-white/25 text-emerald-200 flex items-center justify-center shrink-0 shadow-inner">
-<span class="material-symbols-outlined text-[26px]">forum</span>
+<span class="material-symbols-outlined text-[26px] notranslate" translate="no">forum</span>
 </div>
 <div class="flex flex-col min-w-0">
 <span class="text-[11px] uppercase tracking-wider font-bold text-emerald-100" id="modal-group-cat">Adult</span>
@@ -712,7 +712,7 @@
 </div>
 <div class="flex flex-col gap-2">
 <a class="w-full py-2.5 rounded-lg bg-[#25d366] hover:bg-[#20bd5a] text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-sm transition-colors" href="https://chat.whatsapp.com/invite/groupio-demo" id="modal-whatsapp-link" rel="noopener noreferrer" target="_blank">
-<span class="material-symbols-outlined text-[18px]">chat</span>
+<span class="material-symbols-outlined text-[18px] notranslate" translate="no">chat</span>
 <span class="">Gruppe beitreten (WhatsApp)</span>
 </a>
 <button class="w-full py-2 rounded-lg bg-white border border-slate-300 hover:bg-slate-50 text-slate-800 font-semibold text-xs flex items-center justify-center gap-1.5 transition-colors" id="modal-upvote-btn">
@@ -723,7 +723,7 @@
 <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-2 flex-wrap">
 <button class="group flex items-center gap-2 text-left hover:bg-slate-50 rounded-lg px-1.5 py-1 -ml-1.5 transition-colors" id="modal-creator-btn">
 <span class="w-7 h-7 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
-<span class="material-symbols-outlined text-[16px]">account_circle</span>
+<span class="material-symbols-outlined text-[16px] notranslate" translate="no">account_circle</span>
 </span>
 <span class="flex flex-col leading-tight">
 <span class="text-[10px] text-slate-400">Erstellt von</span>
@@ -743,7 +743,7 @@
 <!-- Logo -->
 <a class="flex items-center gap-2 text-white font-bold text-xl sm:text-2xl tracking-tight shrink-0 font-display cursor-pointer" id="profile-header-logo" title="Zur Startseite">
 <span class="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center text-emerald-300 font-bold border border-white/15 shadow-inner shrink-0">
-<span class="material-symbols-outlined text-[24px]">forum</span>
+<span class="material-symbols-outlined text-[24px] notranslate" translate="no">forum</span>
 </span>
 <span class="">Groupio</span>
 </a>
@@ -752,28 +752,28 @@
 <div class="relative w-full flex items-center">
 <input class="w-full bg-white text-slate-800 placeholder-slate-400 pl-4 pr-10 py-1.5 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 shadow-sm transition-all" id="profile-header-search" placeholder="Suche nach Gruppen..." type="text">
 <button class="absolute right-1 w-7 h-7 bg-emerald-700 hover:bg-emerald-800 text-white rounded-full flex items-center justify-center transition-colors" id="profile-header-search-btn" title="Suchen">
-<span class="material-symbols-outlined text-[16px]">search</span>
+<span class="material-symbols-outlined text-[16px] notranslate" translate="no">search</span>
 </button>
 </div>
 </div>
 <!-- Right Action Buttons -->
 <div class="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
 <button class="sm:hidden w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 text-white flex items-center justify-center transition-all cursor-pointer shrink-0" id="profile-mobile-search-toggle" title="Suche">
-<span class="material-symbols-outlined text-[18px]">search</span>
+<span class="material-symbols-outlined text-[18px] notranslate" translate="no">search</span>
 </button>
 <button class="inline-flex items-center gap-0 sm:gap-1.5 w-9 h-9 sm:w-auto sm:h-auto px-0 sm:px-3.5 py-0 sm:py-1.5 justify-center bg-[#00a884] hover:bg-[#008f70] text-white text-xs font-semibold rounded-full shadow-sm transition-all cursor-pointer shrink-0" title="Gruppe eintragen" onclick="closeProfilePage(); openAddGroupModal();">
-<span class="material-symbols-outlined text-[18px] sm:text-[16px]">add</span>
+<span class="material-symbols-outlined text-[18px] sm:text-[16px] notranslate" translate="no">add</span>
 <span class="hidden sm:inline">Gruppe eintragen</span>
 </button>
 <!-- Admin quick-access (nur sichtbar wenn als Administrator angemeldet) -->
 <button class="hidden relative items-center gap-0 sm:gap-1.5 w-9 h-9 sm:w-auto sm:h-auto px-0 sm:px-3 py-0 sm:py-1.5 justify-center bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold rounded-full shadow-sm transition-all cursor-pointer shrink-0" id="profile-admin-panel-btn" title="Admin-Panel" onclick="closeProfilePage(); openAdminPanel();">
-<span class="material-symbols-outlined text-[18px] sm:text-[15px]">shield_person</span>
+<span class="material-symbols-outlined text-[18px] sm:text-[15px] notranslate" translate="no">shield_person</span>
 <span class="hidden sm:inline">Admin-Panel</span>
 <span class="hidden absolute -top-1 -right-1 sm:static sm:ml-0.5 min-w-[16px] h-4 px-1 rounded-full bg-white text-amber-600 text-[10px] font-bold items-center justify-center" id="profile-admin-pending-badge">0</span>
 </button>
 <!-- Zurück-Button (ersetzt die Profil-Pille, da wir bereits im Profil sind) -->
 <button class="flex items-center gap-0 sm:gap-1.5 w-9 h-9 sm:w-auto sm:h-auto px-0 sm:px-3 py-0 sm:py-1.5 justify-center bg-white/10 hover:bg-white/20 border border-white/20 text-white text-xs font-semibold rounded-full shadow-sm transition-all cursor-pointer shrink-0" id="profile-page-close" title="Schließen">
-<span class="material-symbols-outlined text-[18px] sm:text-[15px]">close</span>
+<span class="material-symbols-outlined text-[18px] sm:text-[15px] notranslate" translate="no">close</span>
 <span class="hidden sm:inline">Schließen</span>
 </button>
 </div>
@@ -783,7 +783,7 @@
 <div class="relative w-full flex items-center">
 <input class="w-full bg-white text-slate-800 placeholder-slate-400 pl-4 pr-10 py-2 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 shadow-sm transition-all" id="profile-header-search-mobile" placeholder="Suche nach Gruppen..." type="text">
 <button class="absolute right-1 w-7 h-7 bg-emerald-700 hover:bg-emerald-800 text-white rounded-full flex items-center justify-center transition-colors">
-<span class="material-symbols-outlined text-[16px]">search</span>
+<span class="material-symbols-outlined text-[16px] notranslate" translate="no">search</span>
 </button>
 </div>
 </div>
@@ -798,10 +798,10 @@
 <div class="w-32 h-32 sm:w-44 sm:h-44 rounded-full bg-white p-1.5 shadow-lg relative">
 <div class="w-full h-full rounded-full bg-emerald-100 flex items-center justify-center overflow-hidden">
 <img alt="Profilbild" class="hidden w-full h-full object-cover" id="profile-avatar-img" src="">
-<span class="material-symbols-outlined text-emerald-600 text-[68px] sm:text-[92px]" id="profile-avatar-placeholder">person</span>
+<span class="material-symbols-outlined text-emerald-600 text-[68px] sm:text-[92px] notranslate" id="profile-avatar-placeholder" translate="no">person</span>
 </div>
 <button class="absolute bottom-1 right-1 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#00a884] hover:bg-[#008f70] text-white flex items-center justify-center shadow-md border-2 border-white transition-colors" id="profile-avatar-edit-btn" onclick="openEditProfileModal()" title="Profil bearbeiten">
-<span class="material-symbols-outlined text-[18px] sm:text-[20px]">edit</span>
+<span class="material-symbols-outlined text-[18px] sm:text-[20px] notranslate" translate="no">edit</span>
 </button>
 </div>
 </div>
@@ -822,20 +822,20 @@
 <span id="profile-gender-icon">♂</span> <span id="profile-gender">männlich</span>
 </span>
 <span class="hidden inline-flex items-center gap-1.5 bg-slate-100 text-slate-700 text-xs font-medium px-3 py-1.5 rounded-full" id="profile-pill-orientation">
-<span class="material-symbols-outlined text-[14px]">favorite</span> <span id="profile-orientation">–</span>
+<span class="material-symbols-outlined text-[14px] notranslate" translate="no">favorite</span> <span id="profile-orientation">–</span>
 </span>
 <span class="hidden inline-flex items-center gap-1.5 bg-slate-100 text-slate-700 text-xs font-medium px-3 py-1.5 rounded-full" id="profile-pill-age">
-<span class="material-symbols-outlined text-[14px]">cake</span> <span id="profile-age">26 Jahre</span>
+<span class="material-symbols-outlined text-[14px] notranslate" translate="no">cake</span> <span id="profile-age">26 Jahre</span>
 </span>
 </div>
 
 <!-- Info Pills row 2 -->
 <div class="flex items-center gap-2 flex-wrap justify-center">
 <span class="hidden inline-flex items-center gap-1.5 bg-slate-100 text-slate-700 text-xs font-medium px-3 py-1.5 rounded-full" id="profile-pill-location">
-<span class="material-symbols-outlined text-[14px]">location_on</span> <span id="profile-location">22529 Hamburg Lokstedt · Deutschland</span>
+<span class="material-symbols-outlined text-[14px] notranslate" translate="no">location_on</span> <span id="profile-location">22529 Hamburg Lokstedt · Deutschland</span>
 </span>
 <span class="inline-flex items-center gap-1.5 bg-slate-100 text-slate-700 text-xs font-medium px-3 py-1.5 rounded-full" id="profile-pill-joindate">
-<span class="material-symbols-outlined text-[14px]">calendar_month</span> <span id="profile-joindate">09/2021</span>
+<span class="material-symbols-outlined text-[14px] notranslate" translate="no">calendar_month</span> <span id="profile-joindate">09/2021</span>
 </span>
 </div>
 
@@ -844,19 +844,19 @@
 
 <!-- Profil bearbeiten Button -->
 <button class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-slate-200 hover:bg-slate-50 text-slate-600 text-xs font-semibold transition-colors" id="profile-edit-btn" onclick="openEditProfileModal()">
-<span class="material-symbols-outlined text-[15px]">edit</span>
+<span class="material-symbols-outlined text-[15px] notranslate" translate="no">edit</span>
 Profil bearbeiten
 </button>
 
 <!-- Admin-Hinweisbox (nur für Administrator sichtbar) -->
 <div class="hidden w-full mt-1 p-3 rounded-xl bg-amber-50 border border-amber-200 text-center" id="profile-admin-box">
 <div class="flex items-center justify-center gap-2 mb-1">
-<span class="material-symbols-outlined text-amber-600 text-[18px]">shield_person</span>
+<span class="material-symbols-outlined text-amber-600 text-[18px] notranslate" translate="no">shield_person</span>
 <span class="text-xs font-bold text-amber-800">Administrator-Zugriff</span>
 </div>
 <p class="text-[11px] text-amber-700 leading-relaxed mb-2">Du kannst eingereichte Gruppen prüfen und annehmen oder ablehnen.</p>
 <button class="w-full py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-colors" onclick="closeProfilePage(); openAdminPanel();">
-<span class="material-symbols-outlined text-[16px]">fact_check</span>
+<span class="material-symbols-outlined text-[16px] notranslate" translate="no">fact_check</span>
 Gruppen verwalten
 <span class="ml-1 min-w-[18px] h-[18px] px-1 rounded-full bg-white text-amber-600 text-[10px] font-bold flex items-center justify-center" id="profile-admin-pending-count">0</span>
 </button>
@@ -881,7 +881,7 @@ Gruppen verwalten
 <!-- Gruppen des Benutzers -->
 <div class="w-full pt-5 sm:pt-6 flex flex-col items-center gap-3">
 <div class="flex items-center justify-center gap-2">
-<span class="material-symbols-outlined text-emerald-600 text-[20px]">stacks</span>
+<span class="material-symbols-outlined text-emerald-600 text-[20px] notranslate" translate="no">stacks</span>
 <h3 class="font-bold text-slate-800 text-sm" id="profile-groups-heading">Gruppen von Chris1887x</h3>
 </div>
 <div class="w-full grid grid-cols-2 md:grid-cols-3 gap-3.5 sm:gap-4" id="profile-groups-grid">
@@ -892,12 +892,12 @@ Gruppen verwalten
 <span class="text-[11px] text-slate-400" id="profile-page-summary">Seite 1 von 1</span>
 <nav aria-label="Profil-Seiten-Navigation" class="flex items-center gap-1.5">
 <button class="px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed text-xs font-semibold flex items-center gap-1 transition-colors" id="profile-btn-prev" type="button">
-<span class="material-symbols-outlined text-[15px]">chevron_left</span>
+<span class="material-symbols-outlined text-[15px] notranslate" translate="no">chevron_left</span>
 <span class="">Zurück</span>
 </button>
 <button class="px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed text-xs font-semibold flex items-center gap-1 transition-colors" id="profile-btn-next" type="button">
 <span class="">Weiter</span>
-<span class="material-symbols-outlined text-[15px]">chevron_right</span>
+<span class="material-symbols-outlined text-[15px] notranslate" translate="no">chevron_right</span>
 </button>
 </nav>
 </div>
@@ -915,12 +915,12 @@ Gruppen verwalten
 <div class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center p-3 sm:p-4 overflow-y-auto" id="edit-profile-modal">
 <div class="bg-white rounded-2xl max-w-xl w-full p-5 sm:p-7 shadow-2xl flex flex-col gap-4 relative animate-in fade-in zoom-in-95 duration-150 my-auto max-h-[92vh] overflow-y-auto custom-scroll">
 <button class="absolute top-4 right-4 p-1.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 transition-colors" id="edit-profile-close" onclick="closeEditProfileModal()" title="Schließen">
-<span class="material-symbols-outlined text-[20px] block">close</span>
+<span class="material-symbols-outlined text-[20px] block notranslate" translate="no">close</span>
 </button>
 
 <div class="flex items-center gap-3 pt-1 border-b border-slate-100 pb-3.5">
 <div class="w-11 h-11 rounded-xl bg-[#00a884]/15 text-[#006b53] flex items-center justify-center shrink-0 border border-[#00a884]/30">
-<span class="material-symbols-outlined text-[24px]">manage_accounts</span>
+<span class="material-symbols-outlined text-[24px] notranslate" translate="no">manage_accounts</span>
 </div>
 <div class="flex flex-col">
 <h2 class="font-bold text-slate-900 text-lg leading-tight font-display">Profil bearbeiten</h2>
@@ -936,11 +936,11 @@ Gruppen verwalten
   <div class="flex items-center gap-4">
     <div class="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center overflow-hidden shrink-0 border border-slate-200">
       <img alt="Vorschau" class="hidden w-full h-full object-cover" id="edit-profile-avatar-preview" src="">
-      <span class="material-symbols-outlined text-emerald-600 text-[32px]" id="edit-profile-avatar-placeholder">person</span>
+      <span class="material-symbols-outlined text-emerald-600 text-[32px] notranslate" id="edit-profile-avatar-placeholder" translate="no">person</span>
     </div>
     <div class="flex flex-col gap-1">
       <label class="inline-flex items-center gap-1.5 w-fit px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold cursor-pointer transition-colors" for="edit-profile-avatar-input">
-        <span class="material-symbols-outlined text-[16px]">upload</span>
+        <span class="material-symbols-outlined text-[16px] notranslate" translate="no">upload</span>
         Foto hochladen
       </label>
       <input accept="image/*" class="hidden" id="edit-profile-avatar-input" type="file">
@@ -1020,7 +1020,7 @@ Gruppen verwalten
   <div class="flex items-center gap-2.5 pt-2">
     <button class="flex-1 py-2.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-600 font-bold text-xs sm:text-sm transition-colors" type="button" onclick="closeEditProfileModal()">Abbrechen</button>
     <button class="flex-1 py-2.5 rounded-lg bg-[#00a884] hover:bg-[#008f70] text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-xs transition-colors" id="edit-profile-submit-btn" type="submit">
-      <span class="material-symbols-outlined text-[18px]">save</span>
+      <span class="material-symbols-outlined text-[18px] notranslate" translate="no">save</span>
       Speichern
     </button>
   </div>
@@ -1032,11 +1032,11 @@ Gruppen verwalten
 <div class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center p-3 sm:p-4 overflow-y-auto" id="admin-panel-modal">
 <div class="bg-white rounded-2xl max-w-2xl w-full p-5 sm:p-7 shadow-2xl flex flex-col gap-4 relative animate-in fade-in zoom-in-95 duration-150 my-auto max-h-[92vh] overflow-y-auto custom-scroll">
 <button class="absolute top-4 right-4 p-1.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 transition-colors" id="admin-panel-close" title="Schließen">
-<span class="material-symbols-outlined text-[20px] block">close</span>
+<span class="material-symbols-outlined text-[20px] block notranslate" translate="no">close</span>
 </button>
 <div class="flex items-center gap-3 border-b border-slate-100 pb-3.5">
 <div class="w-11 h-11 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center shrink-0 border border-amber-200">
-<span class="material-symbols-outlined text-[24px]">shield_person</span>
+<span class="material-symbols-outlined text-[24px] notranslate" translate="no">shield_person</span>
 </div>
 <div class="flex flex-col">
 <h2 class="font-bold text-slate-900 text-lg leading-tight font-display">Admin-Panel — Gruppen verwalten</h2>
@@ -1056,10 +1056,10 @@ Gruppen verwalten
 
 <!-- Gruppensuche im Admin-Panel -->
 <div class="relative flex items-center">
-  <span class="absolute left-3 text-slate-400 material-symbols-outlined text-[18px]">search</span>
+  <span class="absolute left-3 text-slate-400 material-symbols-outlined text-[18px] notranslate" translate="no">search</span>
   <input class="w-full bg-slate-50 border border-slate-200 text-slate-800 placeholder-slate-400 pl-9 pr-8 py-2.5 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:bg-white transition-all" id="admin-search-input" placeholder="Gruppe suchen (Name, Link, Ersteller...)" type="text">
   <button class="hidden absolute right-2.5 text-slate-400 hover:text-slate-600" id="admin-search-clear" title="Suche löschen" type="button">
-    <span class="material-symbols-outlined text-[18px] block">close</span>
+    <span class="material-symbols-outlined text-[18px] block notranslate" translate="no">close</span>
   </button>
 </div>
 
@@ -1070,7 +1070,7 @@ Gruppen verwalten
 <!-- wird dynamisch befüllt -->
 </div>
 <div class="hidden flex-col items-center justify-center gap-2 py-10 text-slate-400" id="admin-empty-state">
-<span class="material-symbols-outlined text-[40px]">inbox</span>
+<span class="material-symbols-outlined text-[40px] notranslate" translate="no">inbox</span>
 <span class="text-sm font-medium">Keine ausstehenden Gruppen</span>
 </div>
 
@@ -1079,7 +1079,7 @@ Gruppen verwalten
 <!-- wird dynamisch befüllt -->
 </div>
 <div class="hidden flex-col items-center justify-center gap-2 py-10 text-slate-400" id="admin-approved-empty-state">
-<span class="material-symbols-outlined text-[40px]">inbox</span>
+<span class="material-symbols-outlined text-[40px] notranslate" translate="no">inbox</span>
 <span class="text-sm font-medium">Keine akzeptierten Gruppen</span>
 </div>
 </div>
@@ -1683,7 +1683,7 @@ Gruppen verwalten
       const desc = item.tags ? (item.tags + ' ' + (item.description || '')) : (item.description || '');
       const imgTag = item.image
         ? '<img alt="Avatar" class="w-full h-full object-cover" src="' + escapeHtml(item.image) + '">'
-        : '<span class="material-symbols-outlined text-slate-300 text-[40px]">groups</span>';
+        : '<span class="material-symbols-outlined text-slate-300 text-[40px] notranslate" translate="no">groups</span>';
       const dateStr = formatDate(item.approvedAt || item.submittedAt) || '';
       const statusBadge = isPending
         ? '<span class="inline-flex items-center gap-1 bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full text-[10px] font-semibold">In Prüfung</span>'
@@ -2236,7 +2236,7 @@ Gruppen verwalten
       const dateStr = formatDate(item.submittedAt);
       return '<div class="flex flex-col sm:flex-row sm:items-center gap-3 p-3.5 rounded-xl border border-slate-200 bg-slate-50" data-pending-id="' + escapeHtml(item.id) + '">'
         + '<div class="w-14 h-14 rounded-lg overflow-hidden bg-slate-100 border border-slate-200 shrink-0 flex items-center justify-center">'
-        + (item.image ? '<img alt="Vorschau" class="w-full h-full object-cover" src="' + escapeHtml(item.image) + '">' : '<span class="material-symbols-outlined text-slate-300 text-[24px]">groups</span>')
+        + (item.image ? '<img alt="Vorschau" class="w-full h-full object-cover" src="' + escapeHtml(item.image) + '">' : '<span class="material-symbols-outlined text-slate-300 text-[24px] notranslate" translate="no">groups</span>')
         + '</div>'
         + '<div class="flex-1 min-w-0 flex flex-col gap-1">'
         + '<div class="flex items-center gap-2 flex-wrap">'
@@ -2249,9 +2249,9 @@ Gruppen verwalten
         + '</div>'
         + '<div class="flex sm:flex-col gap-2 shrink-0">'
         + '<button class="px-3 py-2 rounded-lg bg-[#00a884] hover:bg-[#008f70] text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-colors" onclick="approvePendingGroup(\'' + escapeHtml(item.id) + '\')">'
-        + '<span class="material-symbols-outlined text-[16px]">check</span> Annehmen</button>'
+        + '<span class="material-symbols-outlined text-[16px] notranslate" translate="no">check</span> Annehmen</button>'
         + '<button class="px-3 py-2 rounded-lg bg-white border border-red-200 hover:bg-red-50 text-red-600 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors" onclick="rejectPendingGroup(\'' + escapeHtml(item.id) + '\')">'
-        + '<span class="material-symbols-outlined text-[16px]">close</span> Ablehnen</button>'
+        + '<span class="material-symbols-outlined text-[16px] notranslate" translate="no">close</span> Ablehnen</button>'
         + '</div></div>';
     }
 
@@ -2291,7 +2291,7 @@ Gruppen verwalten
       const dateStr = formatDate(item.approvedAt || item.submittedAt);
       return '<div class="flex flex-col sm:flex-row sm:items-center gap-3 p-3.5 rounded-xl border border-slate-200 bg-slate-50" data-approved-id="' + escapeHtml(item.id) + '">'
         + '<div class="w-14 h-14 rounded-lg overflow-hidden bg-slate-100 border border-slate-200 shrink-0 flex items-center justify-center">'
-        + (item.image ? '<img alt="Vorschau" class="w-full h-full object-cover" src="' + escapeHtml(item.image) + '">' : '<span class="material-symbols-outlined text-slate-300 text-[24px]">groups</span>')
+        + (item.image ? '<img alt="Vorschau" class="w-full h-full object-cover" src="' + escapeHtml(item.image) + '">' : '<span class="material-symbols-outlined text-slate-300 text-[24px] notranslate" translate="no">groups</span>')
         + '</div>'
         + '<div class="flex-1 min-w-0 flex flex-col gap-1">'
         + '<div class="flex items-center gap-2 flex-wrap">'
@@ -2305,7 +2305,7 @@ Gruppen verwalten
         + '</div>'
         + '<div class="flex sm:flex-col gap-2 shrink-0">'
         + '<button class="px-3 py-2 rounded-lg bg-white border border-red-200 hover:bg-red-50 text-red-600 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors" onclick="deleteApprovedGroup(\'' + escapeHtml(item.id) + '\')">'
-        + '<span class="material-symbols-outlined text-[16px]">delete</span> Löschen</button>'
+        + '<span class="material-symbols-outlined text-[16px] notranslate" translate="no">delete</span> Löschen</button>'
         + '</div></div>';
     }
 
@@ -2530,7 +2530,7 @@ Gruppen verwalten
       const desc = item.tags ? (item.tags + ' ' + (item.description || '')) : (item.description || '');
       const imgTag = item.image
         ? '<img alt="Avatar" class="w-full h-full object-cover" src="' + escapeHtml(item.image) + '">'
-        : '<span class="material-symbols-outlined text-slate-300 text-[40px]">groups</span>';
+        : '<span class="material-symbols-outlined text-slate-300 text-[40px] notranslate" translate="no">groups</span>';
       const dateStr = formatDate(item.approvedAt || item.submittedAt) || '';
       return '<div class="group-card bg-white rounded-xl border border-slate-200/90 shadow-2xs hover:shadow-md hover:border-emerald-300 transition-all p-3.5 flex flex-col justify-between cursor-pointer relative"'
         + ' data-id="' + escapeHtml(item.id) + '" data-link="' + escapeHtml(item.link || '') + '" data-cat="' + escapeHtml(item.category || 'Allgemein') + '"'
