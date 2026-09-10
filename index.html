@@ -2345,7 +2345,10 @@ Gruppen verwalten
           image: window.currentGroupImageUrl || '',
           votes: 0,
           votedBy: [],
-          submittedBy: session ? session.username : ('Gast-' + (anonUid || 'anon').slice(0, 6)),
+          // Gäste (nicht registrierte Nutzer) reichen ihre Gruppe komplett anonym ein:
+          // kein Benutzername wird gespeichert/angezeigt, und da es kein Konto gibt,
+          // kann die Gruppe später auch nicht mehr bearbeitet werden (kein Profil-Zugriff möglich).
+          submittedBy: session ? session.username : '',
           submittedByUid: anonUid || null,
           submittedAt: serverTimestamp(),
           status: 'pending'
