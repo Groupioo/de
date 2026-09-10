@@ -720,7 +720,7 @@
 </div>
 </main>
 <!-- INTERACTIVE MODAL 1: JOIN & VOTE GROUP (TRIGGERED BY CLICKING ANY GROUP CARD) -->
-<div class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto" id="join-modal">
+<div class="fixed inset-0 z-[60] bg-slate-900/60 backdrop-blur-xs hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto" id="join-modal">
 <div class="bg-white rounded-2xl max-w-md sm:max-w-lg w-full shadow-2xl flex flex-col relative animate-in fade-in zoom-in-95 duration-150 my-auto max-h-[92vh] overflow-y-auto custom-scroll">
 <!-- Kopfbereich mit Farbverlauf -->
 <div class="relative bg-gradient-to-br from-[#0d5c46] to-[#00a884] rounded-t-2xl px-5 sm:px-8 pt-5 sm:pt-7 pb-8 sm:pb-10">
@@ -902,6 +902,12 @@
 <button class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-slate-200 hover:bg-slate-50 text-slate-600 text-xs font-semibold transition-colors" id="profile-edit-btn" onclick="openEditProfileModal()">
 <span class="material-symbols-outlined text-[15px] notranslate" translate="no">edit</span>
 Profil bearbeiten
+</button>
+
+<!-- Abonnieren-Button (nur sichtbar auf fremden Profilen) -->
+<button class="hidden items-center gap-1.5 px-4 py-1.5 rounded-full bg-[#00a884] hover:bg-[#008f70] text-white text-xs font-bold transition-colors disabled:opacity-60 disabled:cursor-not-allowed" data-subscribed="false" id="profile-subscribe-btn" onclick="window.toggleSubscribeToProfile()">
+<span class="material-symbols-outlined text-[15px] notranslate" id="profile-subscribe-icon" translate="no">favorite_border</span>
+<span id="profile-subscribe-label">Abonnieren</span>
 </button>
 
 <!-- Admin-Hinweisbox (nur für Administrator sichtbar) -->
@@ -1979,7 +1985,7 @@ Gruppen verwalten
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
     import {
       getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, getDoc, getDocs,
-      setDoc, query, where, orderBy, serverTimestamp, increment, arrayUnion
+      setDoc, query, where, orderBy, serverTimestamp, increment, arrayUnion, arrayRemove
     } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
     import {
       getAuth, signInAnonymously, onAuthStateChanged
@@ -2519,6 +2525,71 @@ Gruppen verwalten
       if (btnNext) btnNext.addEventListener('click', () => { renderProfileGroupsPage(profileGroupsPage + 1); document.getElementById('profile-groups-heading').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
     })();
 
+    // ====== ABONNIEREN / LIKE-FUNKTION FÜR FREMDE PROFILE ======
+    function setSubscribeButtonState(isSubscribed) {
+      const btn = document.getElementById('profile-subscribe-btn');
+      const icon = document.getElementById('profile-subscribe-icon');
+      const label = document.getElementById('profile-subscribe-label');
+      if (!btn || !icon || !label) return;
+      btn.dataset.subscribed = isSubscribed ? 'true' : 'false';
+      if (isSubscribed) {
+        icon.textContent = 'favorite';
+        label.textContent = 'Abonniert';
+        btn.classList.remove('bg-[#00a884]', 'hover:bg-[#008f70]', 'text-white');
+        btn.classList.add('bg-slate-200', 'hover:bg-slate-300', 'text-slate-700');
+      } else {
+        icon.textContent = 'favorite_border';
+        label.textContent = 'Abonnieren';
+        btn.classList.remove('bg-slate-200', 'hover:bg-slate-300', 'text-slate-700');
+        btn.classList.add('bg-[#00a884]', 'hover:bg-[#008f70]', 'text-white');
+      }
+    }
+
+    // Ermöglicht anderen eingeloggten Nutzern, einem Profil per "Like"/Abonnieren
+    // zu folgen. Erhöht/verringert den Zähler "Abonnenten" (Feld "subs") im
+    // Nutzerdokument und merkt sich die Abonnenten in "subscribers", damit
+    // niemand denselben Nutzer mehrfach zählen kann.
+    window.toggleSubscribeToProfile = async function() {
+      const session = getSession();
+      if (!session) { window.openAuthModal('login'); return; }
+
+      const targetUsername = window.currentViewedUsername;
+      if (!targetUsername || targetUsername === session.username.toLowerCase()) return;
+
+      const btn = document.getElementById('profile-subscribe-btn');
+      const statSubs = document.getElementById('profile-stat-subs');
+      if (!btn || btn.disabled) return;
+
+      const wasSubscribed = btn.dataset.subscribed === 'true';
+      const viewerKey = session.username.toLowerCase();
+      const targetRef = doc(db, 'users', targetUsername);
+
+      btn.disabled = true;
+      // Optimistisches UI-Update, damit der Klick sich sofort reaktionsschnell anfühlt
+      setSubscribeButtonState(!wasSubscribed);
+      if (statSubs) {
+        const current = parseInt(statSubs.textContent, 10) || 0;
+        statSubs.textContent = Math.max(0, current + (wasSubscribed ? -1 : 1));
+      }
+
+      try {
+        await setDoc(targetRef, {
+          subs: increment(wasSubscribed ? -1 : 1),
+          subscribers: wasSubscribed ? arrayRemove(viewerKey) : arrayUnion(viewerKey)
+        }, { merge: true });
+      } catch (err) {
+        console.error('Fehler beim Abonnieren/Entfolgen:', err);
+        // Bei Fehler den optimistischen Zustand zurücksetzen
+        setSubscribeButtonState(wasSubscribed);
+        if (statSubs) {
+          const current = parseInt(statSubs.textContent, 10) || 0;
+          statSubs.textContent = Math.max(0, current + (wasSubscribed ? 1 : -1));
+        }
+      } finally {
+        btn.disabled = false;
+      }
+    };
+
     // ====== ERSTELLER-PROFIL (nutzt die vollständige Profilseite, nur Lesemodus) ======
     window.openCreatorProfile = async function(username) {
       const uname = (username || '').trim();
@@ -2532,14 +2603,22 @@ Gruppen verwalten
       const adminBox = document.getElementById('profile-admin-box');
       const logoutRow = document.getElementById('profile-logout-row');
       const pagBar = document.getElementById('profile-pagination-bar');
+      const subscribeBtn = document.getElementById('profile-subscribe-btn');
 
       // In den reinen Ansichtsmodus wechseln: Bearbeitungs-/Konto-Elemente ausblenden
       window.viewingOtherProfile = true;
+      window.currentViewedUsername = uname.toLowerCase();
       if (editAvatarBtn) editAvatarBtn.classList.add('hidden');
       if (editProfileBtn) editProfileBtn.classList.add('hidden');
       if (adminBadge) adminBadge.classList.add('hidden');
       if (adminBox) adminBox.classList.add('hidden');
       if (logoutRow) logoutRow.classList.add('hidden');
+      if (subscribeBtn) {
+        subscribeBtn.classList.remove('hidden');
+        subscribeBtn.classList.add('inline-flex');
+        subscribeBtn.disabled = true; // erst nach dem Laden der Profildaten aktivieren
+        setSubscribeButtonState(false);
+      }
 
       // Sofort mit Ladezustand anzeigen
       document.getElementById('profile-display-name').textContent = uname || 'Gast';
@@ -2558,6 +2637,7 @@ Gruppen verwalten
       if (isGuest) {
         document.getElementById('profile-username-handle').textContent = 'Als Gast eingereicht (kein Konto)';
         grid.innerHTML = '<p class="col-span-2 md:col-span-3 text-xs text-slate-400 text-center py-4">Für Gast-Einträge gibt es kein Profil.</p>';
+        if (subscribeBtn) subscribeBtn.classList.add('hidden');
         return;
       }
 
@@ -2566,6 +2646,19 @@ Gruppen verwalten
         const data = snap.exists() ? snap.data() : {};
         if (modal.classList.contains('hidden')) return;
         applyProfileData({ username: uname, displayName: data.displayName || uname }, data);
+
+        if (subscribeBtn) {
+          const viewerSession = getSession();
+          const isOwnProfile = viewerSession && viewerSession.username.toLowerCase() === uname.toLowerCase();
+          if (isOwnProfile) {
+            subscribeBtn.classList.add('hidden');
+          } else {
+            const subscribers = Array.isArray(data.subscribers) ? data.subscribers : [];
+            const alreadySubscribed = !!viewerSession && subscribers.includes(viewerSession.username.toLowerCase());
+            setSubscribeButtonState(alreadySubscribed);
+            subscribeBtn.disabled = false;
+          }
+        }
 
         const groupsSnap = await getDocs(query(groupsCol, where('submittedBy', '==', uname), where('status', '==', 'approved')));
         if (modal.classList.contains('hidden')) return;
@@ -2587,12 +2680,15 @@ Gruppen verwalten
 
       // Falls zuvor ein fremdes Profil angesehen wurde: eigene Bearbeitungs-/Konto-Elemente wiederherstellen
       window.viewingOtherProfile = false;
+      window.currentViewedUsername = null;
       const editAvatarBtn = document.getElementById('profile-avatar-edit-btn');
       const editProfileBtn = document.getElementById('profile-edit-btn');
       const logoutRow = document.getElementById('profile-logout-row');
+      const subscribeBtn = document.getElementById('profile-subscribe-btn');
       if (editAvatarBtn) editAvatarBtn.classList.remove('hidden');
       if (editProfileBtn) editProfileBtn.classList.remove('hidden');
       if (logoutRow) logoutRow.classList.remove('hidden');
+      if (subscribeBtn) subscribeBtn.classList.add('hidden');
 
       // 1) Sofort mit den bereits vorhandenen Session-Daten anzeigen (kein Warten auf Firestore)
       document.getElementById('profile-display-name').textContent = session.displayName || session.username;
