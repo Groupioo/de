@@ -1309,8 +1309,7 @@ Gruppen verwalten
       if (e.key === 'Escape') {
         document.getElementById('add-group-modal').classList.add('hidden');
         document.getElementById('auth-modal').classList.add('hidden');
-        const pp = document.getElementById('profile-page-modal');
-        if (pp) { pp.classList.add('hidden'); pp.classList.remove('flex'); }
+        if (window.closeProfilePage) window.closeProfilePage();
         const ap = document.getElementById('admin-panel-modal');
         if (ap) { ap.classList.add('hidden'); ap.classList.remove('flex'); }
         document.body.style.overflow = '';
@@ -1821,7 +1820,7 @@ Gruppen verwalten
 
       modal.classList.remove('hidden');
       modal.scrollTop = 0;
-      document.body.style.overflow = 'hidden';
+      pushProfileHistoryState();
 
       if (isGuest) {
         document.getElementById('profile-username-handle').textContent = 'Als Gast eingereicht (kein Konto)';
@@ -1888,7 +1887,7 @@ Gruppen verwalten
       const modal = document.getElementById('profile-page-modal');
       modal.classList.remove('hidden');
       modal.scrollTop = 0;
-      document.body.style.overflow = 'hidden';
+      pushProfileHistoryState();
 
       // 2) Firestore-Daten im Hintergrund laden, ohne die Modal-Öffnung zu blockieren
       if (session.role === 'admin') {
@@ -1933,10 +1932,42 @@ Gruppen verwalten
         .catch(err => console.error('Fehler beim Laden der Profildaten:', err));
     };
 
+    // ====== NAVEGACIÓN DEL PERFIL CON EL HISTORIAL DEL NAVEGADOR ======
+    // Beim Öffnen des Profils einen History-Eintrag anlegen, damit der
+    // native "Zurück"-Button (Handy/Browser) nur das Profil schließt,
+    // statt die ganze Seite/App zu verlassen.
+    function pushProfileHistoryState() {
+      try {
+        if (!(history.state && history.state.groupioModal === 'profile')) {
+          history.pushState({ groupioModal: 'profile' }, '', '#profil');
+        }
+      } catch (e) {}
+    }
+
+    function hideProfileModalOnly() {
+      const modal = document.getElementById('profile-page-modal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    window.addEventListener('popstate', function(e) {
+      const modal = document.getElementById('profile-page-modal');
+      const isOpen = modal && !modal.classList.contains('hidden');
+      const stillOnProfileState = e.state && e.state.groupioModal === 'profile';
+      if (isOpen && !stillOnProfileState) {
+        hideProfileModalOnly();
+      }
+    });
+
     window.closeProfilePage = function() {
       const modal = document.getElementById('profile-page-modal');
-      modal.classList.add('hidden');
-      document.body.style.overflow = '';
+      if (!modal || modal.classList.contains('hidden')) return;
+      if (history.state && history.state.groupioModal === 'profile') {
+        // Den zuvor angelegten History-Eintrag zurücknehmen;
+        // der popstate-Listener oben blendet das Profil dann aus.
+        history.back();
+      } else {
+        hideProfileModalOnly();
+      }
     };
 
     // ---------- PROFIL BEARBEITEN ----------
