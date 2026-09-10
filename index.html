@@ -79,6 +79,15 @@
       0%, 100% { box-shadow: 0 0 0 0 rgba(0, 168, 132, 0.45); }
       50% { box-shadow: 0 0 0 8px rgba(0, 168, 132, 0); }
     }
+    /* Animación amarilla en el borde redondo del botón de la estrella al hacer clic */
+    .star-btn-pulse {
+      animation: star-btn-pulse-anim 0.7s ease-out;
+    }
+    @keyframes star-btn-pulse-anim {
+      0% { box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.75); }
+      70% { box-shadow: 0 0 0 12px rgba(251, 191, 36, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(251, 191, 36, 0); }
+    }
   </style>
 </head>
 <body class="bg-[#f2f5f7] min-h-screen flex flex-col font-sans antialiased text-slate-800 selection:bg-emerald-200">
@@ -3431,13 +3440,15 @@ Gruppen verwalten
       if (currentTopVotedFilter) {
         paginationBar.classList.add('hidden');
         // allApprovedGroups ist bereits absteigend nach Stimmen sortiert (siehe reloadApprovedGroups)
-        const topGroups = allApprovedGroups.slice(0, TOP_VOTED_LIMIT);
+        // Gruppen mit 0 Stimmen werden hier ausgeschlossen: nur Gruppen mit mehr Stimmen werden angezeigt
+        const votedGroups = allApprovedGroups.filter(item => (item.votes || 0) > 0);
+        const topGroups = votedGroups.slice(0, TOP_VOTED_LIMIT);
         p1.classList.remove('hidden');
         p2.classList.add('hidden');
-        p1.innerHTML = topGroups.map(groupCardHtml).join('') || '<div class="col-span-2 md:col-span-3 lg:col-span-4 text-center py-10 text-xs text-slate-400">Noch keine Gruppen vorhanden.</div>';
+        p1.innerHTML = topGroups.map(groupCardHtml).join('') || '<div class="col-span-2 md:col-span-3 lg:col-span-4 text-center py-10 text-xs text-slate-400">Noch keine Gruppen mit Bewertungen vorhanden.</div>';
         p2.innerHTML = '';
         sumTop.textContent = '⭐ Top ' + topGroups.length + ' Gruppe' + (topGroups.length === 1 ? '' : 'n') + ' nach Bewertung';
-        sumBottom.textContent = 'Die ' + topGroups.length + ' bestbewerteten von ' + allApprovedGroups.length + ' WhatsApp Gruppen';
+        sumBottom.textContent = 'Die ' + topGroups.length + ' bestbewerteten von ' + votedGroups.length + ' bewerteten WhatsApp Gruppen';
         noResultsBox.classList.add('hidden');
         return;
       }
@@ -3532,6 +3543,18 @@ Gruppen verwalten
       updateTopVotedButtonStyle();
       applyFilters();
       window.scrollTo({ top: 0, behavior: 'smooth' });
+
+      // Animación amarilla en el borde redondo del botón al hacer clic
+      document.querySelectorAll('.top-voted-btn').forEach(function(btn) {
+        btn.classList.remove('star-btn-pulse');
+        // Forzar reflow para poder re-disparar la animación en clics seguidos
+        void btn.offsetWidth;
+        btn.classList.add('star-btn-pulse');
+        btn.addEventListener('animationend', function handler() {
+          btn.classList.remove('star-btn-pulse');
+          btn.removeEventListener('animationend', handler);
+        });
+      });
     };
 
     const categoryBarRow = document.getElementById('category-bar-row');
