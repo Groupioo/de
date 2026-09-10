@@ -887,6 +887,20 @@ Gruppen verwalten
 <div class="w-full grid grid-cols-2 md:grid-cols-3 gap-3.5 sm:gap-4" id="profile-groups-grid">
 <!-- wird dynamisch befüllt -->
 </div>
+<!-- Paginierung: 12 Gruppen pro Seite -->
+<div class="hidden w-full flex-col sm:flex-row items-center justify-between gap-2.5 pt-1" id="profile-pagination-bar">
+<span class="text-[11px] text-slate-400" id="profile-page-summary">Seite 1 von 1</span>
+<nav aria-label="Profil-Seiten-Navigation" class="flex items-center gap-1.5">
+<button class="px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed text-xs font-semibold flex items-center gap-1 transition-colors" id="profile-btn-prev" type="button">
+<span class="material-symbols-outlined text-[15px]">chevron_left</span>
+<span class="">Zurück</span>
+</button>
+<button class="px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed text-xs font-semibold flex items-center gap-1 transition-colors" id="profile-btn-next" type="button">
+<span class="">Weiter</span>
+<span class="material-symbols-outlined text-[15px]">chevron_right</span>
+</button>
+</nav>
+</div>
 </div>
 
 <div class="w-full max-w-xs pt-2" id="profile-logout-row">
@@ -1790,6 +1804,41 @@ Gruppen verwalten
       } catch (e) { return '–'; }
     }
 
+    // ====== PAGINIERUNG DER PROFIL-GRUPPEN (12 pro Seite) ======
+    const PROFILE_PAGE_SIZE = 12;
+    let profileGroupsAll = [];
+    let profileGroupsPage = 1;
+
+    function renderProfileGroupsPage(page) {
+      const grid = document.getElementById('profile-groups-grid');
+      const bar = document.getElementById('profile-pagination-bar');
+      const summary = document.getElementById('profile-page-summary');
+      const btnPrev = document.getElementById('profile-btn-prev');
+      const btnNext = document.getElementById('profile-btn-next');
+      if (!grid) return;
+
+      const totalPages = Math.max(1, Math.ceil(profileGroupsAll.length / PROFILE_PAGE_SIZE));
+      profileGroupsPage = Math.min(Math.max(1, page), totalPages);
+      const start = (profileGroupsPage - 1) * PROFILE_PAGE_SIZE;
+      const pageItems = profileGroupsAll.slice(start, start + PROFILE_PAGE_SIZE);
+
+      grid.innerHTML = pageItems.length
+        ? pageItems.map(profileGroupCardTemplate).join('')
+        : '<p class="col-span-2 md:col-span-3 text-xs text-slate-400 text-center py-4">Noch keine Gruppen eingetragen.</p>';
+
+      if (bar) { bar.classList.toggle('hidden', profileGroupsAll.length <= PROFILE_PAGE_SIZE); bar.classList.add('flex'); }
+      if (summary) summary.textContent = 'Seite ' + profileGroupsPage + ' von ' + totalPages + ' (' + PROFILE_PAGE_SIZE + ' Gruppen pro Seite) · Total: ' + profileGroupsAll.length;
+      if (btnPrev) btnPrev.disabled = profileGroupsPage <= 1;
+      if (btnNext) btnNext.disabled = profileGroupsPage >= totalPages;
+    }
+
+    (function initProfilePagination() {
+      const btnPrev = document.getElementById('profile-btn-prev');
+      const btnNext = document.getElementById('profile-btn-next');
+      if (btnPrev) btnPrev.addEventListener('click', () => { if (profileGroupsPage > 1) renderProfileGroupsPage(profileGroupsPage - 1); document.getElementById('profile-groups-heading').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+      if (btnNext) btnNext.addEventListener('click', () => { renderProfileGroupsPage(profileGroupsPage + 1); document.getElementById('profile-groups-heading').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+    })();
+
     // ====== ERSTELLER-PROFIL (nutzt die vollständige Profilseite, nur Lesemodus) ======
     window.openCreatorProfile = async function(username) {
       const uname = (username || '').trim();
@@ -1802,6 +1851,7 @@ Gruppen verwalten
       const adminBadge = document.getElementById('profile-admin-badge');
       const adminBox = document.getElementById('profile-admin-box');
       const logoutRow = document.getElementById('profile-logout-row');
+      const pagBar = document.getElementById('profile-pagination-bar');
 
       // In den reinen Ansichtsmodus wechseln: Bearbeitungs-/Konto-Elemente ausblenden
       window.viewingOtherProfile = true;
@@ -1816,6 +1866,9 @@ Gruppen verwalten
       document.getElementById('profile-username-handle').textContent = isGuest ? 'Gast (kein Konto)' : '@' + uname;
       document.getElementById('profile-groups-heading').textContent = 'Gruppen von ' + (uname || 'Gast');
       applyProfileData({ username: uname, displayName: uname }, {});
+      profileGroupsAll = [];
+      profileGroupsPage = 1;
+      if (pagBar) pagBar.classList.add('hidden');
       grid.innerHTML = '<p class="col-span-2 md:col-span-3 text-xs text-slate-400 text-center py-4">Lädt...</p>';
 
       modal.classList.remove('hidden');
@@ -1837,9 +1890,8 @@ Gruppen verwalten
         const groupsSnap = await getDocs(query(groupsCol, where('submittedBy', '==', uname), where('status', '==', 'approved')));
         if (modal.classList.contains('hidden')) return;
         const items = groupsSnap.docs.map(d => Object.assign({ id: d.id }, d.data()));
-        grid.innerHTML = items.length
-          ? items.map(profileGroupCardTemplate).join('')
-          : '<p class="col-span-2 md:col-span-3 text-xs text-slate-400 text-center py-4">Noch keine Gruppen eingetragen.</p>';
+        profileGroupsAll = items;
+        renderProfileGroupsPage(1);
         document.getElementById('profile-stat-groups').textContent = items.length;
       } catch (err) {
         console.error('Fehler beim Laden des Ersteller-Profils:', err);
@@ -1882,7 +1934,11 @@ Gruppen verwalten
       document.getElementById('profile-groups-heading').textContent = 'Gruppen von ' + (session.displayName || session.username);
 
       const grid = document.getElementById('profile-groups-grid');
-      grid.innerHTML = '<p class="col-span-2 text-xs text-slate-400 text-center py-4">Lädt...</p>';
+      const pagBar = document.getElementById('profile-pagination-bar');
+      profileGroupsAll = [];
+      profileGroupsPage = 1;
+      if (pagBar) pagBar.classList.add('hidden');
+      grid.innerHTML = '<p class="col-span-2 md:col-span-3 text-xs text-slate-400 text-center py-4">Lädt...</p>';
 
       const modal = document.getElementById('profile-page-modal');
       modal.classList.remove('hidden');
@@ -1903,15 +1959,14 @@ Gruppen verwalten
           // Nur aktualisieren, wenn das Profil-Modal noch geöffnet ist
           if (modal.classList.contains('hidden')) return;
           const items = snap.docs.map(d => Object.assign({ id: d.id }, d.data()));
-          grid.innerHTML = items.length
-            ? items.map(profileGroupCardTemplate).join('')
-            : '<p class="col-span-2 text-xs text-slate-400 text-center py-4">Noch keine Gruppen eingetragen.</p>';
+          profileGroupsAll = items;
+          renderProfileGroupsPage(1);
           document.getElementById('profile-stat-groups').textContent = items.filter(i => i.status === 'approved').length;
         })
         .catch(err => {
           console.error('Fehler beim Laden der eigenen Gruppen:', err);
           if (modal.classList.contains('hidden')) return;
-          grid.innerHTML = '<p class="col-span-2 text-xs text-red-400 text-center py-4">Fehler beim Laden.</p>';
+          grid.innerHTML = '<p class="col-span-2 md:col-span-3 text-xs text-red-400 text-center py-4">Fehler beim Laden.</p>';
         });
 
       // Eigenes Profil-Dokument laden (Foto, Alter, Standort, Social Links, Statistiken).
