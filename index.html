@@ -94,10 +94,14 @@
     justify-content: center;
     animation: groupio-loader-pulse 1.4s ease-in-out infinite;
   }
-  .groupio-loader-badge svg {
-    width: 44px;
-    height: 44px;
-    display: block;
+  .groupio-loader-badge .material-symbols-outlined {
+    font-size: 44px;
+    color: #6ee7b7;
+    opacity: 0;
+  }
+  .groupio-loader-badge .material-symbols-outlined.font-ready {
+    opacity: 1;
+    transition: opacity 0.2s ease;
   }
   .groupio-loader-ring {
     position: absolute;
@@ -164,17 +168,27 @@
 <script>
   document.documentElement.classList.add('groupio-loading');
 </script>
+<script>
+  // Evita que aparezca la palabra "forum" como texto plano antes de que cargue la fuente de íconos:
+  // el ícono permanece invisible (opacity:0, ver CSS) hasta que la fuente esté lista.
+  (function () {
+    var icon = document.getElementById('groupio-loader-icon');
+    if (!icon) return;
+    function reveal() { icon.classList.add('font-ready'); }
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(reveal).catch(reveal);
+      // Seguridad: si tarda demasiado, mostrarlo igual tras 1.2s.
+      setTimeout(reveal, 1200);
+    } else {
+      reveal();
+    }
+  })();
+</script>
 <div id="groupio-loader">
   <div class="groupio-loader-wrap">
     <div class="groupio-loader-ring"></div>
     <div class="groupio-loader-badge">
-      <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-        <rect x="14" y="16" width="36" height="24" rx="8" fill="#6ee7b7"></rect>
-        <polygon points="22,40 20,50 32,40" fill="#6ee7b7"></polygon>
-        <circle cx="24" cy="28" r="2.6" fill="#0d5c46"></circle>
-        <circle cx="32" cy="28" r="2.6" fill="#0d5c46"></circle>
-        <circle cx="40" cy="28" r="2.6" fill="#0d5c46"></circle>
-      </svg>
+      <span class="material-symbols-outlined notranslate" id="groupio-loader-icon" translate="no">forum</span>
     </div>
   </div>
   <div style="text-align:center;">
