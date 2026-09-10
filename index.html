@@ -735,49 +735,7 @@
 </div>
 </div>
 </div>
-<!-- INTERACTIVE MODAL 2: ERSTELLER-PROFIL (dynamisch, je nach Gruppe) -->
-<div class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto" id="creator-profile-modal">
-<div class="bg-white rounded-2xl max-w-md w-full p-5 sm:p-6 shadow-2xl flex flex-col gap-4 relative animate-in fade-in zoom-in-95 duration-150 my-auto max-h-[92vh] overflow-y-auto custom-scroll">
-<button class="absolute top-4 right-4 p-1 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500" id="creator-profile-close">
-<span class="material-symbols-outlined text-[18px]">close</span>
-</button>
-<div class="flex items-center gap-3">
-<div class="w-14 h-14 rounded-full bg-emerald-800 text-white font-bold text-xl flex items-center justify-center shadow-inner overflow-hidden shrink-0">
-<img alt="Profilbild" class="hidden w-full h-full object-cover" id="creator-avatar-img" src="">
-<span id="creator-avatar-initials">?</span>
-</div>
-<div class="flex flex-col min-w-0">
-<div class="flex items-center gap-1">
-<h3 class="font-bold text-slate-900 text-base truncate" id="creator-name">Benutzer</h3>
-</div>
-<span class="text-xs text-slate-500" id="creator-subtitle">–</span>
-</div>
-</div>
-<div class="grid grid-cols-3 gap-2 text-center py-1">
-<div class="bg-slate-50 border border-slate-100 p-2 rounded-lg">
-<span class="font-bold text-slate-800 text-sm block" id="creator-stat-groups">0</span>
-<span class="text-[10px] text-slate-400 uppercase">Gruppen</span>
-</div>
-<div class="bg-slate-50 border border-slate-100 p-2 rounded-lg">
-<span class="font-bold text-emerald-700 text-sm block" id="creator-stat-subs">0</span>
-<span class="text-[10px] text-slate-400 uppercase">Abonnenten</span>
-</div>
-<div class="bg-slate-50 border border-slate-100 p-2 rounded-lg">
-<span class="font-bold text-slate-800 text-sm block" id="creator-stat-views">0</span>
-<span class="text-[10px] text-slate-400 uppercase">Profilaufrufe</span>
-</div>
-</div>
-<p class="hidden items-center gap-1 text-xs text-slate-600" id="creator-location-row">
-<span class="material-symbols-outlined text-[14px]">location_on</span> <span id="creator-location"></span>
-</p>
-<div class="flex flex-col gap-2 pt-2 border-t border-slate-100">
-<button class="w-full py-1.5 text-xs text-slate-500 hover:text-slate-800" onclick="document.getElementById('creator-profile-modal').classList.add('hidden');">
-          Schließen
-        </button>
-</div>
-</div>
-</div>
-<!-- INTERACTIVE PAGE: USER / ADMIN PROFILE (füllt die gesamte Seite) -->
+
 <div class="fixed inset-0 z-50 bg-slate-100 hidden overflow-y-auto custom-scroll" id="profile-page-modal">
 <!-- Eigener Seiten-Header (identisch zum Haupt-Header) -->
 <header class="w-full bg-[#0d5c46] text-white shadow-md sticky top-0 z-40">
@@ -885,7 +843,7 @@
 <div class="hidden items-center gap-2 flex-wrap justify-center" id="profile-socials-row"></div>
 
 <!-- Profil bearbeiten Button -->
-<button class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-slate-200 hover:bg-slate-50 text-slate-600 text-xs font-semibold transition-colors" onclick="openEditProfileModal()">
+<button class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-slate-200 hover:bg-slate-50 text-slate-600 text-xs font-semibold transition-colors" id="profile-edit-btn" onclick="openEditProfileModal()">
 <span class="material-symbols-outlined text-[15px]">edit</span>
 Profil bearbeiten
 </button>
@@ -931,7 +889,7 @@ Gruppen verwalten
 </div>
 </div>
 
-<div class="w-full max-w-xs pt-2">
+<div class="w-full max-w-xs pt-2" id="profile-logout-row">
 <button class="w-full py-2 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-600 text-xs font-semibold transition-colors" onclick="logoutUser()">Abmelden</button>
 </div>
 </div>
@@ -1351,7 +1309,6 @@ Gruppen verwalten
       if (e.key === 'Escape') {
         document.getElementById('add-group-modal').classList.add('hidden');
         document.getElementById('auth-modal').classList.add('hidden');
-        document.getElementById('creator-profile-modal').classList.add('hidden');
         const pp = document.getElementById('profile-page-modal');
         if (pp) { pp.classList.add('hidden'); pp.classList.remove('flex'); }
         const ap = document.getElementById('admin-panel-modal');
@@ -1813,89 +1770,77 @@ Gruppen verwalten
       } catch (e) { return '–'; }
     }
 
-    // ====== ERSTELLER-PROFIL MODAL (dynamisch, für jeden Gruppen-Ersteller) ======
+    // ====== ERSTELLER-PROFIL (nutzt die vollständige Profilseite, nur Lesemodus) ======
     window.openCreatorProfile = async function(username) {
-      const modal = document.getElementById('creator-profile-modal');
-      const nameEl = document.getElementById('creator-name');
-      const subtitleEl = document.getElementById('creator-subtitle');
-      const avatarImg = document.getElementById('creator-avatar-img');
-      const avatarInitials = document.getElementById('creator-avatar-initials');
-      const statGroups = document.getElementById('creator-stat-groups');
-      const statSubs = document.getElementById('creator-stat-subs');
-      const statViews = document.getElementById('creator-stat-views');
-      const locationRow = document.getElementById('creator-location-row');
-      const locationEl = document.getElementById('creator-location');
-      if (!modal) return;
-
       const uname = (username || '').trim();
       const isGuest = !uname || uname.toLowerCase().startsWith('gast-');
 
-      // Ladezustand direkt anzeigen
-      nameEl.textContent = uname || 'Gast';
-      subtitleEl.textContent = 'Lädt...';
-      avatarImg.classList.add('hidden');
-      avatarImg.src = '';
-      avatarInitials.classList.remove('hidden');
-      avatarInitials.textContent = (uname || 'G').slice(0, 2).toUpperCase();
-      statGroups.textContent = '0';
-      statSubs.textContent = '0';
-      statViews.textContent = '0';
-      locationRow.classList.add('hidden');
-      locationRow.classList.remove('flex');
+      const modal = document.getElementById('profile-page-modal');
+      const grid = document.getElementById('profile-groups-grid');
+      const editAvatarBtn = document.getElementById('profile-avatar-edit-btn');
+      const editProfileBtn = document.getElementById('profile-edit-btn');
+      const adminBadge = document.getElementById('profile-admin-badge');
+      const adminBox = document.getElementById('profile-admin-box');
+      const logoutRow = document.getElementById('profile-logout-row');
+
+      // In den reinen Ansichtsmodus wechseln: Bearbeitungs-/Konto-Elemente ausblenden
+      window.viewingOtherProfile = true;
+      if (editAvatarBtn) editAvatarBtn.classList.add('hidden');
+      if (editProfileBtn) editProfileBtn.classList.add('hidden');
+      if (adminBadge) adminBadge.classList.add('hidden');
+      if (adminBox) adminBox.classList.add('hidden');
+      if (logoutRow) logoutRow.classList.add('hidden');
+
+      // Sofort mit Ladezustand anzeigen
+      document.getElementById('profile-display-name').textContent = uname || 'Gast';
+      document.getElementById('profile-username-handle').textContent = isGuest ? 'Gast (kein Konto)' : '@' + uname;
+      document.getElementById('profile-groups-heading').textContent = 'Gruppen von ' + (uname || 'Gast');
+      applyProfileData({ username: uname, displayName: uname }, {});
+      grid.innerHTML = '<p class="col-span-2 sm:col-span-3 text-xs text-slate-400 text-center py-4">Lädt...</p>';
 
       modal.classList.remove('hidden');
+      modal.scrollTop = 0;
       document.body.style.overflow = 'hidden';
 
       if (isGuest) {
-        subtitleEl.textContent = 'Als Gast eingereicht (kein Konto)';
+        document.getElementById('profile-username-handle').textContent = 'Als Gast eingereicht (kein Konto)';
+        grid.innerHTML = '<p class="col-span-2 sm:col-span-3 text-xs text-slate-400 text-center py-4">Für Gast-Einträge gibt es kein Profil.</p>';
         return;
       }
 
       try {
         const snap = await getDoc(doc(db, 'users', uname.toLowerCase()));
         const data = snap.exists() ? snap.data() : {};
-        const displayName = data.displayName || uname;
-
-        nameEl.textContent = displayName;
-        avatarInitials.textContent = displayName.slice(0, 2).toUpperCase();
-        if (data.photoUrl) {
-          avatarImg.src = data.photoUrl;
-          avatarImg.classList.remove('hidden');
-          avatarInitials.classList.add('hidden');
-        }
-        subtitleEl.textContent = data.createdAt ? ('Mitglied seit ' + formatJoinDate(data.createdAt)) : 'Groupio-Mitglied';
-
-        if (data.location) {
-          locationEl.textContent = data.location;
-          locationRow.classList.remove('hidden');
-          locationRow.classList.add('flex');
-        }
-
-        statSubs.textContent = data.subs || 0;
-        statViews.textContent = data.views || 0;
+        if (modal.classList.contains('hidden')) return;
+        applyProfileData({ username: uname, displayName: data.displayName || uname }, data);
 
         const groupsSnap = await getDocs(query(groupsCol, where('submittedBy', '==', uname), where('status', '==', 'approved')));
-        statGroups.textContent = groupsSnap.size;
+        if (modal.classList.contains('hidden')) return;
+        const items = groupsSnap.docs.map(d => Object.assign({ id: d.id }, d.data()));
+        grid.innerHTML = items.length
+          ? items.map(profileGroupCardTemplate).join('')
+          : '<p class="col-span-2 sm:col-span-3 text-xs text-slate-400 text-center py-4">Noch keine Gruppen eingetragen.</p>';
+        document.getElementById('profile-stat-groups').textContent = items.length;
       } catch (err) {
         console.error('Fehler beim Laden des Ersteller-Profils:', err);
-        subtitleEl.textContent = 'Profil konnte nicht geladen werden.';
+        grid.innerHTML = '<p class="col-span-2 sm:col-span-3 text-xs text-red-400 text-center py-4">Fehler beim Laden.</p>';
       }
     };
-
-    const creatorModalEl = document.getElementById('creator-profile-modal');
-    const creatorModalClose = document.getElementById('creator-profile-close');
-    function closeCreatorProfileModal() {
-      creatorModalEl.classList.add('hidden');
-      document.body.style.overflow = '';
-    }
-    if (creatorModalClose) creatorModalClose.addEventListener('click', closeCreatorProfileModal);
-    if (creatorModalEl) creatorModalEl.addEventListener('click', function(e) { if (e.target === this) closeCreatorProfileModal(); });
 
     window.currentProfileData = null;
 
     window.openProfilePage = function() {
       const session = getSession();
       if (!session) { window.openAuthModal('login'); return; }
+
+      // Falls zuvor ein fremdes Profil angesehen wurde: eigene Bearbeitungs-/Konto-Elemente wiederherstellen
+      window.viewingOtherProfile = false;
+      const editAvatarBtn = document.getElementById('profile-avatar-edit-btn');
+      const editProfileBtn = document.getElementById('profile-edit-btn');
+      const logoutRow = document.getElementById('profile-logout-row');
+      if (editAvatarBtn) editAvatarBtn.classList.remove('hidden');
+      if (editProfileBtn) editProfileBtn.classList.remove('hidden');
+      if (logoutRow) logoutRow.classList.remove('hidden');
 
       // 1) Sofort mit den bereits vorhandenen Session-Daten anzeigen (kein Warten auf Firestore)
       document.getElementById('profile-display-name').textContent = session.displayName || session.username;
