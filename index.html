@@ -684,10 +684,14 @@
 <div class="relative">
 <div class="h-36 sm:h-48 md:h-56 w-full bg-gradient-to-br from-[#0a523e] via-[#0d8a5f] to-[#22c55e]"></div>
 <div class="absolute -bottom-12 sm:-bottom-14 left-1/2 -translate-x-1/2">
-<div class="w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-white p-1 shadow-md">
+<div class="w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-white p-1 shadow-md relative">
 <div class="w-full h-full rounded-full bg-emerald-100 flex items-center justify-center overflow-hidden">
-<span class="material-symbols-outlined text-emerald-600 text-[52px] sm:text-[60px]">person</span>
+<img alt="Profilbild" class="hidden w-full h-full object-cover" id="profile-avatar-img" src="">
+<span class="material-symbols-outlined text-emerald-600 text-[52px] sm:text-[60px]" id="profile-avatar-placeholder">person</span>
 </div>
+<button class="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-[#00a884] hover:bg-[#008f70] text-white flex items-center justify-center shadow-md border-2 border-white transition-colors" id="profile-avatar-edit-btn" onclick="openEditProfileModal()" title="Profil bearbeiten">
+<span class="material-symbols-outlined text-[16px]">edit</span>
+</button>
 </div>
 </div>
 </div>
@@ -703,23 +707,35 @@
 
 <!-- Info Pills row 1 -->
 <div class="flex items-center gap-2 flex-wrap justify-center">
-<span class="inline-flex items-center gap-1.5 bg-slate-100 text-slate-700 text-xs font-medium px-3 py-1.5 rounded-full">
+<span class="hidden inline-flex items-center gap-1.5 bg-slate-100 text-slate-700 text-xs font-medium px-3 py-1.5 rounded-full" id="profile-pill-gender">
 <span id="profile-gender-icon">♂</span> <span id="profile-gender">männlich</span>
 </span>
-<span class="inline-flex items-center gap-1.5 bg-slate-100 text-slate-700 text-xs font-medium px-3 py-1.5 rounded-full">
+<span class="hidden inline-flex items-center gap-1.5 bg-slate-100 text-slate-700 text-xs font-medium px-3 py-1.5 rounded-full" id="profile-pill-orientation">
+<span class="material-symbols-outlined text-[14px]">favorite</span> <span id="profile-orientation">–</span>
+</span>
+<span class="hidden inline-flex items-center gap-1.5 bg-slate-100 text-slate-700 text-xs font-medium px-3 py-1.5 rounded-full" id="profile-pill-age">
 <span class="material-symbols-outlined text-[14px]">cake</span> <span id="profile-age">26 Jahre</span>
 </span>
 </div>
 
 <!-- Info Pills row 2 -->
 <div class="flex items-center gap-2 flex-wrap justify-center">
-<span class="inline-flex items-center gap-1.5 bg-slate-100 text-slate-700 text-xs font-medium px-3 py-1.5 rounded-full">
+<span class="hidden inline-flex items-center gap-1.5 bg-slate-100 text-slate-700 text-xs font-medium px-3 py-1.5 rounded-full" id="profile-pill-location">
 <span class="material-symbols-outlined text-[14px]">location_on</span> <span id="profile-location">22529 Hamburg Lokstedt · Deutschland</span>
 </span>
-<span class="inline-flex items-center gap-1.5 bg-slate-100 text-slate-700 text-xs font-medium px-3 py-1.5 rounded-full">
+<span class="inline-flex items-center gap-1.5 bg-slate-100 text-slate-700 text-xs font-medium px-3 py-1.5 rounded-full" id="profile-pill-joindate">
 <span class="material-symbols-outlined text-[14px]">calendar_month</span> <span id="profile-joindate">09/2021</span>
 </span>
 </div>
+
+<!-- Social-Media Links (nur sichtbar, wenn mind. ein Link hinterlegt ist) -->
+<div class="hidden items-center gap-2 flex-wrap justify-center" id="profile-socials-row"></div>
+
+<!-- Profil bearbeiten Button -->
+<button class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-slate-200 hover:bg-slate-50 text-slate-600 text-xs font-semibold transition-colors" onclick="openEditProfileModal()">
+<span class="material-symbols-outlined text-[15px]">edit</span>
+Profil bearbeiten
+</button>
 
 <!-- Admin-Hinweisbox (nur für Administrator sichtbar) -->
 <div class="hidden w-full mt-1 p-3 rounded-xl bg-amber-50 border border-amber-200 text-center" id="profile-admin-box">
@@ -738,7 +754,7 @@ Gruppen verwalten
 <!-- Stats Row -->
 <div class="w-full max-w-md grid grid-cols-3 divide-x divide-slate-100 border-t border-b border-slate-100">
 <div class="flex flex-col items-center py-3.5">
-<span class="font-extrabold text-emerald-700 text-xl" id="profile-stat-groups">2</span>
+<span class="font-extrabold text-emerald-700 text-xl" id="profile-stat-groups">0</span>
 <span class="text-[10px] font-semibold uppercase text-slate-400 tracking-wide">Gruppen</span>
 </div>
 <div class="flex flex-col items-center py-3.5">
@@ -746,7 +762,7 @@ Gruppen verwalten
 <span class="text-[10px] font-semibold uppercase text-slate-400 tracking-wide">Abonnenten</span>
 </div>
 <div class="flex flex-col items-center py-3.5">
-<span class="font-extrabold text-emerald-700 text-xl" id="profile-stat-views">533</span>
+<span class="font-extrabold text-emerald-700 text-xl" id="profile-stat-views">0</span>
 <span class="text-[10px] font-semibold uppercase text-slate-400 tracking-wide">Profilaufrufe</span>
 </div>
 </div>
@@ -767,6 +783,123 @@ Gruppen verwalten
 </div>
 </div>
 </div>
+</div>
+</div>
+
+<!-- INTERACTIVE MODAL: PROFIL BEARBEITEN -->
+<div class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center p-3 sm:p-4 overflow-y-auto" id="edit-profile-modal">
+<div class="bg-white rounded-2xl max-w-xl w-full p-5 sm:p-7 shadow-2xl flex flex-col gap-4 relative animate-in fade-in zoom-in-95 duration-150 my-auto max-h-[92vh] overflow-y-auto custom-scroll">
+<button class="absolute top-4 right-4 p-1.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 transition-colors" id="edit-profile-close" onclick="closeEditProfileModal()" title="Schließen">
+<span class="material-symbols-outlined text-[20px] block">close</span>
+</button>
+
+<div class="flex items-center gap-3 pt-1 border-b border-slate-100 pb-3.5">
+<div class="w-11 h-11 rounded-xl bg-[#00a884]/15 text-[#006b53] flex items-center justify-center shrink-0 border border-[#00a884]/30">
+<span class="material-symbols-outlined text-[24px]">manage_accounts</span>
+</div>
+<div class="flex flex-col">
+<h2 class="font-bold text-slate-900 text-lg leading-tight font-display">Profil bearbeiten</h2>
+<span class="text-xs text-slate-500">Passe deine Angaben und Kontaktinfos an</span>
+</div>
+</div>
+
+<div class="hidden p-3.5 rounded-xl text-xs font-medium" id="edit-profile-feedback"></div>
+
+<form class="flex flex-col gap-4" id="edit-profile-form" onsubmit="handleEditProfileSubmit(event)">
+
+  <!-- Profilbild -->
+  <div class="flex items-center gap-4">
+    <div class="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center overflow-hidden shrink-0 border border-slate-200">
+      <img alt="Vorschau" class="hidden w-full h-full object-cover" id="edit-profile-avatar-preview" src="">
+      <span class="material-symbols-outlined text-emerald-600 text-[32px]" id="edit-profile-avatar-placeholder">person</span>
+    </div>
+    <div class="flex flex-col gap-1">
+      <label class="inline-flex items-center gap-1.5 w-fit px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold cursor-pointer transition-colors" for="edit-profile-avatar-input">
+        <span class="material-symbols-outlined text-[16px]">upload</span>
+        Foto hochladen
+      </label>
+      <input accept="image/*" class="hidden" id="edit-profile-avatar-input" type="file">
+      <span class="text-[11px] text-slate-400">JPG oder PNG, wird automatisch verkleinert.</span>
+    </div>
+  </div>
+
+  <!-- Anzeigename -->
+  <div class="flex flex-col gap-1">
+    <label class="text-xs font-semibold text-slate-700" for="edit-profile-displayname">Anzeigename</label>
+    <input class="w-full bg-slate-50 border border-slate-200 text-slate-800 placeholder-slate-400 px-3 py-2 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:bg-white transition-all" id="edit-profile-displayname" placeholder="Dein Anzeigename" type="text">
+  </div>
+
+  <!-- Geschlecht & Orientierung -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+    <div class="flex flex-col gap-1">
+      <label class="text-xs font-semibold text-slate-700" for="edit-profile-gender">Geschlecht</label>
+      <select class="w-full bg-slate-50 border border-slate-200 text-slate-800 px-3 py-2 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:bg-white transition-all" id="edit-profile-gender">
+        <option value="">Keine Angabe</option>
+        <option value="männlich">Männlich</option>
+        <option value="weiblich">Weiblich</option>
+        <option value="divers">Divers</option>
+      </select>
+    </div>
+    <div class="flex flex-col gap-1">
+      <label class="text-xs font-semibold text-slate-700" for="edit-profile-orientation">Sexuelle Orientierung</label>
+      <select class="w-full bg-slate-50 border border-slate-200 text-slate-800 px-3 py-2 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:bg-white transition-all" id="edit-profile-orientation">
+        <option value="">Keine Angabe</option>
+        <option value="heterosexuell">Heterosexuell</option>
+        <option value="homosexuell">Homosexuell</option>
+        <option value="bisexuell">Bisexuell</option>
+        <option value="pansexuell">Pansexuell</option>
+        <option value="asexuell">Asexuell</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Geburtsdatum & Standort -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+    <div class="flex flex-col gap-1">
+      <label class="text-xs font-semibold text-slate-700" for="edit-profile-birthdate">Geburtsdatum</label>
+      <input class="w-full bg-slate-50 border border-slate-200 text-slate-800 px-3 py-2 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:bg-white transition-all" id="edit-profile-birthdate" type="date">
+    </div>
+    <div class="flex flex-col gap-1">
+      <label class="text-xs font-semibold text-slate-700" for="edit-profile-location">Standort (PLZ, Ort, Land)</label>
+      <input class="w-full bg-slate-50 border border-slate-200 text-slate-800 placeholder-slate-400 px-3 py-2 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:bg-white transition-all" id="edit-profile-location" placeholder="z. B. 22529 Hamburg, Deutschland" type="text">
+    </div>
+  </div>
+
+  <!-- Social Media -->
+  <div class="flex flex-col gap-2 pt-1 border-t border-slate-100">
+    <span class="text-xs font-semibold text-slate-700 pt-3">Social-Media-Profile (optional)</span>
+    <div class="flex flex-col gap-2.5">
+      <div class="relative flex items-center">
+        <span class="absolute left-3 text-slate-400 material-symbols-outlined text-[18px]">send</span>
+        <input class="w-full bg-slate-50 border border-slate-200 text-slate-800 placeholder-slate-400 pl-9 pr-3 py-2 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:bg-white transition-all" id="edit-profile-telegram" placeholder="Telegram (z. B. @benutzername)" type="text">
+      </div>
+      <div class="relative flex items-center">
+        <span class="absolute left-3 text-slate-400 material-symbols-outlined text-[18px]">chat</span>
+        <input class="w-full bg-slate-50 border border-slate-200 text-slate-800 placeholder-slate-400 pl-9 pr-3 py-2 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:bg-white transition-all" id="edit-profile-whatsapp" placeholder="WhatsApp-Link (https://wa.me/...)" type="text">
+      </div>
+      <div class="relative flex items-center">
+        <span class="absolute left-3 text-slate-400 material-symbols-outlined text-[18px]">photo_camera</span>
+        <input class="w-full bg-slate-50 border border-slate-200 text-slate-800 placeholder-slate-400 pl-9 pr-3 py-2 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:bg-white transition-all" id="edit-profile-snapchat" placeholder="Snapchat (z. B. @benutzername)" type="text">
+      </div>
+      <div class="relative flex items-center">
+        <span class="absolute left-3 text-slate-400 material-symbols-outlined text-[18px]">tag</span>
+        <input class="w-full bg-slate-50 border border-slate-200 text-slate-800 placeholder-slate-400 pl-9 pr-3 py-2 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:bg-white transition-all" id="edit-profile-twitter" placeholder="Twitter / X (z. B. @benutzername)" type="text">
+      </div>
+      <div class="relative flex items-center">
+        <span class="absolute left-3 text-slate-400 material-symbols-outlined text-[18px]">music_note</span>
+        <input class="w-full bg-slate-50 border border-slate-200 text-slate-800 placeholder-slate-400 pl-9 pr-3 py-2 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:bg-white transition-all" id="edit-profile-tiktok" placeholder="TikTok (z. B. @benutzername)" type="text">
+      </div>
+    </div>
+  </div>
+
+  <div class="flex items-center gap-2.5 pt-2">
+    <button class="flex-1 py-2.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-600 font-bold text-xs sm:text-sm transition-colors" type="button" onclick="closeEditProfileModal()">Abbrechen</button>
+    <button class="flex-1 py-2.5 rounded-lg bg-[#00a884] hover:bg-[#008f70] text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-xs transition-colors" id="edit-profile-submit-btn" type="submit">
+      <span class="material-symbols-outlined text-[18px]">save</span>
+      Speichern
+    </button>
+  </div>
+</form>
 </div>
 </div>
 
@@ -1253,7 +1386,21 @@ Gruppen verwalten
           const userRef = doc(db, 'users', username.toLowerCase());
           const existing = await getDoc(userRef);
           if (existing.exists()) { showFeedback('Dieser Benutzername ist bereits vergeben.', true); return; }
-          await setDoc(userRef, { username: username, password: password, role: 'user', createdAt: serverTimestamp() });
+          await setDoc(userRef, {
+            username: username,
+            password: password,
+            role: 'user',
+            createdAt: serverTimestamp(),
+            displayName: username,
+            gender: '',
+            orientation: '',
+            birthdate: '',
+            location: '',
+            photoUrl: '',
+            socials: { telegram: '', whatsapp: '', snapchat: '', twitter: '', tiktok: '' },
+            views: 0,
+            subs: 0
+          });
           showFeedback('✓ Konto erfolgreich erstellt! Du kannst dich jetzt anmelden.', false);
           setTimeout(() => switchAuthTab('login'), 1200);
         } catch (err) {
@@ -1336,6 +1483,100 @@ Gruppen verwalten
         + '</div>';
     }
 
+    const SOCIAL_ICON_CONFIG = {
+      telegram: { icon: 'send', label: 'Telegram', color: 'bg-sky-50 text-sky-600 border-sky-200', buildUrl: v => v.startsWith('http') ? v : 'https://t.me/' + v.replace(/^@/, '') },
+      whatsapp: { icon: 'chat', label: 'WhatsApp', color: 'bg-emerald-50 text-emerald-600 border-emerald-200', buildUrl: v => v.startsWith('http') ? v : 'https://wa.me/' + v.replace(/[^0-9]/g, '') },
+      snapchat: { icon: 'photo_camera', label: 'Snapchat', color: 'bg-amber-50 text-amber-600 border-amber-200', buildUrl: v => v.startsWith('http') ? v : 'https://snapchat.com/add/' + v.replace(/^@/, '') },
+      twitter: { icon: 'tag', label: 'Twitter / X', color: 'bg-slate-50 text-slate-700 border-slate-200', buildUrl: v => v.startsWith('http') ? v : 'https://x.com/' + v.replace(/^@/, '') },
+      tiktok: { icon: 'music_note', label: 'TikTok', color: 'bg-rose-50 text-rose-600 border-rose-200', buildUrl: v => v.startsWith('http') ? v : 'https://tiktok.com/@' + v.replace(/^@/, '') }
+    };
+
+    function calcAgeFromBirthdate(birthdate) {
+      if (!birthdate) return null;
+      const b = new Date(birthdate);
+      if (isNaN(b.getTime())) return null;
+      const today = new Date();
+      let age = today.getFullYear() - b.getFullYear();
+      const m = today.getMonth() - b.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < b.getDate())) age--;
+      return age >= 0 ? age : null;
+    }
+
+    function renderProfileSocials(socials) {
+      const row = document.getElementById('profile-socials-row');
+      if (!socials) { row.classList.add('hidden'); row.classList.remove('flex'); row.innerHTML = ''; return; }
+      const entries = Object.keys(SOCIAL_ICON_CONFIG).filter(key => socials[key] && socials[key].trim());
+      if (!entries.length) { row.classList.add('hidden'); row.classList.remove('flex'); row.innerHTML = ''; return; }
+      row.innerHTML = entries.map(key => {
+        const cfg = SOCIAL_ICON_CONFIG[key];
+        const url = cfg.buildUrl(socials[key].trim());
+        return '<a href="' + escapeHtml(url) + '" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 border text-xs font-medium px-3 py-1.5 rounded-full transition-transform hover:scale-105 ' + cfg.color + '">'
+          + '<span class="material-symbols-outlined text-[14px]">' + cfg.icon + '</span>' + cfg.label
+          + '</a>';
+      }).join('');
+      row.classList.remove('hidden');
+      row.classList.add('flex');
+    }
+
+    function applyProfileData(session, data) {
+      const avatarImg = document.getElementById('profile-avatar-img');
+      const avatarPlaceholder = document.getElementById('profile-avatar-placeholder');
+      if (data.photoUrl) {
+        avatarImg.src = data.photoUrl;
+        avatarImg.classList.remove('hidden');
+        avatarPlaceholder.classList.add('hidden');
+      } else {
+        avatarImg.classList.add('hidden');
+        avatarPlaceholder.classList.remove('hidden');
+      }
+
+      document.getElementById('profile-display-name').textContent = data.displayName || session.displayName || session.username;
+
+      const genderPill = document.getElementById('profile-pill-gender');
+      if (data.gender) {
+        const icons = { 'männlich': '♂', 'weiblich': '♀', 'divers': '⚧' };
+        document.getElementById('profile-gender-icon').textContent = icons[data.gender] || '⚧';
+        document.getElementById('profile-gender').textContent = data.gender.charAt(0).toUpperCase() + data.gender.slice(1);
+        genderPill.classList.remove('hidden'); genderPill.classList.add('inline-flex');
+      } else { genderPill.classList.add('hidden'); genderPill.classList.remove('inline-flex'); }
+
+      const orientationPill = document.getElementById('profile-pill-orientation');
+      if (data.orientation) {
+        document.getElementById('profile-orientation').textContent = data.orientation.charAt(0).toUpperCase() + data.orientation.slice(1);
+        orientationPill.classList.remove('hidden'); orientationPill.classList.add('inline-flex');
+      } else { orientationPill.classList.add('hidden'); orientationPill.classList.remove('inline-flex'); }
+
+      const agePill = document.getElementById('profile-pill-age');
+      const age = calcAgeFromBirthdate(data.birthdate);
+      if (age !== null) {
+        document.getElementById('profile-age').textContent = age + ' Jahre';
+        agePill.classList.remove('hidden'); agePill.classList.add('inline-flex');
+      } else { agePill.classList.add('hidden'); agePill.classList.remove('inline-flex'); }
+
+      const locationPill = document.getElementById('profile-pill-location');
+      if (data.location) {
+        document.getElementById('profile-location').textContent = data.location;
+        locationPill.classList.remove('hidden'); locationPill.classList.add('inline-flex');
+      } else { locationPill.classList.add('hidden'); locationPill.classList.remove('inline-flex'); }
+
+      document.getElementById('profile-joindate').textContent = data.createdAt ? formatJoinDate(data.createdAt) : '–';
+
+      renderProfileSocials(data.socials);
+
+      document.getElementById('profile-stat-subs').textContent = data.subs || 0;
+      document.getElementById('profile-stat-views').textContent = data.views || 0;
+    }
+
+    function formatJoinDate(ts) {
+      try {
+        const d = ts && typeof ts.toDate === 'function' ? ts.toDate() : new Date(ts);
+        if (isNaN(d.getTime())) return '–';
+        return String(d.getMonth() + 1).padStart(2, '0') + '/' + d.getFullYear();
+      } catch (e) { return '–'; }
+    }
+
+    window.currentProfileData = null;
+
     window.openProfilePage = function() {
       const session = getSession();
       if (!session) { window.openAuthModal('login'); return; }
@@ -1343,6 +1584,8 @@ Gruppen verwalten
       // 1) Sofort mit den bereits vorhandenen Session-Daten anzeigen (kein Warten auf Firestore)
       document.getElementById('profile-display-name').textContent = session.displayName || session.username;
       document.getElementById('profile-username-handle').textContent = '@' + session.username;
+      // Neue/leere Profile starten sauber bei 0, keine Platzhalter-Werte
+      applyProfileData(session, {});
 
       const adminBadge = document.getElementById('profile-admin-badge');
       const adminBox = document.getElementById('profile-admin-box');
@@ -1389,12 +1632,185 @@ Gruppen verwalten
           if (modal.classList.contains('hidden')) return;
           grid.innerHTML = '<p class="col-span-2 text-xs text-red-400 text-center py-4">Fehler beim Laden.</p>';
         });
+
+      // Eigenes Profil-Dokument laden (Foto, Alter, Standort, Social Links, Statistiken).
+      // Existiert es noch nicht (z. B. erste Anmeldung), wird sauber mit Nullwerten angezeigt.
+      const userRef = doc(db, 'users', session.username.toLowerCase());
+      getDoc(userRef)
+        .then(snap => {
+          if (modal.classList.contains('hidden')) return;
+          const data = snap.exists() ? snap.data() : {};
+          window.currentProfileData = data;
+          applyProfileData(session, data);
+          // Profilaufrufe hochzählen (nur wenn das Dokument bereits existiert)
+          if (snap.exists()) {
+            updateDoc(userRef, { views: increment(1) }).catch(() => {});
+            document.getElementById('profile-stat-views').textContent = (data.views || 0) + 1;
+          }
+        })
+        .catch(err => console.error('Fehler beim Laden der Profildaten:', err));
     };
 
     window.closeProfilePage = function() {
       const modal = document.getElementById('profile-page-modal');
       modal.classList.add('hidden');
       document.body.style.overflow = '';
+    };
+
+    // ---------- PROFIL BEARBEITEN ----------
+    let editProfilePendingPhoto = null; // Data-URL des neu ausgewählten Fotos (bis zum Speichern)
+
+    function resizeImageToDataUrl(file, maxSize, quality) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onerror = () => reject(new Error('Datei konnte nicht gelesen werden'));
+        reader.onload = () => {
+          const img = new Image();
+          img.onerror = () => reject(new Error('Bild konnte nicht geladen werden'));
+          img.onload = () => {
+            let w = img.width, h = img.height;
+            if (w > h && w > maxSize) { h = Math.round(h * (maxSize / w)); w = maxSize; }
+            else if (h > maxSize) { w = Math.round(w * (maxSize / h)); h = maxSize; }
+            const canvas = document.createElement('canvas');
+            canvas.width = w; canvas.height = h;
+            canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+            resolve(canvas.toDataURL('image/jpeg', quality));
+          };
+          img.src = reader.result;
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    const editAvatarInput = document.getElementById('edit-profile-avatar-input');
+    if (editAvatarInput) {
+      editAvatarInput.addEventListener('change', async function() {
+        const file = this.files && this.files[0];
+        if (!file) return;
+        try {
+          const dataUrl = await resizeImageToDataUrl(file, 300, 0.75);
+          editProfilePendingPhoto = dataUrl;
+          const preview = document.getElementById('edit-profile-avatar-preview');
+          const placeholder = document.getElementById('edit-profile-avatar-placeholder');
+          preview.src = dataUrl;
+          preview.classList.remove('hidden');
+          placeholder.classList.add('hidden');
+        } catch (err) {
+          console.error('Fehler beim Verarbeiten des Fotos:', err);
+        }
+      });
+    }
+
+    window.openEditProfileModal = function() {
+      const session = getSession();
+      if (!session) { window.openAuthModal('login'); return; }
+      const data = window.currentProfileData || {};
+      editProfilePendingPhoto = null;
+
+      document.getElementById('edit-profile-displayname').value = data.displayName || session.displayName || session.username;
+      document.getElementById('edit-profile-gender').value = data.gender || '';
+      document.getElementById('edit-profile-orientation').value = data.orientation || '';
+      document.getElementById('edit-profile-birthdate').value = data.birthdate || '';
+      document.getElementById('edit-profile-location').value = data.location || '';
+
+      const socials = data.socials || {};
+      document.getElementById('edit-profile-telegram').value = socials.telegram || '';
+      document.getElementById('edit-profile-whatsapp').value = socials.whatsapp || '';
+      document.getElementById('edit-profile-snapchat').value = socials.snapchat || '';
+      document.getElementById('edit-profile-twitter').value = socials.twitter || '';
+      document.getElementById('edit-profile-tiktok').value = socials.tiktok || '';
+
+      const preview = document.getElementById('edit-profile-avatar-preview');
+      const placeholder = document.getElementById('edit-profile-avatar-placeholder');
+      if (data.photoUrl) {
+        preview.src = data.photoUrl;
+        preview.classList.remove('hidden');
+        placeholder.classList.add('hidden');
+      } else {
+        preview.classList.add('hidden');
+        placeholder.classList.remove('hidden');
+      }
+
+      const feedback = document.getElementById('edit-profile-feedback');
+      feedback.classList.add('hidden');
+      feedback.textContent = '';
+
+      document.getElementById('edit-profile-modal').classList.remove('hidden');
+      document.getElementById('edit-profile-modal').classList.add('flex');
+    };
+
+    window.closeEditProfileModal = function() {
+      document.getElementById('edit-profile-modal').classList.add('hidden');
+      document.getElementById('edit-profile-modal').classList.remove('flex');
+    };
+    const editProfileCloseBtn = document.getElementById('edit-profile-close');
+    if (editProfileCloseBtn) editProfileCloseBtn.addEventListener('click', window.closeEditProfileModal);
+    const editProfileModalEl = document.getElementById('edit-profile-modal');
+    if (editProfileModalEl) editProfileModalEl.addEventListener('click', function(e) { if (e.target === this) window.closeEditProfileModal(); });
+
+    window.handleEditProfileSubmit = async function(event) {
+      event.preventDefault();
+      const session = getSession();
+      if (!session) { window.openAuthModal('login'); return; }
+
+      const feedback = document.getElementById('edit-profile-feedback');
+      const submitBtn = document.getElementById('edit-profile-submit-btn');
+      function showFeedback(message, isError) {
+        feedback.className = isError
+          ? 'p-3.5 rounded-xl text-xs font-medium bg-red-50 text-red-700 border border-red-200'
+          : 'p-3.5 rounded-xl text-xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-200';
+        feedback.textContent = message;
+        feedback.classList.remove('hidden');
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.classList.add('opacity-60', 'cursor-not-allowed');
+
+      const payload = {
+        displayName: (document.getElementById('edit-profile-displayname').value || session.username).trim(),
+        gender: document.getElementById('edit-profile-gender').value || '',
+        orientation: document.getElementById('edit-profile-orientation').value || '',
+        birthdate: document.getElementById('edit-profile-birthdate').value || '',
+        location: (document.getElementById('edit-profile-location').value || '').trim(),
+        socials: {
+          telegram: (document.getElementById('edit-profile-telegram').value || '').trim(),
+          whatsapp: (document.getElementById('edit-profile-whatsapp').value || '').trim(),
+          snapchat: (document.getElementById('edit-profile-snapchat').value || '').trim(),
+          twitter: (document.getElementById('edit-profile-twitter').value || '').trim(),
+          tiktok: (document.getElementById('edit-profile-tiktok').value || '').trim()
+        }
+      };
+      if (editProfilePendingPhoto) payload.photoUrl = editProfilePendingPhoto;
+
+      try {
+        const userRef = doc(db, 'users', session.username.toLowerCase());
+        const existing = await getDoc(userRef);
+        if (existing.exists()) {
+          await updateDoc(userRef, payload);
+        } else {
+          // Falls noch kein Dokument existiert (z. B. Admin-Konto): mit Nullwerten anlegen
+          await setDoc(userRef, Object.assign({
+            username: session.username, role: session.role || 'user', createdAt: serverTimestamp(),
+            views: 0, subs: 0, photoUrl: ''
+          }, payload));
+        }
+
+        // Session-Anzeigename aktualisieren
+        setSession(Object.assign({}, session, { displayName: payload.displayName }));
+        await updateHeaderForSession();
+
+        showFeedback('✓ Profil erfolgreich aktualisiert!', false);
+        setTimeout(() => {
+          window.closeEditProfileModal();
+          window.openProfilePage();
+        }, 900);
+      } catch (err) {
+        console.error('Fehler beim Speichern des Profils:', err);
+        showFeedback('Fehler beim Speichern. Bitte später erneut versuchen.', true);
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.classList.remove('opacity-60', 'cursor-not-allowed');
+      }
     };
 
     const profileCloseBtn = document.getElementById('profile-page-close');
