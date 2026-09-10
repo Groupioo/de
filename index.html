@@ -200,11 +200,12 @@
 
       <!-- 4. Hashtags -->
       <div class="flex flex-col gap-1">
-        <label class="text-xs font-semibold text-slate-700" for="group-tags-input">Hashtags #</label>
+        <label class="text-xs font-semibold text-slate-700" for="group-tags-input">Hashtags <span class="font-normal text-slate-400">(optional)</span></label>
         <div class="relative flex items-center">
           <span class="absolute left-3 text-slate-400 material-symbols-outlined text-[18px]">tag</span>
-          <input class="w-full bg-slate-50 border border-slate-200 text-slate-800 placeholder-slate-400 pl-9 pr-3 py-2.5 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:bg-white transition-all" id="group-tags-input" name="tags" placeholder="Hashtags hinzufügen" type="text">
+          <input class="w-full bg-slate-50 border border-slate-200 text-slate-800 placeholder-slate-400 pl-9 pr-3 py-2.5 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:bg-white transition-all" id="group-tags-input" name="tags" placeholder="z. B. #Musik #Chat #Deutschland" type="text">
         </div>
+        <p class="text-[11px] text-slate-400 leading-snug">Mehrere Hashtags mit Leerzeichen trennen, jeweils mit # davor.</p>
       </div>
 
       <!-- 5. Row: Alter ab / Alter bis -->
@@ -925,12 +926,23 @@ Gruppen verwalten
 </div>
 <div class="flex flex-col">
 <h2 class="font-bold text-slate-900 text-lg leading-tight font-display">Admin-Panel — Gruppen verwalten</h2>
-<span class="text-xs text-slate-500">Neu eingereichte WhatsApp-Gruppen prüfen und freigeben</span>
+<span class="text-xs text-slate-500">Gruppen prüfen, freigeben oder entfernen</span>
 </div>
+</div>
+
+<!-- Tabs: Ausstehend / Akzeptiert -->
+<div class="flex items-center p-1 bg-slate-100 rounded-xl">
+  <button type="button" class="flex-1 py-1.5 px-3 text-xs font-semibold rounded-lg transition-all bg-white text-[#006b53] shadow-xs" id="admin-tab-pending-btn" onclick="switchAdminTab('pending')">
+    Ausstehend
+  </button>
+  <button type="button" class="flex-1 py-1.5 px-3 text-xs font-semibold rounded-lg transition-all text-slate-500 hover:text-slate-800" id="admin-tab-approved-btn" onclick="switchAdminTab('approved')">
+    Akzeptiert
+  </button>
 </div>
 
 <div class="hidden p-3.5 rounded-xl text-xs font-medium" id="admin-panel-feedback"></div>
 
+<!-- AUSSTEHENDE GRUPPEN -->
 <div class="flex flex-col gap-3" id="admin-pending-list">
 <!-- wird dynamisch befüllt -->
 </div>
@@ -938,7 +950,17 @@ Gruppen verwalten
 <span class="material-symbols-outlined text-[40px]">inbox</span>
 <span class="text-sm font-medium">Keine ausstehenden Gruppen</span>
 </div>
+
+<!-- AKZEPTIERTE GRUPPEN (bereits öffentlich, können manuell entfernt werden) -->
+<div class="hidden flex-col gap-3" id="admin-approved-list">
+<!-- wird dynamisch befüllt -->
 </div>
+<div class="hidden flex-col items-center justify-center gap-2 py-10 text-slate-400" id="admin-approved-empty-state">
+<span class="material-symbols-outlined text-[40px]">inbox</span>
+<span class="text-sm font-medium">Keine akzeptierten Gruppen</span>
+</div>
+</div>
+
 </div>
 
 <!-- SIMPLE FOOTER -->
@@ -1097,6 +1119,31 @@ Gruppen verwalten
       const cursor = start + emoji.length;
       textarea.setSelectionRange(cursor, cursor);
     };
+
+    // ====== HASHTAGS: automatisch mit "#" versehen, falls vergessen ======
+    (function() {
+      const tagsInput = document.getElementById('group-tags-input');
+      if (!tagsInput) return;
+      function formatTags(value) {
+        return value
+          .split(/\s+/)
+          .filter(Boolean)
+          .map(word => (word.startsWith('#') ? word : '#' + word))
+          .join(' ');
+      }
+      // Beim Tippen eines Leerzeichens wird das zuletzt eingegebene Wort automatisch mit # versehen
+      tagsInput.addEventListener('input', function() {
+        if (/\s$/.test(this.value)) {
+          const cursor = this.selectionStart;
+          this.value = formatTags(this.value) + ' ';
+          this.setSelectionRange(this.value.length, this.value.length);
+        }
+      });
+      // Beim Verlassen des Feldes werden auch die restlichen Wörter formatiert
+      tagsInput.addEventListener('blur', function() {
+        this.value = formatTags(this.value.trim());
+      });
+    })();
 
     // Close add-group modal when clicking the backdrop
     document.getElementById('add-group-modal').addEventListener('click', function(e) {
@@ -1944,6 +1991,97 @@ Gruppen verwalten
       }
     }
 
+    // ---------- AKZEPTIERTE GRUPPEN: Auflisten & manuell löschen ----------
+    function approvedItemTemplate(item) {
+      const dateStr = formatDate(item.approvedAt || item.submittedAt);
+      return '<div class="flex flex-col sm:flex-row sm:items-center gap-3 p-3.5 rounded-xl border border-slate-200 bg-slate-50" data-approved-id="' + escapeHtml(item.id) + '">'
+        + '<div class="w-14 h-14 rounded-lg overflow-hidden bg-slate-100 border border-slate-200 shrink-0 flex items-center justify-center">'
+        + (item.image ? '<img alt="Vorschau" class="w-full h-full object-cover" src="' + escapeHtml(item.image) + '">' : '<span class="material-symbols-outlined text-slate-300 text-[24px]">groups</span>')
+        + '</div>'
+        + '<div class="flex-1 min-w-0 flex flex-col gap-1">'
+        + '<div class="flex items-center gap-2 flex-wrap">'
+        + '<span class="text-[10px] uppercase font-bold tracking-wide bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">' + escapeHtml(item.category) + '</span>'
+        + '<span class="text-[11px] text-slate-400">' + dateStr + '</span>'
+        + '<span class="text-[11px] font-semibold text-amber-600 flex items-center gap-0.5"><span class="text-amber-500">★</span> ' + (item.votes || 0) + '</span>'
+        + '</div>'
+        + (item.name ? '<span class="text-sm font-bold text-slate-900 truncate">' + escapeHtml(item.name) + '</span>' : '')
+        + '<a href="' + escapeHtml(item.link) + '" target="_blank" rel="noopener noreferrer" class="text-sm font-semibold text-slate-800 hover:underline truncate">' + escapeHtml(item.link) + '</a>'
+        + '<span class="text-[11px] text-slate-400">Eingereicht von: ' + escapeHtml(item.submittedBy || 'Gast') + (item.country ? ' · ' + escapeHtml(item.country.toUpperCase()) : '') + '</span>'
+        + '</div>'
+        + '<div class="flex sm:flex-col gap-2 shrink-0">'
+        + '<button class="px-3 py-2 rounded-lg bg-white border border-red-200 hover:bg-red-50 text-red-600 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors" onclick="deleteApprovedGroup(\'' + escapeHtml(item.id) + '\')">'
+        + '<span class="material-symbols-outlined text-[16px]">delete</span> Löschen</button>'
+        + '</div></div>';
+    }
+
+    async function renderApprovedList() {
+      const container = document.getElementById('admin-approved-list');
+      const empty = document.getElementById('admin-approved-empty-state');
+      container.innerHTML = '<p class="text-xs text-slate-400 text-center py-4">Lädt...</p>';
+      try {
+        const snap = await getDocs(query(groupsCol, where('status', '==', 'approved')));
+        const list = snap.docs.map(d => Object.assign({ id: d.id }, d.data()));
+        list.sort((a, b) => (b.votes || 0) - (a.votes || 0));
+        if (!list.length) {
+          container.innerHTML = '';
+          empty.classList.remove('hidden');
+          empty.classList.add('flex');
+          return;
+        }
+        empty.classList.add('hidden');
+        empty.classList.remove('flex');
+        container.innerHTML = list.map(approvedItemTemplate).join('');
+      } catch (err) {
+        console.error('Fehler beim Laden akzeptierter Gruppen:', err);
+        container.innerHTML = '<p class="text-xs text-red-400 text-center py-4">Fehler beim Laden.</p>';
+      }
+    }
+
+    window.deleteApprovedGroup = async function(id) {
+      if (!confirm('Diese Gruppe wirklich endgültig löschen? Dies kann nicht rückgängig gemacht werden.')) return;
+      try {
+        await deleteDoc(doc(db, 'groups', id));
+        await renderApprovedList();
+        showAdminFeedback('✓ Gruppe wurde endgültig gelöscht.', false);
+        if (window.reloadApprovedGroups) window.reloadApprovedGroups();
+      } catch (err) {
+        console.error('Fehler beim Löschen der Gruppe:', err);
+        showAdminFeedback('Fehler beim Löschen der Gruppe.', true);
+      }
+    };
+
+    window.switchAdminTab = function(tab) {
+      const pendingList = document.getElementById('admin-pending-list');
+      const pendingEmpty = document.getElementById('admin-empty-state');
+      const approvedList = document.getElementById('admin-approved-list');
+      const approvedEmpty = document.getElementById('admin-approved-empty-state');
+      const tabPendingBtn = document.getElementById('admin-tab-pending-btn');
+      const tabApprovedBtn = document.getElementById('admin-tab-approved-btn');
+
+      const activeCls = "flex-1 py-1.5 px-3 text-xs font-semibold rounded-lg transition-all bg-white text-[#006b53] shadow-xs";
+      const inactiveCls = "flex-1 py-1.5 px-3 text-xs font-semibold rounded-lg transition-all text-slate-500 hover:text-slate-800";
+
+      if (tab === 'approved') {
+        pendingList.classList.add('hidden');
+        pendingEmpty.classList.add('hidden');
+        pendingEmpty.classList.remove('flex');
+        approvedList.classList.remove('hidden');
+        approvedList.classList.add('flex');
+        tabApprovedBtn.className = activeCls;
+        tabPendingBtn.className = inactiveCls;
+        renderApprovedList();
+      } else {
+        approvedList.classList.add('hidden');
+        approvedList.classList.remove('flex');
+        approvedEmpty.classList.add('hidden');
+        approvedEmpty.classList.remove('flex');
+        pendingList.classList.remove('hidden');
+        tabPendingBtn.className = activeCls;
+        tabApprovedBtn.className = inactiveCls;
+        renderPendingList();
+      }
+    };
+
     window.openAdminPanel = async function() {
       const session = getSession();
       if (!session || session.role !== 'admin') { window.openAuthModal('login'); return; }
@@ -1951,7 +2089,7 @@ Gruppen verwalten
       modal.classList.remove('hidden');
       modal.classList.add('flex');
       document.body.style.overflow = 'hidden';
-      await renderPendingList();
+      window.switchAdminTab('pending');
     };
 
     window.closeAdminPanel = function() {
@@ -2018,21 +2156,13 @@ Gruppen verwalten
     let allApprovedGroups = [];
     let currentPage = 1;
     let currentQuery = '';
-    // Cache: Benutzername (lowercase) -> photoUrl (oder null, falls kein Foto/kein Konto)
+    // Cache: Benutzername (lowercase) -> photoUrl (nicht mehr für die Kartenanzeige genutzt,
+    // aber falls du das Foto später wieder einblenden willst, bleibt die Ladefunktion bestehen)
     const submitterPhotoCache = {};
 
     function submitterAvatarHtml(item) {
-      const key = (item.submittedBy || '').toLowerCase();
-      const photo = submitterPhotoCache[key];
       const name = escapeHtml(item.submittedBy || 'Gast');
-      if (photo) {
-        return '<span class="w-6 h-6 rounded-full overflow-hidden border border-slate-200 shadow-xs shrink-0 block" title="Erstellt von ' + name + '">'
-          + '<img alt="Ersteller" class="w-full h-full object-cover" src="' + escapeHtml(photo) + '">'
-          + '</span>';
-      }
-      return '<span class="w-6 h-6 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400 shrink-0" title="Erstellt von ' + name + '">'
-        + '<span class="material-symbols-outlined text-[14px]">person</span>'
-        + '</span>';
+      return '<span class="text-[11px] font-semibold text-slate-500 truncate max-w-[90px]" title="Erstellt von ' + name + '">' + name + '</span>';
     }
 
     async function loadSubmitterPhotos(items) {
