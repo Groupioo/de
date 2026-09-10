@@ -3,7 +3,12 @@
 <meta content="width=device-width, initial-scale=1.0" name="viewport">
 <title>Groupio - Deutsche Adult WhatsApp Gruppen 2026</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230d5c46'/%3E%3Crect x='14' y='16' width='36' height='24' rx='8' fill='%236ee7b7'/%3E%3Cpolygon points='22,40 20,50 32,40' fill='%236ee7b7'/%3E%3Ccircle cx='24' cy='28' r='2.6' fill='%230d5c46'/%3E%3Ccircle cx='32' cy='28' r='2.6' fill='%230d5c46'/%3E%3Ccircle cx='40' cy='28' r='2.6' fill='%230d5c46'/%3E%3C/svg%3E">
-<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230d5c46'/%3E%3Crect x='14' y='16' width='36' height='24' rx='8' fill='%236ee7b7'/%3E%3Cpolygon points='22,40 20,50 32,40' fill='%236ee7b7'/%3E%3Ccircle cx='24' cy='28' r='2.6' fill='%230d5c46'/%3E%3Ccircle cx='32' cy='28' r='2.6' fill='%230d5c46'/%3E%3Ccircle cx='40' cy='28' r='2.6' fill='%230d5c46'/%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0d5c46">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Groupio">
 <link href="https://fonts.googleapis.com" rel="preconnect">
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Plus+Jakarta+Sans:wght@600;700;800&amp;display=swap" rel="stylesheet">
@@ -1085,6 +1090,26 @@ Gruppen verwalten
 </div>
 
 </div>
+
+<!-- ===================== PWA INSTALL BANNER ===================== -->
+<div id="pwa-install-banner" class="hidden w-full max-w-[1240px] mx-auto px-4 mt-10">
+  <div class="rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-3.5 flex flex-col sm:flex-row items-center gap-3 sm:gap-4 text-center sm:text-left">
+    <div class="w-10 h-10 rounded-xl bg-[#0d5c46] flex items-center justify-center shrink-0">
+      <span class="material-symbols-outlined text-white text-[20px] notranslate" translate="no" id="pwa-banner-icon">install_mobile</span>
+    </div>
+    <div class="flex-1 min-w-0">
+      <p class="text-sm font-bold text-slate-900" id="pwa-banner-title">App installieren</p>
+      <p class="text-xs text-slate-500" id="pwa-banner-subtitle">Installiere Groupio als App für schnelleren Zugriff.</p>
+    </div>
+    <div class="flex items-center gap-2 shrink-0">
+      <button id="pwa-install-btn" class="hidden px-4 py-2 rounded-lg bg-[#0d5c46] hover:bg-[#0a4736] text-white text-xs font-bold whitespace-nowrap transition-colors">Jetzt installieren</button>
+      <button id="pwa-banner-close" class="w-8 h-8 rounded-lg hover:bg-emerald-100 text-slate-400 hover:text-slate-600 flex items-center justify-center transition-colors" aria-label="Schließen">
+        <span class="material-symbols-outlined text-[18px] notranslate" translate="no">close</span>
+      </button>
+    </div>
+  </div>
+</div>
+<!-- ===================== FIN PWA INSTALL BANNER ===================== -->
 
 <!-- SIMPLE FOOTER -->
 <footer class="w-full bg-white border-t border-slate-200 mt-10 py-6 text-xs text-slate-500">
@@ -2969,5 +2994,107 @@ Gruppen verwalten
     updateHeaderForSession();
     window.reloadApprovedGroups();
   </script>
+
+  <!-- ===================== PWA: SERVICE WORKER + INSTALL-BANNER ===================== -->
+  <script>
+    (function() {
+      const banner = document.getElementById('pwa-install-banner');
+      const title = document.getElementById('pwa-banner-title');
+      const subtitle = document.getElementById('pwa-banner-subtitle');
+      const icon = document.getElementById('pwa-banner-icon');
+      const installBtn = document.getElementById('pwa-install-btn');
+      const closeBtn = document.getElementById('pwa-banner-close');
+      if (!banner) return;
+
+      // Service Worker registrieren (Voraussetzung für Installierbarkeit auf Chrome/Android)
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+          navigator.serviceWorker.register('sw.js').catch(function(err) {
+            console.error('Service-Worker-Registrierung fehlgeschlagen:', err);
+          });
+        });
+      }
+
+      function isStandaloneMode() {
+        return window.matchMedia('(display-mode: standalone)').matches
+          || window.matchMedia('(display-mode: fullscreen)').matches
+          || window.navigator.standalone === true; // iOS Safari
+      }
+
+      function isIos() {
+        return /iphone|ipad|ipod/i.test(window.navigator.userAgent);
+      }
+
+      let deferredInstallPrompt = null;
+
+      function showInstalledBanner() {
+        icon.textContent = 'check_circle';
+        title.textContent = 'App bereits installiert';
+        subtitle.textContent = 'Groupio ist bereits auf diesem Gerät installiert.';
+        installBtn.classList.add('hidden');
+        banner.classList.remove('hidden');
+      }
+
+      function showInstallableBanner() {
+        icon.textContent = 'install_mobile';
+        title.textContent = 'App installieren';
+        subtitle.textContent = 'Installiere Groupio als App für schnelleren Zugriff.';
+        installBtn.textContent = 'Jetzt installieren';
+        installBtn.classList.remove('hidden');
+        banner.classList.remove('hidden');
+      }
+
+      function showIosInstructionsBanner() {
+        icon.textContent = 'ios_share';
+        title.textContent = 'App installieren';
+        subtitle.textContent = 'Tippe unten auf "Teilen" und dann auf "Zum Home-Bildschirm".';
+        installBtn.classList.add('hidden');
+        banner.classList.remove('hidden');
+      }
+
+      if (closeBtn) {
+        closeBtn.addEventListener('click', function() {
+          banner.classList.add('hidden');
+        });
+      }
+
+      if (installBtn) {
+        installBtn.addEventListener('click', async function() {
+          if (!deferredInstallPrompt) return;
+          installBtn.disabled = true;
+          deferredInstallPrompt.prompt();
+          try {
+            await deferredInstallPrompt.userChoice;
+          } catch (e) {}
+          deferredInstallPrompt = null;
+          installBtn.disabled = false;
+        });
+      }
+
+      // Bereits installiert -> immer den "bereits installiert"-Hinweis zeigen
+      if (isStandaloneMode()) {
+        showInstalledBanner();
+        return;
+      }
+
+      window.addEventListener('appinstalled', function() {
+        deferredInstallPrompt = null;
+        showInstalledBanner();
+      });
+
+      // Chrome/Edge/Android: Installations-Prompt abfangen und Banner mit Button zeigen
+      window.addEventListener('beforeinstallprompt', function(e) {
+        e.preventDefault();
+        deferredInstallPrompt = e;
+        showInstallableBanner();
+      });
+
+      // iOS Safari feuert kein beforeinstallprompt -> eigene Anleitung anzeigen
+      if (isIos()) {
+        showIosInstructionsBanner();
+      }
+    })();
+  </script>
+  <!-- ===================== FIN PWA ===================== -->
 </body>
 </html>
