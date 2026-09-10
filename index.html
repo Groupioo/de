@@ -157,6 +157,15 @@
         </div>
       </div>
 
+      <!-- 1b. Gruppenname -->
+      <div class="flex flex-col gap-1">
+        <label class="text-xs font-semibold text-slate-700" for="group-name-input">Gruppenname <span class="text-red-500">*</span></label>
+        <div class="relative flex items-center">
+          <span class="absolute left-3 text-slate-400 material-symbols-outlined text-[18px]">badge</span>
+          <input class="w-full bg-slate-50 border border-slate-200 text-slate-800 placeholder-slate-400 pl-9 pr-3 py-2.5 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:bg-white transition-all" id="group-name-input" name="name" placeholder="z. B. Musik Fans Deutschland" required="" type="text" maxlength="60">
+        </div>
+      </div>
+
       <!-- 2. Kategorie -->
       <div class="flex flex-col gap-1">
         <label class="text-xs font-semibold text-slate-700" for="group-cat-select">Kategorie <span class="text-red-500">*</span></label>
@@ -1447,6 +1456,14 @@ Gruppen verwalten
       const form = document.getElementById('new-group-form');
       const session = getSession();
       const link = (document.getElementById('group-link-input').value || '').trim();
+      const groupName = (document.getElementById('group-name-input') ? document.getElementById('group-name-input').value : '').trim();
+
+      if (!groupName) {
+        feedback.className = 'p-3.5 rounded-xl text-xs font-medium bg-red-50 text-red-700 border border-red-200';
+        feedback.textContent = 'Bitte gib einen Gruppennamen ein.';
+        feedback.classList.remove('hidden');
+        return;
+      }
 
       if (!window.isValidWhatsappGroupLink || !window.isValidWhatsappGroupLink(link)) {
         feedback.className = 'p-3.5 rounded-xl text-xs font-medium bg-red-50 text-red-700 border border-red-200';
@@ -1460,6 +1477,7 @@ Gruppen verwalten
 
       try {
         await addDoc(groupsCol, {
+          name: groupName,
           link: link,
           country: document.getElementById('group-lang-select').value || 'de',
           category: document.getElementById('group-cat-select').value || 'Allgemein',
@@ -1891,6 +1909,7 @@ Gruppen verwalten
         + '<div class="flex items-center gap-2 flex-wrap">'
         + '<span class="text-[10px] uppercase font-bold tracking-wide bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">' + escapeHtml(item.category) + '</span>'
         + '<span class="text-[11px] text-slate-400">' + dateStr + '</span></div>'
+        + (item.name ? '<span class="text-sm font-bold text-slate-900 truncate">' + escapeHtml(item.name) + '</span>' : '')
         + '<a href="' + escapeHtml(item.link) + '" target="_blank" rel="noopener noreferrer" class="text-sm font-semibold text-slate-800 hover:underline truncate">' + escapeHtml(item.link) + '</a>'
         + '<p class="text-xs text-slate-500">' + escapeHtml(item.description || 'Keine Beschreibung angegeben.') + '</p>'
         + '<span class="text-[11px] text-slate-400">Eingereicht von: ' + escapeHtml(item.submittedBy || 'Gast') + (item.country ? ' · ' + escapeHtml(item.country.toUpperCase()) : '') + '</span>'
@@ -2012,6 +2031,7 @@ Gruppen verwalten
     const noResultsBox = document.getElementById('no-search-results');
 
     function groupCardHtml(item) {
+      const groupTitle = item.name || (item.tags ? item.tags.split(' ')[0] : (item.category || 'WhatsApp Gruppe'));
       const desc = item.tags ? (item.tags + ' ' + (item.description || '')) : (item.description || '');
       const imgTag = item.image
         ? '<img alt="Avatar" class="w-full h-full object-cover" src="' + escapeHtml(item.image) + '">'
@@ -2019,8 +2039,8 @@ Gruppen verwalten
       const dateStr = formatDate(item.approvedAt || item.submittedAt) || '';
       return '<div class="group-card bg-white rounded-xl border border-slate-200/90 shadow-2xs hover:shadow-md hover:border-emerald-300 transition-all p-3.5 flex flex-col justify-between cursor-pointer relative"'
         + ' data-id="' + escapeHtml(item.id) + '" data-link="' + escapeHtml(item.link || '') + '" data-cat="' + escapeHtml(item.category || 'Allgemein') + '"'
-        + ' data-date="' + escapeHtml(dateStr) + '" data-desc="' + escapeHtml(desc) + '" data-group="' + escapeHtml(item.description ? (item.description.slice(0, 40)) : (item.category || 'WhatsApp Gruppe')) + '"'
-        + ' data-title="' + escapeHtml(item.category + (item.tags ? ' · ' + item.tags : '')) + '" data-votes="' + (item.votes || 0) + '">'
+        + ' data-date="' + escapeHtml(dateStr) + '" data-desc="' + escapeHtml(desc) + '" data-group="' + escapeHtml(groupTitle) + '"'
+        + ' data-title="' + escapeHtml(groupTitle) + '" data-votes="' + (item.votes || 0) + '">'
         + '<div class="flex flex-col">'
         + '<div class="flex items-center justify-between min-h-[22px]">'
         + '<span class="text-[11px] text-slate-400"></span>'
@@ -2031,7 +2051,7 @@ Gruppen verwalten
         + '<span class="absolute bottom-0 right-0.5 w-3.5 h-3.5 bg-emerald-500 border-2 border-white rounded-full"></span>'
         + '</div></div>'
         + '<div class="text-center flex flex-col gap-1">'
-        + '<h2 class="font-bold text-slate-900 text-sm sm:text-[15px] line-clamp-1 hover:text-emerald-700 transition-colors">' + escapeHtml(item.tags ? item.tags.split(' ')[0] : (item.category || 'WhatsApp Gruppe')) + '</h2>'
+        + '<h2 class="font-bold text-slate-900 text-sm sm:text-[15px] line-clamp-1 hover:text-emerald-700 transition-colors">' + escapeHtml(groupTitle) + '</h2>'
         + '<span class="inline-block self-center px-2 py-0.5 text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/60 rounded-full">' + escapeHtml(item.category || 'Allgemein') + '</span>'
         + '<p class="text-xs text-slate-500 line-clamp-2 mt-1 px-1">' + escapeHtml(item.description || '') + '</p>'
         + '</div></div>'
@@ -2085,7 +2105,7 @@ Gruppen verwalten
 
       paginationBar.classList.add('hidden');
       const filtered = allApprovedGroups.filter(item => {
-        const haystack = normalize(item.description) + ' ' + normalize(item.tags) + ' ' + normalize(item.category);
+        const haystack = normalize(item.name) + ' ' + normalize(item.description) + ' ' + normalize(item.tags) + ' ' + normalize(item.category);
         return haystack.includes(query_);
       });
 
