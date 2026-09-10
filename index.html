@@ -55,6 +55,15 @@
     }
     .custom-scroll::-webkit-scrollbar { height: 4px; }
     .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+    .shared-group-highlight {
+      outline: 3px solid #00a884 !important;
+      outline-offset: 2px;
+      animation: shared-group-pulse 1.4s ease-in-out 3;
+    }
+    @keyframes shared-group-pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(0, 168, 132, 0.45); }
+      50% { box-shadow: 0 0 0 8px rgba(0, 168, 132, 0); }
+    }
   </style>
 </head>
 <body class="bg-[#f2f5f7] min-h-screen flex flex-col font-sans antialiased text-slate-800 selection:bg-emerald-200">
@@ -3635,6 +3644,14 @@ Gruppen verwalten
     // Wenn der Link "?gruppe=<slug>" enthält (siehe shareGroupByTitle), wird nach dem
     // Laden automatisch das Profil des Erstellers (bzw. die Startseite bei Gast-Einträgen)
     // geöffnet und direkt die entsprechende Gruppe ausgewählt.
+    // Markiert eine Gruppenkarte visuell (Rahmen + kurzes Pulsieren), damit klar ist,
+    // welche Gruppe über den geteilten Link gemeint war.
+    function highlightSharedCard(card) {
+      if (!card) return;
+      card.classList.add('shared-group-highlight');
+      setTimeout(function() { card.classList.remove('shared-group-highlight'); }, 7000);
+    }
+
     (async function openSharedGroupFromUrl() {
       const params = new URLSearchParams(window.location.search);
       const sharedSlug = params.get('gruppe');
@@ -3667,7 +3684,11 @@ Gruppen verwalten
         renderGrid(page);
         setTimeout(function() {
           const card = p1.querySelector('.group-card[data-id="' + match.id + '"]');
-          if (card) { card.scrollIntoView({ behavior: 'smooth', block: 'center' }); card.click(); }
+          if (card) {
+            card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            highlightSharedCard(card);
+            card.click();
+          }
         }, 80);
         return;
       }
@@ -3684,7 +3705,11 @@ Gruppen verwalten
       setTimeout(function() {
         const grid = document.getElementById('profile-groups-grid');
         const card = grid && grid.querySelector('.group-card[data-id="' + match.id + '"]');
-        if (card) card.click();
+        if (card) {
+          card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          highlightSharedCard(card);
+          card.click();
+        }
       }, 80);
     })();
   </script>
