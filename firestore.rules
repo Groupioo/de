@@ -1,0 +1,159 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------- USERS ----------
+    match /users/{userId} {
+      allow read: if request.auth != null;
+
+      allow create: if request.auth != null && request.auth.uid == userId;
+
+      allow update: if request.auth != null && (
+        (
+          request.auth.uid == userId &&
+          !('role' in request.resource.data.diff(resource.data).affectedKeys())
+        )
+        ||
+        (
+          request.auth.uid != userId &&
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['subs', 'subscribers']) &&
+          (
+            (
+              request.resource.data.subs == resource.data.get('subs', 0) + 1 &&
+              request.resource.data.subscribers.size() == resource.data.get('subscribers', []).size() + 1
+            )
+            ||
+            (
+              request.resource.data.subs == resource.data.get('subs', 0) - 1 &&
+              request.resource.data.subscribers.size() == resource.data.get('subscribers', []).size() - 1
+            )
+          )
+        )
+      );
+
+      allow delete: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // ---------- SUBSCRIPTIONS ----------
+    match /subscriptions/{subId} {
+      allow read: if request.auth != null;
+
+      allow create: if request.auth != null &&
+        request.resource.data.subscriberId == request.auth.uid &&
+        request.resource.data.targetId != request.auth.uid;
+
+      allow delete: if request.auth != null &&
+        resource.data.subscriberId == request.auth.uid;
+
+      allow update: if false;
+    }
+
+    // ---------- NOTIFICATIONS ----------
+    match /notifications/{userId}/items/{notifId} {
+      allow read: if request.auth != null && request.auth.uid == userId;
+
+      allow create: if request.auth != null &&
+        request.resource.data.fromUserId == request.auth.uid;
+
+      allow update: if request.auth != null && request.auth.uid == userId &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read']);
+
+      allow delete: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // ---------- GROUPS ----------
+    match /groups/{groupId} {
+      allow read: if request.auth != null;
+
+      allow create: if request.auth != null &&
+        request.resource.data.submittedByUid == request.auth.uid &&
+        request.resource.data.status == 'pending';
+
+      allow update: if request.auth != null && (
+        (resource.data.submittedByUid == request.auth.uid && resource.data.status == 'pending')
+        ||
+        (
+          resource.data.status == 'pending' &&
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'approvedAt']) &&
+          (request.resource.data.status == 'approved' || request.resource.data.status == 'rejected')
+        )
+        ||
+        (
+          // ---- VOTO SIN IP disponible (fallback: el cliente no pudo obtener su IP) ----
+          resource.data.status == 'approved' &&
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['votes', 'votedBy']) &&
+          resource.data.get('votedBy', []) is list &&
+          !(request.auth.uid in resource.data.get('votedBy', [])) &&
+          request.resource.data.votedBy == resource.data.get('votedBy', []).concat([request.auth.uid]) &&
+          request.resource.data.votes == resource.data.get('votes', 0) + 1 &&
+          (
+            !exists(/databases/$(database)/documents/voteCooldowns/$(request.auth.uid)) ||
+            request.time > get(/databases/$(database)/documents/voteCooldowns/$(request.auth.uid)).data.lastVoteAt + duration.value(30, 'm')
+          )
+        )
+        ||
+        (
+          // ---- VOTO CON IP (caso normal: uid + IP se registran juntos) ----
+          resource.data.status == 'approved' &&
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['votes', 'votedBy', 'votedByIP']) &&
+          resource.data.get('votedBy', []) is list &&
+          resource.data.get('votedByIP', []) is list &&
+          !(request.auth.uid in resource.data.get('votedBy', [])) &&
+          request.resource.data.votedBy == resource.data.get('votedBy', []).concat([request.auth.uid]) &&
+          request.resource.data.votedByIP.size() == resource.data.get('votedByIP', []).size() + 1 &&
+          request.resource.data.votedByIP.hasAll(resource.data.get('votedByIP', [])) &&
+          request.resource.data.votes == resource.data.get('votes', 0) + 1 &&
+          (
+            !exists(/databases/$(database)/documents/voteCooldowns/$(request.auth.uid)) ||
+            request.time > get(/databases/$(database)/documents/voteCooldowns/$(request.auth.uid)).data.lastVoteAt + duration.value(30, 'm')
+          )
+        )
+      );
+
+      allow delete: if request.auth != null &&
+        resource.data.submittedByUid == request.auth.uid;
+    }
+
+    // ---------- VOTE COOLDOWN (por uid) ----------
+    match /voteCooldowns/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+
+      allow create: if request.auth != null && request.auth.uid == uid &&
+        request.resource.data.keys().hasOnly(['lastVoteAt']) &&
+        request.resource.data.lastVoteAt == request.time;
+
+      allow update: if request.auth != null && request.auth.uid == uid &&
+        request.resource.data.keys().hasOnly(['lastVoteAt']) &&
+        request.resource.data.lastVoteAt == request.time &&
+        request.time > resource.data.lastVoteAt + duration.value(30, 'm');
+
+      allow delete: if false;
+    }
+
+    // ---------- VOTE FINGERPRINT (capa extra, por dispositivo) ----------
+    // El docId ES el hash del fingerprint. Cualquier usuario autenticado puede
+    // crear/actualizar su propio doc de fingerprint (no está atado a un uid,
+    // porque su propósito es sobrevivir a auth anónimo cambiante). La única
+    // regla real que aplica aquí es el cooldown de 30 min: no se puede volver a
+    // escribir el mismo fingerprint antes de que pase ese tiempo.
+    // LIMITACIÓN CONOCIDA: como el docId lo elige el cliente (es el hash que él
+    // mismo calculó), un atacante que modifique su propio JS puede mandar un
+    // fingerprint falso y saltarse esto. Es fricción adicional, no una garantía.
+    match /voteFingerprints/{fingerprintId} {
+      allow read: if request.auth != null;
+
+      allow create: if request.auth != null &&
+        request.resource.data.keys().hasOnly(['lastVoteAt']) &&
+        request.resource.data.lastVoteAt == request.time;
+
+      allow update: if request.auth != null &&
+        request.resource.data.keys().hasOnly(['lastVoteAt']) &&
+        request.resource.data.lastVoteAt == request.time &&
+        request.time > resource.data.lastVoteAt + duration.value(30, 'm');
+
+      allow delete: if false;
+    }
+
+    // Todo lo que no esté explícitamente permitido arriba queda denegado por defecto.
+  }
+}
