@@ -141,14 +141,10 @@
     justify-content: center;
     animation: groupio-loader-pulse 1.4s ease-in-out infinite;
   }
-  .groupio-loader-badge .material-symbols-outlined {
-    font-size: 44px;
-    color: #6ee7b7;
-    opacity: 0;
-  }
-  .groupio-loader-badge .material-symbols-outlined.font-ready {
-    opacity: 1;
-    transition: opacity 0.2s ease;
+  .groupio-loader-badge img {
+    width: 64px;
+    height: 64px;
+    object-fit: contain;
   }
   .groupio-loader-ring {
     position: absolute;
@@ -219,7 +215,7 @@
   <div class="groupio-loader-wrap">
     <div class="groupio-loader-ring"></div>
     <div class="groupio-loader-badge">
-      <span class="material-symbols-outlined notranslate" id="groupio-loader-icon" translate="no">forum</span>
+      <img alt="Groupchat" id="groupio-loader-icon" src="logo_groupchat.png"/>
     </div>
   </div>
   <div style="text-align:center;">
@@ -227,22 +223,6 @@
     <div class="groupio-loader-sub">Gruppen werden geladen <span class="groupio-loader-dots"><span></span><span></span><span></span></span></div>
   </div>
 </div>
-<script>
-  // Evita que aparezca la palabra "forum" como texto plano antes de que cargue la fuente de íconos:
-  // el ícono permanece invisible (opacity:0, ver CSS) hasta que la fuente esté lista.
-  (function () {
-    var icon = document.getElementById('groupio-loader-icon');
-    if (!icon) return;
-    function reveal() { icon.classList.add('font-ready'); }
-    if (document.fonts && document.fonts.ready) {
-      document.fonts.ready.then(reveal).catch(reveal);
-      // Seguridad: si tarda demasiado, mostrarlo igual tras 1.2s.
-      setTimeout(reveal, 1200);
-    } else {
-      reveal();
-    }
-  })();
-</script>
 <script>
   // Elimina el loader del DOM tras la animación de 4s (0.6s de fade tras 3.4s)
   window.addEventListener('load', function () {
@@ -260,9 +240,7 @@
 <div class="max-w-[1240px] mx-auto px-3 sm:px-6 h-16 flex items-center justify-between gap-2 sm:gap-3">
 <!-- Logo -->
 <a class="flex items-center gap-2 text-white font-bold text-xl sm:text-2xl tracking-tight shrink-0 font-display" href="#" id="main-logo-link">
-<span class="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center text-emerald-300 font-bold border border-white/15 shadow-inner shrink-0">
-<span class="material-symbols-outlined text-[24px] notranslate" translate="no">forum</span>
-</span>
+<img alt="Groupchat" class="w-9 h-9 rounded-xl shrink-0 object-contain" src="logo_groupchat.png"/>
 <span class="">Groupchat</span>
 </a>
 <!-- Search Input in Header (versteckt auf Mobile, ersetzt durch Such-Icon) -->
@@ -849,9 +827,7 @@
 <div class="max-w-[1240px] mx-auto px-3 sm:px-6 h-16 flex items-center justify-between gap-2 sm:gap-3">
 <!-- Logo -->
 <a class="flex items-center gap-2 text-white font-bold text-xl sm:text-2xl tracking-tight shrink-0 font-display cursor-pointer" id="profile-header-logo" title="Zur Startseite">
-<span class="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center text-emerald-300 font-bold border border-white/15 shadow-inner shrink-0">
-<span class="material-symbols-outlined text-[24px] notranslate" translate="no">forum</span>
-</span>
+<img alt="Groupchat" class="w-9 h-9 rounded-xl shrink-0 object-contain" src="logo_groupchat.png"/>
 <span class="">Groupchat</span>
 </a>
 <!-- Search Input in Header (versteckt auf Mobile, ersetzt durch Such-Icon) -->
@@ -1201,20 +1177,18 @@ Gruppen verwalten
 
 <!-- ===================== PWA INSTALL BANNER ===================== -->
 <div id="pwa-install-banner" class="hidden w-full max-w-[1240px] mx-auto px-4 mt-10">
-  <div class="rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-3.5 flex flex-col sm:flex-row items-center gap-3 sm:gap-4 text-center sm:text-left">
+  <div class="relative rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-5 flex flex-col items-center gap-3 text-center">
+    <button id="pwa-banner-close" class="absolute top-3 right-3 w-8 h-8 rounded-lg hover:bg-emerald-100 text-slate-400 hover:text-slate-600 flex items-center justify-center transition-colors" aria-label="Schließen">
+      <span class="material-symbols-outlined text-[18px] notranslate" translate="no">close</span>
+    </button>
     <div class="w-10 h-10 rounded-xl bg-[#0d5c46] flex items-center justify-center shrink-0">
       <span class="material-symbols-outlined text-white text-[20px] notranslate" translate="no" id="pwa-banner-icon">install_mobile</span>
     </div>
-    <div class="flex-1 min-w-0">
+    <div class="min-w-0">
       <p class="text-sm font-bold text-slate-900" id="pwa-banner-title">App installieren</p>
       <p class="text-xs text-slate-500" id="pwa-banner-subtitle">Installiere Groupchat als App für schnelleren Zugriff.</p>
     </div>
-    <div class="flex items-center gap-2 shrink-0">
-      <button id="pwa-install-btn" class="hidden px-4 py-2 rounded-lg bg-[#0d5c46] hover:bg-[#0a4736] text-white text-xs font-bold whitespace-nowrap transition-colors">Jetzt installieren</button>
-      <button id="pwa-banner-close" class="w-8 h-8 rounded-lg hover:bg-emerald-100 text-slate-400 hover:text-slate-600 flex items-center justify-center transition-colors" aria-label="Schließen">
-        <span class="material-symbols-outlined text-[18px] notranslate" translate="no">close</span>
-      </button>
-    </div>
+    <button id="pwa-install-btn" class="hidden px-4 py-2 rounded-lg bg-[#0d5c46] hover:bg-[#0a4736] text-white text-xs font-bold whitespace-nowrap transition-colors">Jetzt installieren</button>
   </div>
 </div>
 <!-- ===================== FIN PWA INSTALL BANNER ===================== -->
