@@ -1181,8 +1181,8 @@ Gruppen verwalten
     <button id="pwa-banner-close" class="absolute top-3 right-3 w-8 h-8 rounded-lg hover:bg-emerald-100 text-slate-400 hover:text-slate-600 flex items-center justify-center transition-colors" aria-label="Schließen">
       <span class="material-symbols-outlined text-[18px] notranslate" translate="no">close</span>
     </button>
-    <div class="w-10 h-10 rounded-xl bg-[#0d5c46] flex items-center justify-center shrink-0">
-      <span class="material-symbols-outlined text-white text-[20px] notranslate" translate="no" id="pwa-banner-icon">install_mobile</span>
+    <div class="w-10 h-10 flex items-center justify-center shrink-0">
+      <img alt="Groupchat" class="w-10 h-10 object-contain" id="pwa-banner-icon" src="logo_groupchat.png"/>
     </div>
     <div class="min-w-0">
       <p class="text-sm font-bold text-slate-900" id="pwa-banner-title">App installieren</p>
@@ -4136,7 +4136,6 @@ Gruppen verwalten
       }
 
       function showInstalledBanner() {
-        icon.textContent = 'check_circle';
         title.textContent = 'App bereits installiert';
         subtitle.textContent = 'Groupchat ist bereits auf diesem Gerät installiert.';
         installBtn.classList.add('hidden');
@@ -4144,7 +4143,6 @@ Gruppen verwalten
       }
 
       function showInstallableBanner() {
-        icon.textContent = 'install_mobile';
         title.textContent = 'App installieren';
         subtitle.textContent = 'Installiere Groupchat als App für schnelleren Zugriff.';
         installBtn.textContent = 'Jetzt installieren';
@@ -4153,7 +4151,6 @@ Gruppen verwalten
       }
 
       function showIosInstructionsBanner() {
-        icon.textContent = 'ios_share';
         title.textContent = 'App installieren';
         subtitle.textContent = 'Tippe unten auf "Teilen" und dann auf "Zum Home-Bildschirm".';
         installBtn.classList.add('hidden');
