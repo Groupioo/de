@@ -1783,7 +1783,42 @@ Gruppen verwalten
 
     <!-- Input -->
     <form class="flex items-center gap-2 px-3 sm:px-4 py-3 border-t border-slate-100 shrink-0" id="chat-room-form">
+      <button class="w-10 h-10 rounded-full hover:bg-slate-100 text-slate-500 flex items-center justify-center shrink-0 transition-colors" id="chat-attach-btn" title="Foto anhängen" type="button">
+        <span class="material-symbols-outlined text-[22px] notranslate" translate="no">image</span>
+      </button>
+      <input accept="image/*" class="hidden" id="chat-image-input" type="file">
       <input autocomplete="off" class="flex-1 px-3.5 py-2.5 rounded-full border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#00a884]/40" id="chat-room-input" placeholder="Nachricht schreiben..." type="text">
+      <button class="w-10 h-10 rounded-full bg-[#00a884] hover:bg-[#008f70] text-white flex items-center justify-center shrink-0 transition-colors" title="Senden" type="submit">
+        <span class="material-symbols-outlined text-[20px] notranslate" translate="no">send</span>
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- ===================== CHAT IMAGE EDITOR MODAL ===================== -->
+<div class="fixed inset-0 z-[70] bg-black/95 hidden items-center justify-center p-2 sm:p-4" id="image-editor-modal">
+  <div class="w-full max-w-md h-[92vh] flex flex-col">
+    <!-- Toolbar -->
+    <div class="flex items-center justify-between text-white px-1.5 py-2 shrink-0">
+      <button class="w-9 h-9 rounded-full hover:bg-white/15 flex items-center justify-center transition-colors" id="image-editor-cancel-btn" title="Abbrechen" type="button">
+        <span class="material-symbols-outlined text-[22px] notranslate" translate="no">close</span>
+      </button>
+      <span class="text-sm font-semibold">Bild bearbeiten</span>
+      <button class="w-9 h-9 rounded-full hover:bg-white/15 flex items-center justify-center transition-colors" id="image-editor-add-text-btn" title="Text hinzufügen" type="button">
+        <span class="material-symbols-outlined text-[22px] notranslate" translate="no">title</span>
+      </button>
+    </div>
+
+    <!-- Vorschau + Text-Layer -->
+    <div class="relative flex-1 min-h-0 rounded-xl overflow-hidden bg-black flex items-center justify-center" id="image-editor-canvas-wrap">
+      <img alt="" class="max-w-full max-h-full object-contain select-none pointer-events-none" draggable="false" id="image-editor-preview-img"/>
+      <div class="absolute" id="image-editor-overlay"></div>
+    </div>
+    <p class="text-center text-[11px] text-white/50 py-1.5 shrink-0">Tippe auf <span class="material-symbols-outlined align-middle text-[13px] notranslate" translate="no">title</span> um Text hinzuzufügen · Text ziehen zum Verschieben · antippen zum Bearbeiten</p>
+
+    <!-- Bildunterschrift + Senden -->
+    <form class="flex items-center gap-2 px-1.5 pb-1 pt-1 shrink-0" id="image-editor-send-form">
+      <input autocomplete="off" class="flex-1 px-3.5 py-2.5 rounded-full border-0 bg-white/10 text-white placeholder-white/50 text-sm focus:outline-none focus:ring-2 focus:ring-[#00a884]/60" id="image-editor-caption" placeholder="Bildunterschrift hinzufügen...">
       <button class="w-10 h-10 rounded-full bg-[#00a884] hover:bg-[#008f70] text-white flex items-center justify-center shrink-0 transition-colors" title="Senden" type="submit">
         <span class="material-symbols-outlined text-[20px] notranslate" translate="no">send</span>
       </button>
@@ -1801,6 +1836,26 @@ Gruppen verwalten
       var div = document.createElement('div');
       div.textContent = str == null ? '' : String(str);
       return div.innerHTML;
+    }
+
+    // Wandelt URLs in klickbare Links um, ohne den Rest des Textes ungeschützt einzufügen.
+    function linkify(rawText) {
+      var text = rawText == null ? '' : String(rawText);
+      var urlRegex = /((?:https?:\/\/|www\.)[^\s<]+)/gi;
+      var result = '';
+      var lastIndex = 0;
+      var match;
+      while ((match = urlRegex.exec(text)) !== null) {
+        result += escapeHtml(text.slice(lastIndex, match.index));
+        var raw = match[0];
+        var trail = '';
+        while (raw.length && /[).,!?;:]$/.test(raw)) { trail = raw.slice(-1) + trail; raw = raw.slice(0, -1); }
+        var href = /^https?:\/\//i.test(raw) ? raw : 'https://' + raw;
+        result += '<a href="' + escapeHtml(href) + '" target="_blank" rel="noopener noreferrer" class="text-sky-600 underline break-all">' + escapeHtml(raw) + '</a>' + escapeHtml(trail);
+        lastIndex = match.index + match[0].length;
+      }
+      result += escapeHtml(text.slice(lastIndex));
+      return result;
     }
 
     function formatMsgTime(ts) {
@@ -1845,11 +1900,18 @@ Gruppen verwalten
         return;
       }
       container.innerHTML = messages.map(function(msg) {
+        var bodyHtml;
+        if (msg.type === 'image' && msg.imageUrl) {
+          bodyHtml = '<img src="' + escapeHtml(msg.imageUrl) + '" alt="Bild" class="rounded-xl max-w-full max-h-64 object-cover cursor-pointer" onclick="window.open(this.src, \'_blank\')">'
+            + (msg.text ? '<p class="text-sm text-slate-800 whitespace-pre-wrap break-words mt-1.5">' + linkify(msg.text) + '</p>' : '');
+        } else {
+          bodyHtml = '<p class="text-sm text-slate-800 whitespace-pre-wrap break-words">' + linkify(msg.text) + '</p>';
+        }
         return '<div class="flex items-end gap-2 max-w-[85%] self-start">'
           + avatarHtml(msg.senderDisplayName, msg.senderPhotoUrl, 'w-8 h-8')
           + '<div class="bg-white rounded-2xl rounded-tl-sm px-3.5 py-2 shadow-xs min-w-0">'
           + '<span class="block text-[11px] font-bold" style="color:' + ((window.communityChatColorForName && window.communityChatColorForName(msg.senderDisplayName)) || '#006b53') + '">' + escapeHtml(msg.senderDisplayName) + '</span>'
-          + '<p class="text-sm text-slate-800 whitespace-pre-wrap break-words">' + escapeHtml(msg.text) + '</p>'
+          + bodyHtml
           + '<span class="text-[10px] text-slate-400 block mt-0.5">' + formatMsgTime(msg.createdAt) + '</span>'
           + '</div>'
           + '</div>';
@@ -1923,9 +1985,191 @@ Gruppen verwalten
         var text = (input.value || '').trim();
         if (!text) return;
         input.value = '';
-        window.sendCommunityChatMessage(currentRoomId, text).catch(function(err) {
+        window.sendCommunityChatMessage(currentRoomId, { type: 'text', text: text }).catch(function(err) {
           console.error('Nachricht konnte nicht gesendet werden:', err);
         });
+      });
+    }
+
+    // ===================== BILD-EDITOR (Text auf Fotos hinzufügen) =====================
+    var editor = {
+      img: document.getElementById('image-editor-preview-img'),
+      overlay: document.getElementById('image-editor-overlay'),
+      layers: [], // { text, xPct, yPct }
+      dragIndex: -1,
+      dragMoved: false,
+      dragStartX: 0,
+      dragStartY: 0
+    };
+
+    var attachBtn = document.getElementById('chat-attach-btn');
+    var imageInput = document.getElementById('chat-image-input');
+    if (attachBtn && imageInput) {
+      attachBtn.addEventListener('click', function() { imageInput.click(); });
+      imageInput.addEventListener('change', async function() {
+        var file = this.files && this.files[0];
+        this.value = '';
+        if (!file || !window.resizeImageToDataUrl) return;
+        try {
+          var dataUrl = await window.resizeImageToDataUrl(file, 1280, 0.85);
+          openImageEditor(dataUrl);
+        } catch (err) {
+          console.error('Bild konnte nicht geladen werden:', err);
+        }
+      });
+    }
+
+    function openImageEditor(dataUrl) {
+      editor.layers = [];
+      renderOverlay();
+      document.getElementById('image-editor-caption').value = '';
+      editor.img.src = dataUrl;
+      var modal = document.getElementById('image-editor-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      document.body.style.overflow = 'hidden';
+      editor.img.onload = function() { syncOverlayToImage(); };
+    }
+
+    function closeImageEditor() {
+      var modal = document.getElementById('image-editor-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+      document.body.style.overflow = '';
+      editor.img.src = '';
+      editor.layers = [];
+    }
+
+    // Positioniert den Text-Layer exakt über dem sichtbar gerenderten Bildbereich
+    // (object-contain kann links/rechts oder oben/unten Ränder erzeugen).
+    function syncOverlayToImage() {
+      var wrap = document.getElementById('image-editor-canvas-wrap');
+      var wrapRect = wrap.getBoundingClientRect();
+      var imgRect = editor.img.getBoundingClientRect();
+      editor.overlay.style.left = (imgRect.left - wrapRect.left) + 'px';
+      editor.overlay.style.top = (imgRect.top - wrapRect.top) + 'px';
+      editor.overlay.style.width = imgRect.width + 'px';
+      editor.overlay.style.height = imgRect.height + 'px';
+    }
+
+    function renderOverlay() {
+      editor.overlay.innerHTML = editor.layers.map(function(layer, i) {
+        return '<div class="absolute select-none touch-none cursor-move" data-layer="' + i + '" style="left:' + layer.xPct + '%;top:' + layer.yPct + '%;transform:translate(-50%,-50%);">'
+          + '<span class="inline-block px-1 text-white font-extrabold text-xl leading-tight" style="text-shadow:0 1px 3px rgba(0,0,0,.85), 0 0 6px rgba(0,0,0,.6);">' + escapeHtml(layer.text) + '</span>'
+          + '</div>';
+      }).join('');
+    }
+
+    document.getElementById('image-editor-add-text-btn').addEventListener('click', function() {
+      var text = window.prompt('Text eingeben:');
+      if (!text || !text.trim()) return;
+      editor.layers.push({ text: text.trim().slice(0, 80), xPct: 50, yPct: 50 });
+      renderOverlay();
+    });
+
+    document.getElementById('image-editor-cancel-btn').addEventListener('click', closeImageEditor);
+
+    // Ziehen & Antippen (zum Bearbeiten) der Text-Layer per Pointer Events
+    editor.overlay.addEventListener('pointerdown', function(e) {
+      var target = e.target.closest('[data-layer]');
+      if (!target) return;
+      editor.dragIndex = parseInt(target.getAttribute('data-layer'), 10);
+      editor.dragMoved = false;
+      editor.dragStartX = e.clientX;
+      editor.dragStartY = e.clientY;
+      try { target.setPointerCapture(e.pointerId); } catch (err) {}
+    });
+    editor.overlay.addEventListener('pointermove', function(e) {
+      if (editor.dragIndex < 0) return;
+      if (Math.abs(e.clientX - editor.dragStartX) > 4 || Math.abs(e.clientY - editor.dragStartY) > 4) editor.dragMoved = true;
+      if (!editor.dragMoved) return;
+      var rect = editor.overlay.getBoundingClientRect();
+      var xPct = ((e.clientX - rect.left) / rect.width) * 100;
+      var yPct = ((e.clientY - rect.top) / rect.height) * 100;
+      xPct = Math.max(2, Math.min(98, xPct));
+      yPct = Math.max(4, Math.min(96, yPct));
+      editor.layers[editor.dragIndex].xPct = xPct;
+      editor.layers[editor.dragIndex].yPct = yPct;
+      renderOverlay();
+    });
+    editor.overlay.addEventListener('pointerup', function(e) {
+      if (editor.dragIndex < 0) return;
+      var i = editor.dragIndex;
+      var moved = editor.dragMoved;
+      editor.dragIndex = -1;
+      editor.dragMoved = false;
+      if (moved) return;
+      // Tippen ohne Ziehen -> Text bearbeiten oder löschen (leer lassen = löschen)
+      var current = editor.layers[i];
+      if (!current) return;
+      var next = window.prompt('Text bearbeiten (leer lassen zum Löschen):', current.text);
+      if (next === null) return;
+      if (!next.trim()) {
+        editor.layers.splice(i, 1);
+      } else {
+        current.text = next.trim().slice(0, 80);
+      }
+      renderOverlay();
+    });
+
+    // Baut das finale Bild (Foto + Text-Layer) auf einem Canvas zusammen
+    function composeFinalImage() {
+      return new Promise(function(resolve, reject) {
+        var srcImg = new Image();
+        srcImg.onload = function() {
+          var canvas = document.createElement('canvas');
+          canvas.width = srcImg.naturalWidth;
+          canvas.height = srcImg.naturalHeight;
+          var ctx = canvas.getContext('2d');
+          ctx.drawImage(srcImg, 0, 0, canvas.width, canvas.height);
+
+          var fontSize = Math.max(18, Math.round(canvas.width * 0.055));
+          ctx.font = '800 ' + fontSize + 'px Inter, sans-serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.lineJoin = 'round';
+          editor.layers.forEach(function(layer) {
+            var x = (layer.xPct / 100) * canvas.width;
+            var y = (layer.yPct / 100) * canvas.height;
+            ctx.lineWidth = Math.max(3, Math.round(fontSize * 0.16));
+            ctx.strokeStyle = 'rgba(0,0,0,0.85)';
+            ctx.strokeText(layer.text, x, y);
+            ctx.fillStyle = '#ffffff';
+            ctx.fillText(layer.text, x, y);
+          });
+
+          // Qualität schrittweise senken, falls das Ergebnis für Firestore zu groß ist.
+          var qualities = [0.85, 0.7, 0.55, 0.4];
+          var result = canvas.toDataURL('image/jpeg', qualities[0]);
+          var qi = 1;
+          while (result.length > 900000 && qi < qualities.length) {
+            result = canvas.toDataURL('image/jpeg', qualities[qi]);
+            qi++;
+          }
+          resolve(result);
+        };
+        srcImg.onerror = function() { reject(new Error('Bild konnte nicht zusammengesetzt werden')); };
+        srcImg.src = editor.img.src;
+      });
+    }
+
+    var editorForm = document.getElementById('image-editor-send-form');
+    if (editorForm) {
+      editorForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        if (!currentRoomId || !window.sendCommunityChatMessage) return;
+        var caption = (document.getElementById('image-editor-caption').value || '').trim();
+        var submitBtn = editorForm.querySelector('button[type="submit"]');
+        if (submitBtn) submitBtn.disabled = true;
+        try {
+          var finalDataUrl = await composeFinalImage();
+          await window.sendCommunityChatMessage(currentRoomId, { type: 'image', imageUrl: finalDataUrl, text: caption });
+          closeImageEditor();
+        } catch (err) {
+          console.error('Bild konnte nicht gesendet werden:', err);
+        } finally {
+          if (submitBtn) submitBtn.disabled = false;
+        }
       });
     }
   })();
@@ -2439,10 +2683,13 @@ Gruppen verwalten
       return cachedChatIdentity;
     }
 
-    window.sendCommunityChatMessage = async function(roomId, text) {
+    window.sendCommunityChatMessage = async function(roomId, payload) {
       const identity = await getChatIdentity();
+      const type = (payload && payload.type === 'image') ? 'image' : 'text';
       await addDoc(collection(db, 'chatRooms', roomId, 'messages'), {
-        text: text,
+        type: type,
+        text: (payload && payload.text) ? String(payload.text).slice(0, 2000) : '',
+        imageUrl: (type === 'image' && payload && payload.imageUrl) ? payload.imageUrl : '',
         senderUsername: identity.username,
         senderDisplayName: identity.displayName,
         senderPhotoUrl: identity.photoUrl || '',
@@ -2460,7 +2707,9 @@ Gruppen verwalten
           const data = d.data();
           return {
             id: d.id,
+            type: data.type === 'image' ? 'image' : 'text',
             text: data.text || '',
+            imageUrl: data.imageUrl || '',
             senderDisplayName: data.senderDisplayName || 'Gast',
             senderPhotoUrl: data.senderPhotoUrl || '',
             senderUsername: data.senderUsername || null,
@@ -3197,6 +3446,7 @@ Gruppen verwalten
         reader.readAsDataURL(file);
       });
     }
+    window.resizeImageToDataUrl = resizeImageToDataUrl;
 
     const editAvatarInput = document.getElementById('edit-profile-avatar-input');
     if (editAvatarInput) {
