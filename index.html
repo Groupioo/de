@@ -1793,27 +1793,9 @@ Gruppen verwalten
 
 <script>
   (function() {
-    var CHAT_ROOMS = ['Berlin', 'Frankfurt', 'Bremen', 'Hamburg', 'Köln'];
-    var currentRoom = null;
-
-    function storageKey(room) {
-      return 'groupio_chat_room_' + room;
-    }
-
-    function loadMessages(room) {
-      try {
-        var raw = localStorage.getItem(storageKey(room));
-        return raw ? JSON.parse(raw) : [];
-      } catch (e) {
-        return [];
-      }
-    }
-
-    function saveMessages(room, messages) {
-      try {
-        localStorage.setItem(storageKey(room), JSON.stringify(messages));
-      } catch (e) {}
-    }
+    var CHAT_ROOM_NAMES = { berlin: 'Berlin', frankfurt: 'Frankfurt', bremen: 'Bremen', hamburg: 'Hamburg', koeln: 'Köln' };
+    var currentRoomId = null;
+    var unsubscribeCurrentRoom = null;
 
     function escapeHtml(str) {
       var div = document.createElement('div');
@@ -1821,34 +1803,55 @@ Gruppen verwalten
       return div.innerHTML;
     }
 
+    function formatMsgTime(ts) {
+      try {
+        var d = ts && typeof ts.toDate === 'function' ? ts.toDate() : new Date();
+        return d.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+      } catch (e) {
+        return '';
+      }
+    }
+
+    function avatarHtml(name, photoUrl, sizeClass) {
+      if (photoUrl) {
+        return '<img src="' + escapeHtml(photoUrl) + '" alt="' + escapeHtml(name) + '" class="' + sizeClass + ' rounded-full object-cover shrink-0">';
+      }
+      var color = (window.communityChatColorForName && window.communityChatColorForName(name || 'Gast')) || '#00a884';
+      var initial = (name || 'G').trim().charAt(0).toUpperCase();
+      return '<div class="' + sizeClass + ' rounded-full flex items-center justify-center text-white font-bold text-xs shrink-0" style="background-color:' + color + '">' + escapeHtml(initial) + '</div>';
+    }
+
     function renderRoomList() {
       var list = document.getElementById('community-room-list');
       if (!list) return;
-      list.innerHTML = CHAT_ROOMS.map(function(room) {
-        var count = loadMessages(room).length;
-        return '<button type="button" class="flex items-center gap-3 w-full text-left p-3 rounded-xl border border-slate-200 hover:bg-emerald-50 hover:border-emerald-300 transition-colors" onclick="openChatRoom(\'' + room + '\')">'
+      list.innerHTML = Object.keys(CHAT_ROOM_NAMES).map(function(roomId) {
+        var room = CHAT_ROOM_NAMES[roomId];
+        return '<button type="button" class="flex items-center gap-3 w-full text-left p-3 rounded-xl border border-slate-200 hover:bg-emerald-50 hover:border-emerald-300 transition-colors" onclick="openChatRoom(\'' + roomId + '\')">'
           + '<div class="w-11 h-11 rounded-full bg-[#00a884]/15 text-[#006b53] flex items-center justify-center font-bold text-base shrink-0">' + escapeHtml(room.charAt(0)) + '</div>'
           + '<div class="flex flex-col min-w-0 flex-1">'
           + '<span class="font-bold text-slate-900 text-sm truncate">' + escapeHtml(room) + '</span>'
-          + '<span class="text-xs text-slate-500 truncate">' + (count > 0 ? count + ' Nachricht' + (count === 1 ? '' : 'en') : 'Noch keine Nachrichten') + '</span>'
+          + '<span class="text-xs text-slate-500 truncate">Tippe zum Beitreten</span>'
           + '</div>'
           + '<span class="material-symbols-outlined text-[20px] text-slate-400 shrink-0 notranslate" translate="no">chevron_right</span>'
           + '</button>';
       }).join('');
     }
 
-    function renderMessages(room) {
+    function renderMessages(roomName, messages) {
       var container = document.getElementById('chat-room-messages');
       if (!container) return;
-      var messages = loadMessages(room);
       if (!messages.length) {
-        container.innerHTML = '<div class="m-auto text-center text-xs text-slate-400 px-6">Noch keine Nachrichten in <strong>' + escapeHtml(room) + '</strong>. Schreib die erste Nachricht!</div>';
+        container.innerHTML = '<div class="m-auto text-center text-xs text-slate-400 px-6">Noch keine Nachrichten in <strong>' + escapeHtml(roomName) + '</strong>. Schreib die erste Nachricht!</div>';
         return;
       }
       container.innerHTML = messages.map(function(msg) {
-        return '<div class="max-w-[80%] bg-white rounded-2xl rounded-tl-sm px-3.5 py-2 shadow-xs self-start">'
+        return '<div class="flex items-end gap-2 max-w-[85%] self-start">'
+          + avatarHtml(msg.senderDisplayName, msg.senderPhotoUrl, 'w-8 h-8')
+          + '<div class="bg-white rounded-2xl rounded-tl-sm px-3.5 py-2 shadow-xs min-w-0">'
+          + '<span class="block text-[11px] font-bold" style="color:' + ((window.communityChatColorForName && window.communityChatColorForName(msg.senderDisplayName)) || '#006b53') + '">' + escapeHtml(msg.senderDisplayName) + '</span>'
           + '<p class="text-sm text-slate-800 whitespace-pre-wrap break-words">' + escapeHtml(msg.text) + '</p>'
-          + '<span class="text-[10px] text-slate-400 block mt-0.5">' + escapeHtml(msg.time) + '</span>'
+          + '<span class="text-[10px] text-slate-400 block mt-0.5">' + formatMsgTime(msg.createdAt) + '</span>'
+          + '</div>'
           + '</div>';
       }).join('');
       container.scrollTop = container.scrollHeight;
@@ -1871,13 +1874,21 @@ Gruppen verwalten
       document.body.style.overflow = '';
     };
 
-    window.openChatRoom = function(room) {
-      if (CHAT_ROOMS.indexOf(room) === -1) return;
-      currentRoom = room;
+    window.openChatRoom = function(roomId) {
+      if (!CHAT_ROOM_NAMES[roomId]) return;
+      var roomName = CHAT_ROOM_NAMES[roomId];
+      currentRoomId = roomId;
       closeCommunityModal();
-      document.getElementById('chat-room-title').textContent = room;
-      document.getElementById('chat-room-avatar').textContent = room.charAt(0);
-      renderMessages(room);
+      document.getElementById('chat-room-title').textContent = roomName;
+      document.getElementById('chat-room-avatar').textContent = roomName.charAt(0);
+      var container = document.getElementById('chat-room-messages');
+      if (container) container.innerHTML = '<div class="m-auto text-xs text-slate-400">Nachrichten werden geladen...</div>';
+      if (unsubscribeCurrentRoom) { unsubscribeCurrentRoom(); unsubscribeCurrentRoom = null; }
+      if (window.listenCommunityChatRoom) {
+        unsubscribeCurrentRoom = window.listenCommunityChatRoom(roomId, function(messages) {
+          if (currentRoomId === roomId) renderMessages(roomName, messages);
+        });
+      }
       var modal = document.getElementById('chat-room-modal');
       modal.classList.remove('hidden');
       modal.classList.add('flex');
@@ -1894,7 +1905,8 @@ Gruppen verwalten
       modal.classList.add('hidden');
       modal.classList.remove('flex');
       document.body.style.overflow = '';
-      currentRoom = null;
+      if (unsubscribeCurrentRoom) { unsubscribeCurrentRoom(); unsubscribeCurrentRoom = null; }
+      currentRoomId = null;
     };
 
     window.backToCommunity = function() {
@@ -1906,18 +1918,14 @@ Gruppen verwalten
     if (form) {
       form.addEventListener('submit', function(e) {
         e.preventDefault();
-        if (!currentRoom) return;
+        if (!currentRoomId || !window.sendCommunityChatMessage) return;
         var input = document.getElementById('chat-room-input');
         var text = (input.value || '').trim();
         if (!text) return;
-        var messages = loadMessages(currentRoom);
-        messages.push({
-          text: text,
-          time: new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })
-        });
-        saveMessages(currentRoom, messages);
         input.value = '';
-        renderMessages(currentRoom);
+        window.sendCommunityChatMessage(currentRoomId, text).catch(function(err) {
+          console.error('Nachricht konnte nicht gesendet werden:', err);
+        });
       });
     }
   })();
@@ -2214,8 +2222,8 @@ Gruppen verwalten
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
     import {
       getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, getDoc, getDocs,
-      setDoc, query, where, orderBy, serverTimestamp, increment, arrayUnion, arrayRemove,
-      writeBatch
+      setDoc, query, where, orderBy, limit, serverTimestamp, increment, arrayUnion, arrayRemove,
+      writeBatch, onSnapshot
     } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
     import {
       getAuth, signInAnonymously, onAuthStateChanged
@@ -2381,6 +2389,92 @@ Gruppen verwalten
         return d.toLocaleDateString('de-DE');
       } catch (e) { return ''; }
     }
+
+    // ---------- COMMUNITY-CHAT: Identität, Senden & Live-Zuhören ----------
+    // Damit Nutzer sich in den Chatrooms gegenseitig an Name + Profilbild erkennen
+    // können, nutzen wir dieselbe Session/Profil-Struktur wie im Rest der Seite.
+    // Gäste (nicht eingeloggt) bekommen einen stabilen, pro Browser gespeicherten
+    // Gastnamen + Farb-Avatar, damit ihre Nachrichten zumindest untereinander
+    // konsistent zuordenbar sind.
+    const GUEST_NAME_KEY = 'groupio_chat_guest_name';
+    const AVATAR_COLORS = ['#00a884', '#0d5c46', '#006d2f', '#0369a1', '#7c3aed', '#be185d', '#b45309', '#0891b2'];
+
+    function colorForName(name) {
+      let hash = 0;
+      for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+      return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
+    }
+
+    function getGuestIdentity() {
+      let name = null;
+      try { name = localStorage.getItem(GUEST_NAME_KEY); } catch (e) {}
+      if (!name) {
+        name = 'Gast-' + Math.floor(1000 + Math.random() * 9000);
+        try { localStorage.setItem(GUEST_NAME_KEY, name); } catch (e) {}
+      }
+      return { username: null, displayName: name, photoUrl: '' };
+    }
+
+    let cachedChatIdentity = null;
+    async function getChatIdentity() {
+      const session = getSession();
+      if (!session || !session.username) {
+        return getGuestIdentity();
+      }
+      if (cachedChatIdentity && cachedChatIdentity.username === session.username) {
+        return cachedChatIdentity;
+      }
+      let photoUrl = (window.currentProfileData && window.currentProfileData.photoUrl) || '';
+      if (!photoUrl) {
+        try {
+          const snap = await getDoc(doc(db, 'users', session.username.toLowerCase()));
+          if (snap.exists() && snap.data().photoUrl) photoUrl = snap.data().photoUrl;
+        } catch (e) {}
+      }
+      cachedChatIdentity = {
+        username: session.username,
+        displayName: session.displayName || session.username,
+        photoUrl: photoUrl
+      };
+      return cachedChatIdentity;
+    }
+
+    window.sendCommunityChatMessage = async function(roomId, text) {
+      const identity = await getChatIdentity();
+      await addDoc(collection(db, 'chatRooms', roomId, 'messages'), {
+        text: text,
+        senderUsername: identity.username,
+        senderDisplayName: identity.displayName,
+        senderPhotoUrl: identity.photoUrl || '',
+        createdAt: serverTimestamp()
+      });
+      return identity;
+    };
+
+    window.getCommunityChatIdentity = getChatIdentity;
+
+    window.listenCommunityChatRoom = function(roomId, callback) {
+      const q = query(collection(db, 'chatRooms', roomId, 'messages'), orderBy('createdAt', 'asc'), limit(200));
+      return onSnapshot(q, function(snap) {
+        const messages = snap.docs.map(function(d) {
+          const data = d.data();
+          return {
+            id: d.id,
+            text: data.text || '',
+            senderDisplayName: data.senderDisplayName || 'Gast',
+            senderPhotoUrl: data.senderPhotoUrl || '',
+            senderUsername: data.senderUsername || null,
+            createdAt: data.createdAt
+          };
+        });
+        callback(messages);
+      }, function(err) {
+        console.error('Fehler beim Live-Zuhören des Chatrooms "' + roomId + '":', err);
+      });
+    };
+
+    window.communityChatColorForName = colorForName;
+
 
     // ---------- HEADER STATE ----------
     function setHeaderAvatar(url) {
