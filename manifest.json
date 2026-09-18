@@ -1,6 +1,6 @@
 {
-  "name": "Groupio",
-  "short_name": "Groupio",
+  "name": "Groupchat",
+  "short_name": "Groupchat",
   "description": "Entdecke und teile die besten deutschen WhatsApp-Gruppen: Gaming, Musik, Adult, Finanzen, Anime und mehr.",
   "start_url": "/de/",
   "scope": "/de/",
