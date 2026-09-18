@@ -262,13 +262,13 @@
 <button class="top-voted-btn w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 text-white flex items-center justify-center transition-all cursor-pointer shrink-0" id="top-voted-btn" title="Top-Gruppen nach Bewertung" onclick="toggleTopVotedFilter()">
 <span class="material-symbols-outlined text-[18px] text-amber-300 notranslate" translate="no" style="font-variation-settings: 'FILL' 1;">star</span>
 </button>
-<button class="inline-flex items-center gap-0 sm:gap-1.5 w-9 h-9 sm:w-auto sm:h-auto px-0 sm:px-3.5 py-0 sm:py-1.5 justify-center bg-[#00a884] hover:bg-[#008f70] text-white text-xs font-semibold rounded-full shadow-sm transition-all cursor-pointer shrink-0" id="add-group-top" onclick="openAddGroupModal()" title="Gruppe eintragen">
-<span class="material-symbols-outlined text-[18px] sm:text-[16px] notranslate" translate="no">add</span>
-<span class="hidden sm:inline">Gruppe eintragen</span>
-</button>
 <!-- Community-Button (neues Icon) -->
 <button class="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 text-white flex items-center justify-center transition-all cursor-pointer shrink-0" id="community-btn" title="Community" onclick="openCommunityModal()">
 <span class="material-symbols-outlined text-[18px] text-amber-300 notranslate" translate="no" style="font-variation-settings: 'FILL' 1;">groups</span>
+</button>
+<button class="inline-flex items-center gap-0 sm:gap-1.5 w-9 h-9 sm:w-auto sm:h-auto px-0 sm:px-3.5 py-0 sm:py-1.5 justify-center bg-[#00a884] hover:bg-[#008f70] text-white text-xs font-semibold rounded-full shadow-sm transition-all cursor-pointer shrink-0" id="add-group-top" onclick="openAddGroupModal()" title="Gruppe eintragen">
+<span class="material-symbols-outlined text-[18px] sm:text-[16px] notranslate" translate="no">add</span>
+<span class="hidden sm:inline">Gruppe eintragen</span>
 </button>
 <!-- Admin quick-access (nur sichtbar wenn als Administrator angemeldet) -->
 <button class="hidden relative items-center gap-0 sm:gap-1.5 w-9 h-9 sm:w-auto sm:h-auto px-0 sm:px-3 py-0 sm:py-1.5 justify-center bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold rounded-full shadow-sm transition-all cursor-pointer shrink-0" id="admin-panel-btn" onclick="openAdminPanel()" title="Admin-Panel">
@@ -1783,7 +1783,7 @@ Gruppen verwalten
 
     <!-- Input -->
     <form class="flex items-center gap-2 px-3 sm:px-4 py-3 border-t border-slate-100 shrink-0" id="chat-room-form">
-      <button class="w-10 h-10 rounded-full hover:bg-slate-100 text-slate-500 flex items-center justify-center shrink-0 transition-colors" id="chat-attach-btn" title="Foto anhängen" type="button">
+      <button class="hidden w-10 h-10 rounded-full hover:bg-slate-100 text-slate-500 flex items-center justify-center shrink-0 transition-colors" id="chat-attach-btn" title="Foto anhängen" type="button">
         <span class="material-symbols-outlined text-[22px] notranslate" translate="no">image</span>
       </button>
       <input accept="image/*" class="hidden" id="chat-image-input" type="file">
@@ -2021,9 +2021,7 @@ Gruppen verwalten
       var attachBtnEl = document.getElementById('chat-attach-btn');
       if (attachBtnEl) {
         var canAttach = !!(window.isCommunityChatAdmin && window.isCommunityChatAdmin());
-        attachBtnEl.classList.toggle('opacity-30', !canAttach);
-        attachBtnEl.classList.toggle('cursor-not-allowed', !canAttach);
-        attachBtnEl.title = canAttach ? 'Foto anhängen' : 'Nur der Administrator kann Fotos senden';
+        attachBtnEl.classList.toggle('hidden', !canAttach);
       }
       var container = document.getElementById('chat-room-messages');
       if (container) container.innerHTML = '<div class="m-auto text-xs text-slate-400">Nachrichten werden geladen...</div>';
