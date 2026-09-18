@@ -1899,14 +1899,21 @@ Gruppen verwalten
         container.innerHTML = '<div class="m-auto text-center text-xs text-slate-400 px-6">Noch keine Nachrichten in <strong>' + escapeHtml(roomName) + '</strong>. Schreib die erste Nachricht!</div>';
         return;
       }
+      var isAdmin = !!(window.isCommunityChatAdmin && window.isCommunityChatAdmin());
       container.innerHTML = messages.map(function(msg) {
         var bodyHtml;
         if (msg.type === 'image' && msg.imageUrl) {
-          bodyHtml = '<img src="' + escapeHtml(msg.imageUrl) + '" alt="Bild" class="rounded-xl max-w-full max-h-64 object-cover cursor-pointer" onclick="window.open(this.src, \'_blank\')">'
+          // Bild ist rein statisch: nicht anklickbar, nicht zu öffnen, kein Drag & Drop
+          bodyHtml = '<img src="' + escapeHtml(msg.imageUrl) + '" alt="Bild" draggable="false" oncontextmenu="return false" class="rounded-xl max-w-full max-h-64 object-cover pointer-events-none select-none" style="-webkit-user-select:none;-webkit-touch-callout:none;">'
             + (msg.text ? '<p class="text-sm text-slate-800 whitespace-pre-wrap break-words mt-1.5">' + linkify(msg.text) + '</p>' : '');
         } else {
           bodyHtml = '<p class="text-sm text-slate-800 whitespace-pre-wrap break-words">' + linkify(msg.text) + '</p>';
         }
+        var deleteBtn = (isAdmin && msg.id)
+          ? '<button type="button" title="Nachricht löschen" onclick="adminDeleteChatMessage(\'' + escapeHtml(String(msg.id)) + '\')" class="shrink-0 self-center p-1.5 rounded-full text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors">'
+              + '<span class="material-symbols-outlined text-[18px] notranslate" translate="no">delete</span>'
+            + '</button>'
+          : '';
         return '<div class="flex items-end gap-2 max-w-[85%] self-start">'
           + avatarHtml(msg.senderDisplayName, msg.senderPhotoUrl, 'w-8 h-8')
           + '<div class="bg-white rounded-2xl rounded-tl-sm px-3.5 py-2 shadow-xs min-w-0">'
@@ -1914,10 +1921,23 @@ Gruppen verwalten
           + bodyHtml
           + '<span class="text-[10px] text-slate-400 block mt-0.5">' + formatMsgTime(msg.createdAt) + '</span>'
           + '</div>'
+          + deleteBtn
           + '</div>';
       }).join('');
       container.scrollTop = container.scrollHeight;
     }
+
+    // Nur für Administratoren: Nachricht aus dem Chatroom löschen
+    window.adminDeleteChatMessage = function(messageId) {
+      if (!currentRoomId || !messageId) return;
+      if (!(window.isCommunityChatAdmin && window.isCommunityChatAdmin())) return;
+      if (!confirm('Diese Nachricht wirklich löschen?')) return;
+      if (!window.deleteCommunityChatMessage) return;
+      window.deleteCommunityChatMessage(currentRoomId, messageId).catch(function(err) {
+        console.error('Nachricht konnte nicht gelöscht werden:', err);
+        alert('Die Nachricht konnte nicht gelöscht werden.');
+      });
+    };
 
     window.openCommunityModal = function() {
       renderRoomList();
@@ -2699,6 +2719,19 @@ Gruppen verwalten
     };
 
     window.getCommunityChatIdentity = getChatIdentity;
+
+    // Prüft, ob der aktuell angemeldete Nutzer Administrator ist
+    window.isCommunityChatAdmin = function() {
+      const session = getSession();
+      return !!(session && session.role === 'admin');
+    };
+
+    // Nachricht löschen — nur Administrator
+    window.deleteCommunityChatMessage = async function(roomId, messageId) {
+      const session = getSession();
+      if (!session || session.role !== 'admin') throw new Error('Keine Berechtigung');
+      await deleteDoc(doc(db, 'chatRooms', roomId, 'messages', messageId));
+    };
 
     window.listenCommunityChatRoom = function(roomId, callback) {
       const q = query(collection(db, 'chatRooms', roomId, 'messages'), orderBy('createdAt', 'asc'), limit(200));
