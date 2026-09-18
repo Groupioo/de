@@ -2018,6 +2018,13 @@ Gruppen verwalten
       startPresenceTracking();
       if (window.joinChatRoomPresence) window.joinChatRoomPresence(roomId);
       applyPresenceUI();
+      var attachBtnEl = document.getElementById('chat-attach-btn');
+      if (attachBtnEl) {
+        var canAttach = !!(window.isCommunityChatAdmin && window.isCommunityChatAdmin());
+        attachBtnEl.classList.toggle('opacity-30', !canAttach);
+        attachBtnEl.classList.toggle('cursor-not-allowed', !canAttach);
+        attachBtnEl.title = canAttach ? 'Foto anhängen' : 'Nur der Administrator kann Fotos senden';
+      }
       var container = document.getElementById('chat-room-messages');
       if (container) container.innerHTML = '<div class="m-auto text-xs text-slate-400">Nachrichten werden geladen...</div>';
       if (unsubscribeCurrentRoom) { unsubscribeCurrentRoom(); unsubscribeCurrentRoom = null; }
@@ -2081,11 +2088,18 @@ Gruppen verwalten
     var attachBtn = document.getElementById('chat-attach-btn');
     var imageInput = document.getElementById('chat-image-input');
     if (attachBtn && imageInput) {
-      attachBtn.addEventListener('click', function() { imageInput.click(); });
+      attachBtn.addEventListener('click', function() {
+        if (!(window.isCommunityChatAdmin && window.isCommunityChatAdmin())) {
+          alert('Nur der Administrator kann Fotos senden.');
+          return;
+        }
+        imageInput.click();
+      });
       imageInput.addEventListener('change', async function() {
         var file = this.files && this.files[0];
         this.value = '';
         if (!file || !window.resizeImageToDataUrl) return;
+        if (!(window.isCommunityChatAdmin && window.isCommunityChatAdmin())) return;
         try {
           var dataUrl = await window.resizeImageToDataUrl(file, 1280, 0.85);
           openImageEditor(dataUrl);
@@ -2761,7 +2775,10 @@ Gruppen verwalten
 
     window.sendCommunityChatMessage = async function(roomId, payload) {
       const identity = await getChatIdentity();
-      const type = (payload && payload.type === 'image') ? 'image' : 'text';
+      let type = (payload && payload.type === 'image') ? 'image' : 'text';
+      if (type === 'image' && !(window.isCommunityChatAdmin && window.isCommunityChatAdmin())) {
+        throw new Error('Nur der Administrator kann Fotos senden.');
+      }
       await addDoc(collection(db, 'chatRooms', roomId, 'messages'), {
         type: type,
         text: (payload && payload.text) ? String(payload.text).slice(0, 2000) : '',
