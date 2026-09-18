@@ -825,7 +825,7 @@
 </div>
 </div>
 
-<div class="fixed inset-0 z-50 bg-slate-100 hidden overflow-y-auto custom-scroll" id="profile-page-modal">
+<div class="fixed inset-0 z-[80] bg-slate-100 hidden overflow-y-auto custom-scroll" id="profile-page-modal">
 <!-- Eigener Seiten-Header (identisch zum Haupt-Header) -->
 <header class="w-full bg-[#0d5c46] text-white shadow-md sticky top-0 z-40">
 <div class="max-w-[1240px] mx-auto px-3 sm:px-6 h-16 flex items-center justify-between gap-2 sm:gap-3">
@@ -1771,7 +1771,7 @@ Gruppen verwalten
       <div class="w-9 h-9 rounded-full bg-white/15 flex items-center justify-center font-bold text-sm shrink-0" id="chat-room-avatar">B</div>
       <div class="flex flex-col leading-tight min-w-0">
         <span class="font-bold text-sm truncate" id="chat-room-title">Berlin</span>
-        <span class="text-[11px] text-emerald-100/80">Community-Chat</span>
+        <span class="text-[11px] text-emerald-100/80" id="chat-room-subtitle">Community-Chat</span>
       </div>
       <button class="w-8 h-8 rounded-full hover:bg-white/15 flex items-center justify-center transition-colors shrink-0 ml-auto" onclick="closeChatRoom()" title="Schließen">
         <span class="material-symbols-outlined text-[20px] notranslate" translate="no">close</span>
@@ -1885,7 +1885,10 @@ Gruppen verwalten
           + '<div class="w-11 h-11 rounded-full bg-[#00a884]/15 text-[#006b53] flex items-center justify-center font-bold text-base shrink-0">' + escapeHtml(room.charAt(0)) + '</div>'
           + '<div class="flex flex-col min-w-0 flex-1">'
           + '<span class="font-bold text-slate-900 text-sm truncate">' + escapeHtml(room) + '</span>'
-          + '<span class="text-xs text-slate-500 truncate">Tippe zum Beitreten</span>'
+          + '<span class="text-xs text-slate-500 truncate flex items-center gap-1.5">'
+          +   '<span class="w-1.5 h-1.5 rounded-full bg-slate-300" id="room-dot-' + roomId + '"></span>'
+          +   '<span id="room-online-' + roomId + '">0 online · 0 %</span>'
+          + '</span>'
           + '</div>'
           + '<span class="material-symbols-outlined text-[20px] text-slate-400 shrink-0 notranslate" translate="no">chevron_right</span>'
           + '</button>';
@@ -1914,8 +1917,15 @@ Gruppen verwalten
               + '<span class="material-symbols-outlined text-[18px] notranslate" translate="no">delete</span>'
             + '</button>'
           : '';
+        // Nur das Profilbild des Administrators ist anklickbar
+        var senderName = (msg.senderUsername || '').toLowerCase();
+        var isAdminSender = senderName === 'admin';
+        var avatar = avatarHtml(msg.senderDisplayName, msg.senderPhotoUrl, 'w-8 h-8');
+        var avatarBlock = isAdminSender
+          ? '<button type="button" title="Admin-Profil ansehen" onclick="openChatSenderProfile(\'admin\')" class="shrink-0 rounded-full ring-2 ring-amber-400 hover:ring-amber-500 transition-all cursor-pointer">' + avatar + '</button>'
+          : '<span class="shrink-0 pointer-events-none">' + avatar + '</span>';
         return '<div class="flex items-end gap-2 max-w-[85%] self-start">'
-          + avatarHtml(msg.senderDisplayName, msg.senderPhotoUrl, 'w-8 h-8')
+          + avatarBlock
           + '<div class="bg-white rounded-2xl rounded-tl-sm px-3.5 py-2 shadow-xs min-w-0">'
           + '<span class="block text-[11px] font-bold" style="color:' + ((window.communityChatColorForName && window.communityChatColorForName(msg.senderDisplayName)) || '#006b53') + '">' + escapeHtml(msg.senderDisplayName) + '</span>'
           + bodyHtml
@@ -1926,6 +1936,46 @@ Gruppen verwalten
       }).join('');
       container.scrollTop = container.scrollHeight;
     }
+
+    // ---------- ONLINE-ANZEIGE (Anzahl + Anteil in %) ----------
+    var presenceCounts = {};
+    var presenceStarted = false;
+
+    function applyPresenceUI() {
+      var roomIds = Object.keys(CHAT_ROOM_NAMES);
+      var total = roomIds.reduce(function(sum, id) { return sum + (presenceCounts[id] || 0); }, 0);
+      roomIds.forEach(function(roomId) {
+        var n = presenceCounts[roomId] || 0;
+        var pct = total > 0 ? Math.round((n / total) * 100) : 0;
+        var label = document.getElementById('room-online-' + roomId);
+        if (label) label.textContent = n + ' online · ' + pct + ' %';
+        var dot = document.getElementById('room-dot-' + roomId);
+        if (dot) dot.className = 'w-1.5 h-1.5 rounded-full ' + (n > 0 ? 'bg-emerald-500' : 'bg-slate-300');
+      });
+      if (currentRoomId) {
+        var sub = document.getElementById('chat-room-subtitle');
+        if (sub) {
+          var cn = presenceCounts[currentRoomId] || 0;
+          var cpct = total > 0 ? Math.round((cn / total) * 100) : 0;
+          sub.textContent = 'Community-Chat · ' + cn + ' online (' + cpct + ' %)';
+        }
+      }
+    }
+
+    function startPresenceTracking() {
+      if (presenceStarted || !window.listenChatRoomsPresence) return;
+      presenceStarted = true;
+      window.listenChatRoomsPresence(Object.keys(CHAT_ROOM_NAMES), function(counts) {
+        presenceCounts = counts;
+        applyPresenceUI();
+      });
+    }
+
+    // Öffnet das Profil des Absenders (nur beim Administrator verfügbar)
+    window.openChatSenderProfile = function(username) {
+      if (!username || username.toLowerCase() !== 'admin') return;
+      if (window.openCreatorProfile) window.openCreatorProfile(username);
+    };
 
     // Nur für Administratoren: Nachricht aus dem Chatroom löschen
     window.adminDeleteChatMessage = function(messageId) {
@@ -1941,6 +1991,8 @@ Gruppen verwalten
 
     window.openCommunityModal = function() {
       renderRoomList();
+      startPresenceTracking();
+      applyPresenceUI();
       var modal = document.getElementById('community-modal');
       if (!modal) return;
       modal.classList.remove('hidden');
@@ -1963,6 +2015,9 @@ Gruppen verwalten
       closeCommunityModal();
       document.getElementById('chat-room-title').textContent = roomName;
       document.getElementById('chat-room-avatar').textContent = roomName.charAt(0);
+      startPresenceTracking();
+      if (window.joinChatRoomPresence) window.joinChatRoomPresence(roomId);
+      applyPresenceUI();
       var container = document.getElementById('chat-room-messages');
       if (container) container.innerHTML = '<div class="m-auto text-xs text-slate-400">Nachrichten werden geladen...</div>';
       if (unsubscribeCurrentRoom) { unsubscribeCurrentRoom(); unsubscribeCurrentRoom = null; }
@@ -1988,6 +2043,7 @@ Gruppen verwalten
       modal.classList.remove('flex');
       document.body.style.overflow = '';
       if (unsubscribeCurrentRoom) { unsubscribeCurrentRoom(); unsubscribeCurrentRoom = null; }
+      if (window.leaveChatRoomPresence) window.leaveChatRoomPresence();
       currentRoomId = null;
     };
 
@@ -2731,6 +2787,82 @@ Gruppen verwalten
       const session = getSession();
       if (!session || session.role !== 'admin') throw new Error('Keine Berechtigung');
       await deleteDoc(doc(db, 'chatRooms', roomId, 'messages', messageId));
+    };
+
+    // ---------- ONLINE-PRÄSENZ IN DEN CHATROOMS ----------
+    const PRESENCE_TTL_MS = 70000;   // gilt als online, wenn zuletzt vor < 70 s gesehen
+    const PRESENCE_PING_MS = 25000;  // Heartbeat-Intervall
+    let presenceRoomId = null;
+    let presenceTimer = null;
+    let lastPresenceRoomId = null;
+
+    function getPresenceClientId() {
+      let id = null;
+      try { id = localStorage.getItem('groupio_presence_id'); } catch (e) {}
+      if (!id) {
+        id = 'p-' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+        try { localStorage.setItem('groupio_presence_id', id); } catch (e) {}
+      }
+      return id;
+    }
+
+    window.joinChatRoomPresence = function(roomId) {
+      window.leaveChatRoomPresence();
+      if (!roomId) return;
+      presenceRoomId = roomId;
+      const clientId = getPresenceClientId();
+      const session = getSession();
+      const ping = function() {
+        setDoc(doc(db, 'chatRooms', roomId, 'presence', clientId), {
+          name: (session && (session.displayName || session.username)) || 'Gast',
+          lastSeen: Date.now()
+        }, { merge: true }).catch(function() {});
+      };
+      ping();
+      presenceTimer = setInterval(ping, PRESENCE_PING_MS);
+    };
+
+    window.leaveChatRoomPresence = function() {
+      lastPresenceRoomId = null;
+      if (presenceTimer) { clearInterval(presenceTimer); presenceTimer = null; }
+      if (presenceRoomId) {
+        const rid = presenceRoomId;
+        presenceRoomId = null;
+        deleteDoc(doc(db, 'chatRooms', rid, 'presence', getPresenceClientId())).catch(function() {});
+      }
+    };
+
+    window.addEventListener('beforeunload', function() { window.leaveChatRoomPresence(); });
+    document.addEventListener('visibilitychange', function() {
+      if (document.visibilityState === 'hidden') {
+        const rid = presenceRoomId;
+        window.leaveChatRoomPresence();
+        lastPresenceRoomId = rid;
+      } else if (lastPresenceRoomId) {
+        const rid = lastPresenceRoomId;
+        lastPresenceRoomId = null;
+        window.joinChatRoomPresence(rid);
+      }
+    });
+
+    // Zählt live die verbundenen Nutzer pro Raum
+    window.listenChatRoomsPresence = function(roomIds, callback) {
+      const counts = {};
+      const unsubs = [];
+      roomIds.forEach(function(rid) {
+        counts[rid] = 0;
+        unsubs.push(onSnapshot(collection(db, 'chatRooms', rid, 'presence'), function(snap) {
+          const now = Date.now();
+          let n = 0;
+          snap.forEach(function(d) {
+            const ls = (d.data() && d.data().lastSeen) || 0;
+            if (now - ls < PRESENCE_TTL_MS) n++;
+          });
+          counts[rid] = n;
+          callback(Object.assign({}, counts));
+        }, function() {}));
+      });
+      return function() { unsubs.forEach(function(u) { try { u(); } catch (e) {} }); };
     };
 
     window.listenCommunityChatRoom = function(roomId, callback) {
