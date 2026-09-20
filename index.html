@@ -349,11 +349,14 @@
 
       <!-- 1b. Gruppenname -->
       <div class="flex flex-col gap-1">
-        <label class="text-xs font-semibold text-slate-700" for="group-name-input">Gruppenname <span class="text-red-500">*</span></label>
+        <label class="text-xs font-semibold text-slate-700" for="group-name-input">Gruppenname <span class="text-red-500">*</span>
+          <span class="hidden ml-1 text-[10px] font-semibold text-emerald-600 align-middle" id="group-name-auto-badge">· automatisch erkannt</span>
+        </label>
         <div class="relative flex items-center">
           <span class="absolute left-3 text-slate-400 material-symbols-outlined text-[18px] notranslate" translate="no">badge</span>
           <input class="w-full bg-slate-50 border border-slate-200 text-slate-800 placeholder-slate-400 pl-9 pr-3 py-2.5 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:bg-white transition-all" id="group-name-input" name="name" placeholder="z. B. Musik Fans Deutschland" required="" type="text" maxlength="60">
         </div>
+        <p class="text-[11px] text-slate-400 leading-snug" id="group-name-hint">Wird automatisch aus deinem Gruppenlink übernommen, sobald du ihn einfügst. Du kannst ihn danach noch anpassen.</p>
       </div>
 
       <!-- 2. Kategorie -->
@@ -708,12 +711,7 @@
 <span class="material-symbols-outlined text-[15px] notranslate" translate="no">chevron_left</span>
 <span class="">Zurück</span>
 </button>
-<button class="w-8 h-8 rounded-lg bg-emerald-700 text-white font-bold text-xs flex items-center justify-center shadow-xs" id="btn-page-1">
-          1
-        </button>
-<button class="w-8 h-8 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 font-bold text-xs flex items-center justify-center transition-colors" id="btn-page-2">
-          2
-        </button>
+<div class="flex items-center gap-1.5" id="pagination-pages"></div>
 <button class="px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 text-xs font-semibold flex items-center gap-1 transition-colors" id="btn-next">
 <span class="">Weiter</span>
 <span class="material-symbols-outlined text-[15px] notranslate" translate="no">chevron_right</span>
@@ -2314,6 +2312,7 @@ Gruppen verwalten
       let debounceTimer = null;
 
       window.currentGroupImageUrl = null; // wird beim Absenden des Formulars verwendet
+      let lastAutoFilledName = ''; // um zu erkennen, ob der Nutzer den Namen manuell überschrieben hat
 
       function isValidWhatsappGroupLink(url) {
         try {
@@ -2325,7 +2324,33 @@ Gruppen verwalten
       }
       window.isValidWhatsappGroupLink = isValidWhatsappGroupLink;
 
-      function setPreviewState(state, imageUrl) {
+      // Trägt den automatisch gefundenen Gruppennamen ein, ohne eine manuelle
+      // Eingabe des Nutzers zu überschreiben.
+      function applyAutoGroupName(name) {
+        const nameInput = document.getElementById('group-name-input');
+        const badge = document.getElementById('group-name-auto-badge');
+        if (!nameInput || !name) return;
+        const current = nameInput.value.trim();
+        // Nur überschreiben, wenn das Feld leer ist oder noch den zuletzt automatisch
+        // eingetragenen Wert enthält (d.h. der Nutzer hat nichts eigenes eingegeben).
+        if (!current || current === lastAutoFilledName) {
+          nameInput.value = name;
+          lastAutoFilledName = name;
+          if (badge) badge.classList.remove('hidden');
+        }
+      }
+
+      function clearAutoGroupName() {
+        const nameInput = document.getElementById('group-name-input');
+        const badge = document.getElementById('group-name-auto-badge');
+        if (nameInput && nameInput.value.trim() === lastAutoFilledName) {
+          nameInput.value = '';
+        }
+        lastAutoFilledName = '';
+        if (badge) badge.classList.add('hidden');
+      }
+
+      function setPreviewState(state, imageUrl, groupName) {
         const img = document.getElementById('group-image-preview-img');
         const placeholder = document.getElementById('group-image-preview-placeholder');
         const spinner = document.getElementById('group-image-preview-spinner');
@@ -2340,26 +2365,29 @@ Gruppen verwalten
         if (state === 'loading') {
           spinner.classList.remove('hidden');
           spinner.classList.add('flex');
-          status.textContent = 'Gruppenbild wird geladen...';
+          status.textContent = 'Gruppendaten werden geladen...';
           status.className = 'text-[11px] text-slate-500 leading-snug';
         } else if (state === 'success') {
           img.src = imageUrl;
           img.classList.remove('hidden');
-          status.textContent = '✓ Gruppenbild gefunden.';
+          status.textContent = groupName ? ('✓ „' + groupName + '“ gefunden.') : '✓ Gruppenbild gefunden.';
           status.className = 'text-[11px] text-emerald-600 font-medium leading-snug';
         } else if (state === 'error') {
           placeholder.classList.remove('hidden');
           status.textContent = 'Kein Gruppenbild gefunden. Es wird ein Platzhalter verwendet.';
           status.className = 'text-[11px] text-red-500 font-medium leading-snug';
+          clearAutoGroupName();
         } else if (state === 'invalid') {
           placeholder.classList.remove('hidden');
           status.textContent = 'Bitte gib einen gültigen WhatsApp-Gruppenlink ein (https://chat.whatsapp.com/...).';
           status.className = 'text-[11px] text-amber-600 leading-snug';
+          clearAutoGroupName();
         } else {
           // idle
           placeholder.classList.remove('hidden');
           status.textContent = 'Gib einen WhatsApp-Gruppenlink ein, um die Vorschau zu laden.';
           status.className = 'text-[11px] text-slate-400 leading-snug';
+          clearAutoGroupName();
         }
       }
 
@@ -2373,15 +2401,19 @@ Gruppen verwalten
           if (!response.ok) throw new Error('Worker antwortete mit Status ' + response.status);
           const data = await response.json();
           if (token !== fetchToken) return;
+          // Der Worker kann den Gruppennamen unter verschiedenen Feldnamen liefern,
+          // je nachdem wie die WhatsApp-Metadaten intern benannt sind.
+          const groupName = data && (data.name || data.groupName || data.subject || data.title);
           if (data && data.imageUrl) {
             window.currentGroupImageUrl = data.imageUrl;
-            setPreviewState('success', data.imageUrl);
+            setPreviewState('success', data.imageUrl, groupName);
           } else {
             setPreviewState('error');
           }
+          if (groupName) applyAutoGroupName(groupName);
         } catch (err) {
           if (token !== fetchToken) return;
-          console.error('Fehler beim Abrufen des WhatsApp-Gruppenbilds:', err);
+          console.error('Fehler beim Abrufen der WhatsApp-Gruppendaten:', err);
           setPreviewState('error');
         }
       }
@@ -2392,6 +2424,7 @@ Gruppen verwalten
         clearTimeout(debounceTimer);
         const img = document.getElementById('group-image-preview-img');
         if (img) img.src = '';
+        clearAutoGroupName();
         setPreviewState('idle');
       };
 
@@ -2416,6 +2449,19 @@ Gruppen verwalten
         };
         groupLinkInput.addEventListener('input', handleLinkChange);
         groupLinkInput.addEventListener('change', handleLinkChange);
+      }
+
+      // Wenn der Nutzer den automatisch eingetragenen Namen selbst ändert,
+      // gilt er ab dann als manuell gesetzt und wird nicht mehr überschrieben.
+      const groupNameInput = document.getElementById('group-name-input');
+      if (groupNameInput) {
+        groupNameInput.addEventListener('input', function() {
+          if (groupNameInput.value.trim() !== lastAutoFilledName) {
+            lastAutoFilledName = '__manual__'; // wird nie mit einem echten Wert übereinstimmen
+            const badge = document.getElementById('group-name-auto-badge');
+            if (badge) badge.classList.add('hidden');
+          }
+        });
       }
     })();
 
@@ -4121,8 +4167,7 @@ Gruppen verwalten
 
     const p1 = document.getElementById('grid-page-1');
     const p2 = document.getElementById('grid-page-2');
-    const btnP1 = document.getElementById('btn-page-1');
-    const btnP2 = document.getElementById('btn-page-2');
+    const paginationPages = document.getElementById('pagination-pages');
     const btnPrev = document.getElementById('btn-prev');
     const btnNext = document.getElementById('btn-next');
     const sumTop = document.getElementById('page-summary-top');
@@ -4165,34 +4210,121 @@ Gruppen verwalten
         + '</div></div>';
     }
 
+    // Berechnet, welche Seitenzahlen als Buttons angezeigt werden (mit "..." bei vielen Seiten)
+    function getPageNumbersToShow(current, total) {
+      const delta = 1; // wie viele Seiten links/rechts von der aktuellen Seite angezeigt werden
+      const range = [];
+      const withDots = [];
+      let lastPage = 0;
+
+      for (let i = 1; i <= total; i++) {
+        if (i === 1 || i === total || (i >= current - delta && i <= current + delta)) {
+          range.push(i);
+        }
+      }
+
+      range.forEach(function(i) {
+        if (lastPage) {
+          if (i - lastPage === 2) {
+            withDots.push(lastPage + 1);
+          } else if (i - lastPage > 2) {
+            withDots.push('...');
+          }
+        }
+        withDots.push(i);
+        lastPage = i;
+      });
+
+      return withDots;
+    }
+
+    // Erzeugt dynamisch die Seiten-Buttons, egal wie viele Gruppen/Seiten es gibt
+    function renderPageButtons(page, totalPages) {
+      const pages = getPageNumbersToShow(page, totalPages);
+      paginationPages.innerHTML = pages.map(function(p) {
+        if (p === '...') {
+          return '<span class="w-8 h-8 flex items-center justify-center text-slate-400 text-xs font-bold select-none">…</span>';
+        }
+        const activeClass = "w-8 h-8 rounded-lg bg-emerald-700 text-white font-bold text-xs flex items-center justify-center shadow-xs";
+        const inactiveClass = "w-8 h-8 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 font-bold text-xs flex items-center justify-center transition-colors";
+        return '<button type="button" class="page-num-btn ' + (p === page ? activeClass : inactiveClass) + '" data-page="' + p + '">' + p + '</button>';
+      }).join('');
+    }
+
+    paginationPages.addEventListener('click', function(e) {
+      const btn = e.target.closest('.page-num-btn');
+      if (!btn) return;
+      const p = parseInt(btn.getAttribute('data-page'), 10);
+      if (!isNaN(p)) setPage(p);
+    });
+
+    // Liste, die gerade paginiert angezeigt wird: alle Gruppen ODER das Ergebnis
+    // von Kategorie-/Land-/Suchfiltern. renderGrid() paginiert IMMER über diese Liste.
+    let currentDisplayList = allApprovedGroups;
+
+    function hasActiveFilter() {
+      return !!(currentCategoryFilter || currentCountryFilter || normalize(currentQuery));
+    }
+
+    // Baut den Beschreibungstext ("X Gruppen in Kategorie ... aus ...") für gefilterte Ergebnisse
+    function buildFilterLabel(count) {
+      const query_ = normalize(currentQuery);
+      const countryLabel = currentCountryFilter && COUNTRY_INFO[currentCountryFilter] ? COUNTRY_INFO[currentCountryFilter].label : null;
+
+      if (currentCategoryFilter && countryLabel && query_) {
+        return count + ' Ergebnis' + (count === 1 ? '' : 'se') + ' in "' + currentCategoryFilter + '" · ' + countryLabel + ' für "' + currentQuery.trim() + '"';
+      } else if (currentCategoryFilter && countryLabel) {
+        return count + ' Gruppe' + (count === 1 ? '' : 'n') + ' in der Kategorie "' + currentCategoryFilter + '" aus ' + countryLabel;
+      } else if (countryLabel && query_) {
+        return count + ' Ergebnis' + (count === 1 ? '' : 'se') + ' aus ' + countryLabel + ' für "' + currentQuery.trim() + '"';
+      } else if (countryLabel) {
+        return count + ' Gruppe' + (count === 1 ? '' : 'n') + ' aus ' + countryLabel;
+      } else if (currentCategoryFilter && query_) {
+        return count + ' Ergebnis' + (count === 1 ? '' : 'se') + ' in "' + currentCategoryFilter + '" für "' + currentQuery.trim() + '"';
+      } else if (currentCategoryFilter) {
+        return count + ' Gruppe' + (count === 1 ? '' : 'n') + ' in der Kategorie "' + currentCategoryFilter + '"';
+      }
+      return count + ' Ergebnis' + (count === 1 ? '' : 'se') + ' für "' + currentQuery.trim() + '"';
+    }
+
     function renderGrid(page) {
       currentPage = page;
+      const filtered = hasActiveFilter();
+      const totalPages = Math.max(1, Math.ceil(currentDisplayList.length / PAGE_SIZE));
+      page = Math.min(Math.max(1, page), totalPages);
+      currentPage = page;
       const start = (page - 1) * PAGE_SIZE;
-      const pageItems = allApprovedGroups.slice(start, start + PAGE_SIZE);
+      const pageItems = currentDisplayList.slice(start, start + PAGE_SIZE);
 
-      p1.innerHTML = pageItems.map(groupCardHtml).join('') || '<div class="col-span-2 md:col-span-3 lg:col-span-4 text-center py-10 text-xs text-slate-400">Noch keine Gruppen vorhanden.</div>';
+      if (filtered) {
+        p1.innerHTML = pageItems.map(groupCardHtml).join('');
+        noResultsBox.classList.toggle('hidden', currentDisplayList.length !== 0);
+      } else {
+        p1.innerHTML = pageItems.map(groupCardHtml).join('') || '<div class="col-span-2 md:col-span-3 lg:col-span-4 text-center py-10 text-xs text-slate-400">Noch keine Gruppen vorhanden.</div>';
+        noResultsBox.classList.add('hidden');
+      }
       p1.classList.remove('hidden');
       p2.classList.add('hidden');
       p2.innerHTML = '';
 
-      const totalPages = Math.max(1, Math.ceil(allApprovedGroups.length / PAGE_SIZE));
-      btnP1.classList.toggle('hidden', totalPages < 1);
-      btnP2.classList.toggle('hidden', totalPages < 2);
-      btnP1.className = page === 1 ? "w-8 h-8 rounded-lg bg-emerald-700 text-white font-bold text-xs flex items-center justify-center shadow-xs" : "w-8 h-8 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 font-bold text-xs flex items-center justify-center transition-colors";
-      btnP2.className = page === 2 ? "w-8 h-8 rounded-lg bg-emerald-700 text-white font-bold text-xs flex items-center justify-center shadow-xs" : "w-8 h-8 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 font-bold text-xs flex items-center justify-center transition-colors";
+      paginationBar.classList.toggle('hidden', filtered && currentDisplayList.length === 0);
+      renderPageButtons(page, totalPages);
       btnPrev.disabled = page <= 1;
       btnNext.disabled = page >= totalPages;
 
       const shown = pageItems.length;
-      sumTop.textContent = 'Seite ' + page + ' von ' + totalPages + ' (' + PAGE_SIZE + ' Gruppen pro Seite) | Total: ' + allApprovedGroups.length + ' Gruppen';
-      sumBottom.textContent = 'Zeige ' + (shown ? (start + 1) + '-' + (start + shown) : '0') + ' von ' + allApprovedGroups.length + ' WhatsApp Gruppen';
+      if (filtered) {
+        sumTop.textContent = buildFilterLabel(currentDisplayList.length) + ' · Seite ' + page + ' von ' + totalPages;
+        sumBottom.textContent = 'Zeige ' + (shown ? (start + 1) + '-' + (start + shown) : '0') + ' von ' + currentDisplayList.length + ' gefundenen Gruppen';
+      } else {
+        sumTop.textContent = 'Seite ' + page + ' von ' + totalPages + ' (' + PAGE_SIZE + ' Gruppen pro Seite) | Total: ' + allApprovedGroups.length + ' Gruppen';
+        sumBottom.textContent = 'Zeige ' + (shown ? (start + 1) + '-' + (start + shown) : '0') + ' von ' + allApprovedGroups.length + ' WhatsApp Gruppen';
+      }
     }
 
     function setPage(page) { renderGrid(page); }
-    btnP1.addEventListener('click', () => setPage(1));
-    btnP2.addEventListener('click', () => setPage(2));
     btnPrev.addEventListener('click', () => { if (currentPage > 1) setPage(currentPage - 1); });
-    btnNext.addEventListener('click', () => { const totalPages = Math.max(1, Math.ceil(allApprovedGroups.length / PAGE_SIZE)); if (currentPage < totalPages) setPage(currentPage + 1); });
+    btnNext.addEventListener('click', () => { const totalPages = Math.max(1, Math.ceil(currentDisplayList.length / PAGE_SIZE)); if (currentPage < totalPages) setPage(currentPage + 1); });
 
     function normalize(str) { return (str || '').toString().toLowerCase().trim(); }
 
@@ -4225,14 +4357,6 @@ Gruppen verwalten
         return;
       }
 
-      if (!query_ && !currentCategoryFilter && !currentCountryFilter) {
-        noResultsBox.classList.add('hidden');
-        paginationBar.classList.remove('hidden');
-        renderGrid(1);
-        return;
-      }
-
-      paginationBar.classList.add('hidden');
       let filtered = allApprovedGroups;
 
       if (currentCategoryFilter) {
@@ -4252,32 +4376,10 @@ Gruppen verwalten
         });
       }
 
-      p1.classList.remove('hidden');
-      p2.classList.add('hidden');
-      p1.innerHTML = filtered.map(groupCardHtml).join('') || '';
-      p2.innerHTML = '';
-
-      const countryLabel = currentCountryFilter && COUNTRY_INFO[currentCountryFilter] ? COUNTRY_INFO[currentCountryFilter].label : null;
-
-      let label;
-      if (currentCategoryFilter && countryLabel && query_) {
-        label = filtered.length + ' Ergebnis' + (filtered.length === 1 ? '' : 'se') + ' in "' + currentCategoryFilter + '" · ' + countryLabel + ' für "' + currentQuery.trim() + '"';
-      } else if (currentCategoryFilter && countryLabel) {
-        label = filtered.length + ' Gruppe' + (filtered.length === 1 ? '' : 'n') + ' in der Kategorie "' + currentCategoryFilter + '" aus ' + countryLabel;
-      } else if (countryLabel && query_) {
-        label = filtered.length + ' Ergebnis' + (filtered.length === 1 ? '' : 'se') + ' aus ' + countryLabel + ' für "' + currentQuery.trim() + '"';
-      } else if (countryLabel) {
-        label = filtered.length + ' Gruppe' + (filtered.length === 1 ? '' : 'n') + ' aus ' + countryLabel;
-      } else if (currentCategoryFilter && query_) {
-        label = filtered.length + ' Ergebnis' + (filtered.length === 1 ? '' : 'se') + ' in "' + currentCategoryFilter + '" für "' + currentQuery.trim() + '"';
-      } else if (currentCategoryFilter) {
-        label = filtered.length + ' Gruppe' + (filtered.length === 1 ? '' : 'n') + ' in der Kategorie "' + currentCategoryFilter + '"';
-      } else {
-        label = filtered.length + ' Ergebnis' + (filtered.length === 1 ? '' : 'se') + ' für "' + currentQuery.trim() + '"';
-      }
-      sumTop.textContent = label;
-      sumBottom.textContent = filtered.length + ' von ' + allApprovedGroups.length + ' WhatsApp Gruppen gefunden';
-      noResultsBox.classList.toggle('hidden', filtered.length !== 0);
+      // Egal ob gefiltert oder nicht: currentDisplayList wird von renderGrid() ganz normal
+      // mit 12 Gruppen pro Seite paginiert (siehe hasActiveFilter()/buildFilterLabel() oben).
+      currentDisplayList = filtered;
+      renderGrid(1);
     }
 
     function updateCategoryActiveStyles() {
