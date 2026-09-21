@@ -4558,6 +4558,7 @@ Gruppen verwalten
     let currentCreatorUsername = null;
     let currentGroupTitle = '';
     let currentGroupImage = '';
+    let currentGroupDesc = '';
 
     // ---------- VOTE-COOLDOWN: alle 30 Minuten, aber nie zweimal für dieselbe Gruppe (serverseitig via Regeln) ----------
     const VOTE_COOLDOWN_MS = 30 * 60 * 1000;
@@ -4618,6 +4619,13 @@ Gruppen verwalten
     // ---------- GRUPPE TEILEN (nur Domain + Gruppenname) ----------
     const SHARE_BASE_URL = 'https://groupioo.github.io/de/';
 
+    // Cloudflare-Worker, der pro Gruppe eine eigene og:image/og:title-Vorschau ausliefert
+    // und danach zur echten Seite weiterleitet (nötig, da GitHub Pages statisch ist und
+    // sonst IMMER dasselbe Logo als Linkvorschau zeigt, egal welche Gruppe geteilt wird).
+    // WICHTIG: Erst eintragen, NACHDEM der Worker (Code siehe Anleitung) deployt wurde —
+    // solange dieser String leer ist, wird ganz normal ohne Vorschau-Proxy geteilt.
+    const SHARE_PREVIEW_WORKER_URL = ''; // z. B. 'https://groupio-share.cristhianzh1994.workers.dev/'
+
     function slugify(str) {
       return (str || '')
         .toLowerCase()
@@ -4636,8 +4644,21 @@ Gruppen verwalten
     // vom kleinen Share-Icon auf jeder Gruppenkarte verwendet.
     // imageUrl (optional): Foto der Gruppe. Wird nach Möglichkeit als Datei mitgeteilt,
     // damit im System-Teilen-Dialog das echte Gruppenbild statt des App-Icons erscheint.
-    async function shareGroupByTitle(title, iconEl, imageUrl) {
-      const shareUrl = SHARE_BASE_URL + '?gruppe=' + encodeURIComponent(slugify(title));
+    // descText (optional): kurze Beschreibung für die Linkvorschau-Karte (Telegram/WhatsApp).
+    async function shareGroupByTitle(title, iconEl, imageUrl, descText) {
+      const realUrl = SHARE_BASE_URL + '?gruppe=' + encodeURIComponent(slugify(title));
+
+      // Wenn eine Gruppenbild-URL vorhanden ist UND der Vorschau-Worker konfiguriert wurde,
+      // wird über ihn geteilt: er liefert og:image = echtes Gruppenbild und leitet dann zur
+      // echten Seite weiter. Ohne Worker-URL (Standard) wird ganz normal realUrl geteilt.
+      const shareUrl = (imageUrl && SHARE_PREVIEW_WORKER_URL)
+        ? SHARE_PREVIEW_WORKER_URL
+          + '?title=' + encodeURIComponent(title)
+          + '&desc=' + encodeURIComponent(descText || 'Erreiche tausende aktive Mitglieder auf Groupchat')
+          + '&image=' + encodeURIComponent(imageUrl)
+          + '&redirect=' + encodeURIComponent(realUrl)
+        : realUrl;
+
       const shareData = { title: title, text: title, url: shareUrl };
 
       if (navigator.share) {
@@ -4686,7 +4707,7 @@ Gruppen verwalten
 
     if (mShareBtn) {
       mShareBtn.addEventListener('click', function() {
-        shareGroupByTitle(currentGroupTitle, mShareIcon, currentGroupImage);
+        shareGroupByTitle(currentGroupTitle, mShareIcon, currentGroupImage, currentGroupDesc);
       });
     }
 
@@ -4707,8 +4728,10 @@ Gruppen verwalten
           e.stopPropagation();
           const shareTitle = shareBtn.getAttribute('data-share-title') || '';
           const shareImage = shareBtn.getAttribute('data-share-image') || '';
+          const shareCard = shareBtn.closest('.group-card');
+          const shareDesc = shareCard ? (shareCard.getAttribute('data-desc') || '') : '';
           const shareIconEl = shareBtn.querySelector('.material-symbols-outlined');
-          window.shareGroupByTitle(shareTitle, shareIconEl, shareImage);
+          window.shareGroupByTitle(shareTitle, shareIconEl, shareImage, shareDesc);
           return;
         }
 
@@ -4727,6 +4750,7 @@ Gruppen verwalten
         currentCreatorUsername = submittedBy;
         currentGroupTitle = title;
         currentGroupImage = image;
+        currentGroupDesc = desc;
         mTitle.textContent = title;
         mCat.textContent = cat;
         mDesc.textContent = desc;
