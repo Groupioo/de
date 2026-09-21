@@ -3296,7 +3296,7 @@ Gruppen verwalten
         + '<div class="flex items-center justify-between pt-3 mt-2 border-t border-slate-100 text-[11px]">'
         + '<span class="text-slate-400">' + escapeHtml(dateStr) + '</span>'
         + '<div class="flex items-center gap-1.5">'
-        + '<button type="button" class="card-share-btn w-6 h-6 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition-colors" data-share-title="' + escapeHtml(groupTitle) + '" title="Gruppe teilen"><span class="material-symbols-outlined text-[14px] notranslate" translate="no">share</span></button>'
+        + '<button type="button" class="card-share-btn w-6 h-6 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition-colors" data-share-title="' + escapeHtml(groupTitle) + '" data-share-image="' + escapeHtml(item.image || '') + '" title="Gruppe teilen"><span class="material-symbols-outlined text-[14px] notranslate" translate="no">share</span></button>'
         + (item.category === 'Adult' ? '<span class="px-1.5 py-0.5 bg-red-600 text-white font-bold rounded text-[10px] tracking-wide">Ab 18+</span>' : '')
         + '</div>'
         + '</div></div>';
@@ -4262,7 +4262,7 @@ Gruppen verwalten
         + '<div class="flex items-center justify-between pt-3 mt-2 border-t border-slate-100 text-[11px]">'
         + '<span class="text-slate-400">' + escapeHtml(dateStr) + '</span>'
         + '<div class="flex items-center gap-1.5">'
-        + '<button type="button" class="card-share-btn w-6 h-6 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition-colors" data-share-title="' + escapeHtml(groupTitle) + '" title="Gruppe teilen"><span class="material-symbols-outlined text-[14px] notranslate" translate="no">share</span></button>'
+        + '<button type="button" class="card-share-btn w-6 h-6 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition-colors" data-share-title="' + escapeHtml(groupTitle) + '" data-share-image="' + escapeHtml(item.image || '') + '" title="Gruppe teilen"><span class="material-symbols-outlined text-[14px] notranslate" translate="no">share</span></button>'
         + (item.category === 'Adult' ? '<span class="px-1.5 py-0.5 bg-red-600 text-white font-bold rounded text-[10px] tracking-wide">Ab 18+</span>' : '')
         + '</div>'
         + '</div></div>';
@@ -4557,6 +4557,7 @@ Gruppen verwalten
     let currentVotes = 0;
     let currentCreatorUsername = null;
     let currentGroupTitle = '';
+    let currentGroupImage = '';
 
     // ---------- VOTE-COOLDOWN: alle 30 Minuten, aber nie zweimal für dieselbe Gruppe (serverseitig via Regeln) ----------
     const VOTE_COOLDOWN_MS = 30 * 60 * 1000;
@@ -4633,12 +4634,30 @@ Gruppen verwalten
 
     // Zentrale Teilen-Funktion: wird sowohl vom großen Modal-Button als auch
     // vom kleinen Share-Icon auf jeder Gruppenkarte verwendet.
-    async function shareGroupByTitle(title, iconEl) {
+    // imageUrl (optional): Foto der Gruppe. Wird nach Möglichkeit als Datei mitgeteilt,
+    // damit im System-Teilen-Dialog das echte Gruppenbild statt des App-Icons erscheint.
+    async function shareGroupByTitle(title, iconEl, imageUrl) {
       const shareUrl = SHARE_BASE_URL + '?gruppe=' + encodeURIComponent(slugify(title));
+      const shareData = { title: title, text: title, url: shareUrl };
 
       if (navigator.share) {
+        // Versuchen, das Gruppenbild als Datei anzuhängen (Web Share API Level 2).
+        if (imageUrl) {
+          try {
+            const response = await fetch(imageUrl);
+            const blob = await response.blob();
+            const ext = (blob.type && blob.type.split('/')[1]) || 'jpg';
+            const file = new File([blob], 'gruppenbild.' + ext, { type: blob.type || 'image/jpeg' });
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+              shareData.files = [file];
+            }
+          } catch (e) {
+            // Bild konnte nicht geladen werden (z. B. CORS) — einfach ohne Datei weiterteilen
+          }
+        }
+
         try {
-          await navigator.share({ title: title, text: title, url: shareUrl });
+          await navigator.share(shareData);
         } catch (e) {
           // Nutzer hat den Teilen-Dialog abgebrochen — kein Fehler nötig
         }
@@ -4667,7 +4686,7 @@ Gruppen verwalten
 
     if (mShareBtn) {
       mShareBtn.addEventListener('click', function() {
-        shareGroupByTitle(currentGroupTitle, mShareIcon);
+        shareGroupByTitle(currentGroupTitle, mShareIcon, currentGroupImage);
       });
     }
 
@@ -4687,8 +4706,9 @@ Gruppen verwalten
         if (shareBtn) {
           e.stopPropagation();
           const shareTitle = shareBtn.getAttribute('data-share-title') || '';
+          const shareImage = shareBtn.getAttribute('data-share-image') || '';
           const shareIconEl = shareBtn.querySelector('.material-symbols-outlined');
-          window.shareGroupByTitle(shareTitle, shareIconEl);
+          window.shareGroupByTitle(shareTitle, shareIconEl, shareImage);
           return;
         }
 
@@ -4706,6 +4726,7 @@ Gruppen verwalten
         currentVotes = votes;
         currentCreatorUsername = submittedBy;
         currentGroupTitle = title;
+        currentGroupImage = image;
         mTitle.textContent = title;
         mCat.textContent = cat;
         mDesc.textContent = desc;
