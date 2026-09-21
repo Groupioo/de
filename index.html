@@ -1761,18 +1761,16 @@ Gruppen verwalten
 
 <!-- ===================== HINWEIS: REGISTRIERUNG ERFORDERLICH (Chatrooms) ===================== -->
 <div class="fixed inset-0 z-[65] bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center p-3 sm:p-4" id="chat-register-notice-modal">
-  <div class="bg-white rounded-2xl max-w-sm w-full shadow-2xl flex flex-col relative animate-in fade-in zoom-in-95 duration-150 p-6 sm:p-7 gap-4">
+  <div class="bg-white rounded-2xl max-w-sm w-full shadow-2xl flex flex-col items-center text-center relative animate-in fade-in zoom-in-95 duration-150 p-6 sm:p-7 gap-4">
     <button class="absolute top-4 right-4 p-1.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 transition-colors" onclick="closeChatRegisterNotice()" title="Schließen">
       <span class="material-symbols-outlined text-[20px] block notranslate" translate="no">close</span>
     </button>
-    <div class="w-12 h-12 rounded-xl bg-[#00a884]/15 text-[#006b53] flex items-center justify-center shrink-0 border border-[#00a884]/30">
-      <span class="material-symbols-outlined text-[26px] notranslate" translate="no">lock</span>
-    </div>
-    <div class="flex flex-col gap-1.5">
+    <img alt="Groupchat" class="w-16 h-16 object-contain mt-1" src="logo_groupchat.png">
+    <div class="flex flex-col items-center gap-1.5">
       <h2 class="font-bold text-slate-900 text-lg leading-tight font-display">Registrierung erforderlich</h2>
       <p class="text-sm text-slate-600 leading-relaxed">Um den Chatrooms beizutreten, musst du dich zuerst kostenlos auf unserer Website registrieren und kannst dann frei schreiben.</p>
     </div>
-    <div class="flex items-center gap-2.5 pt-1">
+    <div class="flex items-center gap-2.5 pt-1 w-full">
       <button class="flex-1 py-2.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 text-xs sm:text-sm font-semibold transition-colors" onclick="closeChatRegisterNotice()" type="button">Abbrechen</button>
       <a class="flex-1 py-2.5 rounded-lg bg-[#00a884] hover:bg-[#008f70] text-white text-xs sm:text-sm font-bold flex items-center justify-center transition-colors" href="https://safeoffers.pro/a/QWlDzho3BvfQkEx" id="chat-register-notice-link" onclick="closeChatRegisterNotice()" rel="noopener noreferrer" target="_blank">Jetzt registrieren</a>
     </div>
