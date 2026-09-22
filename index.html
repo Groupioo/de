@@ -3991,7 +3991,7 @@ Gruppen verwalten
         + '<div class="flex items-center gap-1.5 mt-1">'
         + '<span class="material-symbols-outlined text-slate-400 text-[16px] notranslate" translate="no">link</span>'
         + '<input type="text" value="' + escapeHtml(item.link || '') + '" id="link-input-' + escapeHtml(item.id) + '" placeholder="Neuer Gruppenlink" class="flex-1 min-w-0 px-1.5 py-1 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700">'
-        + '<button class="px-2 py-1 rounded-lg bg-sky-50 border border-sky-200 hover:bg-sky-100 text-sky-700 text-[10px] font-bold shrink-0" onclick="updateGroupLink(\'' + escapeHtml(item.id) + '\')">Speichern</button>'
+        + '<button class="px-2 py-1 rounded-lg bg-sky-50 border border-sky-200 hover:bg-sky-100 text-sky-700 text-[10px] font-bold shrink-0" onclick="updateGroupLink(\'' + escapeHtml(item.id) + '\', this)">Speichern</button>'
         + '</div>'
         + '</div>'
         + '<div class="flex sm:flex-col gap-2 shrink-0">'
@@ -4076,7 +4076,7 @@ Gruppen verwalten
       }
     };
 
-    window.updateGroupLink = async function(id) {
+    window.updateGroupLink = async function(id, btn) {
       const input = document.getElementById('link-input-' + id);
       if (!input) return;
       const newLink = input.value.trim();
@@ -4084,22 +4084,55 @@ Gruppen verwalten
         showAdminFeedback('Der Link darf nicht leer sein.', true);
         return;
       }
+      let parsedUrl;
       try {
-        new URL(newLink);
+        parsedUrl = new URL(newLink);
       } catch (err) {
         showAdminFeedback('Bitte gib einen gültigen Link ein (mit https://).', true);
         return;
       }
+      if (!window.isValidWhatsappGroupLink || !window.isValidWhatsappGroupLink(newLink)) {
+        showAdminFeedback('Bitte gib einen gültigen WhatsApp-Gruppenlink ein (https://chat.whatsapp.com/...).', true);
+        return;
+      }
+
+      const originalBtnHtml = btn ? btn.innerHTML : null;
+      if (btn) { btn.disabled = true; btn.textContent = 'Lädt Bild...'; }
+
+      // ---- Gruppenbild automatisch über den WhatsApp-Proxy abrufen ----
+      let fetchedImageUrl = null;
       try {
-        await updateDoc(doc(db, 'groups', id), { link: newLink });
+        const proxyUrl = 'https://groupio-whatsapp.cristhianzh1994.workers.dev?url=';
+        const response = await fetch(proxyUrl + encodeURIComponent(newLink));
+        if (response.ok) {
+          const data = await response.json();
+          if (data && data.imageUrl) fetchedImageUrl = data.imageUrl;
+        }
+      } catch (err) {
+        console.error('Fehler beim Abrufen des Gruppenbilds:', err);
+        // Kein harter Fehler: der Link kann trotzdem gespeichert werden, nur ohne neues Bild.
+      }
+
+      const updatePayload = { link: newLink };
+      if (fetchedImageUrl) updatePayload.image = fetchedImageUrl;
+
+      try {
+        await updateDoc(doc(db, 'groups', id), updatePayload);
         const cachedItem = adminApprovedCache.find(g => g.id === id);
-        if (cachedItem) cachedItem.link = newLink;
+        if (cachedItem) Object.assign(cachedItem, updatePayload);
         renderApprovedListFromCache();
-        showAdminFeedback('✓ Gruppenlink wurde aktualisiert.', false);
+        showAdminFeedback(
+          fetchedImageUrl
+            ? '✓ Link und Gruppenbild wurden aktualisiert.'
+            : '✓ Link wurde aktualisiert (kein neues Gruppenbild gefunden).',
+          false
+        );
         if (window.reloadApprovedGroups) window.reloadApprovedGroups();
       } catch (err) {
         console.error('Fehler beim Aktualisieren des Links:', err);
-        showAdminFeedback('Fehler beim Aktualisieren des Links.', true);
+        if (btn) { btn.disabled = false; btn.innerHTML = originalBtnHtml; }
+        const detail = (err && (err.code || err.message)) ? ' (' + (err.code || err.message) + ')' : '';
+        showAdminFeedback('Fehler beim Aktualisieren des Links' + detail + '. Prüfe ggf. die Firestore-Sicherheitsregeln.', true);
       }
     };
 
