@@ -4101,16 +4101,23 @@ Gruppen verwalten
 
       // ---- Gruppenbild automatisch über den WhatsApp-Proxy abrufen ----
       let fetchedImageUrl = null;
+      let photoFetchNote = null;
       try {
         const proxyUrl = 'https://groupio-whatsapp.cristhianzh1994.workers.dev?url=';
         const response = await fetch(proxyUrl + encodeURIComponent(newLink));
-        if (response.ok) {
+        if (!response.ok) {
+          photoFetchNote = 'Proxy antwortete mit Status ' + response.status;
+        } else {
           const data = await response.json();
-          if (data && data.imageUrl) fetchedImageUrl = data.imageUrl;
+          if (data && data.imageUrl) {
+            fetchedImageUrl = data.imageUrl;
+          } else {
+            photoFetchNote = 'Proxy hat keine Bild-URL zurückgegeben (Gruppenlink evtl. abgelaufen/ungültig).';
+          }
         }
       } catch (err) {
         console.error('Fehler beim Abrufen des Gruppenbilds:', err);
-        // Kein harter Fehler: der Link kann trotzdem gespeichert werden, nur ohne neues Bild.
+        photoFetchNote = 'Netzwerkfehler beim Bildabruf: ' + (err && err.message ? err.message : 'unbekannt');
       }
 
       const updatePayload = { link: newLink };
@@ -4124,7 +4131,7 @@ Gruppen verwalten
         showAdminFeedback(
           fetchedImageUrl
             ? '✓ Link und Gruppenbild wurden aktualisiert.'
-            : '✓ Link wurde aktualisiert (kein neues Gruppenbild gefunden).',
+            : '✓ Link wurde aktualisiert.\nGruppenbild NICHT aktualisiert — ' + (photoFetchNote || 'unbekannter Grund') + '.',
           false
         );
         if (window.reloadApprovedGroups) window.reloadApprovedGroups();
@@ -4235,13 +4242,17 @@ Gruppen verwalten
 
     function showAdminFeedback(message, isError) {
       const fb = document.getElementById('admin-panel-feedback');
-      fb.className = isError
-        ? 'p-3.5 rounded-xl text-xs font-medium bg-red-50 text-red-700 border border-red-200'
-        : 'p-3.5 rounded-xl text-xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-200';
-      fb.textContent = message;
-      fb.classList.remove('hidden');
       clearTimeout(fb._hideTimeout);
-      fb._hideTimeout = setTimeout(() => fb.classList.add('hidden'), isError ? 8000 : 2200);
+      fb.className = (isError
+        ? 'p-3.5 rounded-xl text-xs font-medium bg-red-50 text-red-700 border border-red-200'
+        : 'p-3.5 rounded-xl text-xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-200')
+        + ' flex items-start justify-between gap-2';
+      fb.innerHTML = '<span class="flex-1 whitespace-pre-line">' + escapeHtml(message) + '</span>'
+        + '<button type="button" class="shrink-0 opacity-60 hover:opacity-100 -m-1 p-1" onclick="document.getElementById(\'admin-panel-feedback\').classList.add(\'hidden\')" title="Schließen">'
+        + '<span class="material-symbols-outlined text-[16px] block notranslate" translate="no">close</span></button>';
+      fb.classList.remove('hidden');
+      // Bewusst KEIN automatisches Ausblenden mehr — der Hinweis bleibt sichtbar,
+      // bis der Admin ihn selbst über das X schließt.
     }
 
     window.approvePendingGroup = async function(id) {
