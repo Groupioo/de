@@ -3988,6 +3988,11 @@ Gruppen verwalten
         + '<input type="number" min="0" step="1" value="' + (item.votes || 0) + '" id="votes-input-' + escapeHtml(item.id) + '" class="w-16 px-1.5 py-1 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700">'
         + '<button class="px-2 py-1 rounded-lg bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 text-emerald-700 text-[10px] font-bold" onclick="updateGroupVotes(\'' + escapeHtml(item.id) + '\')">Speichern</button>'
         + '</div>'
+        + '<div class="flex items-center gap-1.5 mt-1">'
+        + '<span class="material-symbols-outlined text-slate-400 text-[16px] notranslate" translate="no">link</span>'
+        + '<input type="text" value="' + escapeHtml(item.link || '') + '" id="link-input-' + escapeHtml(item.id) + '" placeholder="Neuer Gruppenlink" class="flex-1 min-w-0 px-1.5 py-1 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700">'
+        + '<button class="px-2 py-1 rounded-lg bg-sky-50 border border-sky-200 hover:bg-sky-100 text-sky-700 text-[10px] font-bold shrink-0" onclick="updateGroupLink(\'' + escapeHtml(item.id) + '\')">Speichern</button>'
+        + '</div>'
         + '</div>'
         + '<div class="flex sm:flex-col gap-2 shrink-0">'
         + '<button class="px-3 py-2 rounded-lg bg-white border border-red-200 hover:bg-red-50 text-red-600 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors" onclick="deleteApprovedGroup(\'' + escapeHtml(item.id) + '\')">'
@@ -4068,6 +4073,33 @@ Gruppen verwalten
       } catch (err) {
         console.error('Fehler beim Aktualisieren der Sterne:', err);
         showAdminFeedback('Fehler beim Aktualisieren der Sterne.', true);
+      }
+    };
+
+    window.updateGroupLink = async function(id) {
+      const input = document.getElementById('link-input-' + id);
+      if (!input) return;
+      const newLink = input.value.trim();
+      if (!newLink) {
+        showAdminFeedback('Der Link darf nicht leer sein.', true);
+        return;
+      }
+      try {
+        new URL(newLink);
+      } catch (err) {
+        showAdminFeedback('Bitte gib einen gültigen Link ein (mit https://).', true);
+        return;
+      }
+      try {
+        await updateDoc(doc(db, 'groups', id), { link: newLink });
+        const cachedItem = adminApprovedCache.find(g => g.id === id);
+        if (cachedItem) cachedItem.link = newLink;
+        renderApprovedListFromCache();
+        showAdminFeedback('✓ Gruppenlink wurde aktualisiert.', false);
+        if (window.reloadApprovedGroups) window.reloadApprovedGroups();
+      } catch (err) {
+        console.error('Fehler beim Aktualisieren des Links:', err);
+        showAdminFeedback('Fehler beim Aktualisieren des Links.', true);
       }
     };
 
