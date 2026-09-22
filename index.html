@@ -1177,6 +1177,9 @@ Gruppen verwalten
 <span class="material-symbols-outlined text-[40px] notranslate" translate="no">inbox</span>
 <span class="text-sm font-medium">Keine akzeptierten Gruppen</span>
 </div>
+<div class="hidden items-center justify-center gap-1.5 pt-1 flex-wrap" id="admin-approved-pagination">
+<!-- wird dynamisch befüllt -->
+</div>
 </div>
 
 </div>
@@ -3904,6 +3907,8 @@ Gruppen verwalten
     let adminPendingCache = [];
     let adminApprovedCache = [];
     let adminActiveTab = 'pending';
+    const ADMIN_APPROVED_PAGE_SIZE = 12;
+    let adminApprovedPage = 1;
 
     function matchesAdminSearch(item, term) {
       if (!term) return true;
@@ -4017,7 +4022,10 @@ Gruppen verwalten
     function renderApprovedListFromCache() {
       const container = document.getElementById('admin-approved-list');
       const empty = document.getElementById('admin-approved-empty-state');
+      const pagination = document.getElementById('admin-approved-pagination');
       const term = (document.getElementById('admin-search-input').value || '').trim().toLowerCase();
+      // adminApprovedCache ist bereits nach Sternen (votes) absteigend sortiert;
+      // diese Reihenfolge bleibt beim Filtern und Paginieren erhalten.
       const list = adminApprovedCache.filter(item => matchesAdminSearch(item, term));
 
       if (!list.length) {
@@ -4025,14 +4033,80 @@ Gruppen verwalten
         empty.classList.remove('hidden');
         empty.classList.add('flex');
         empty.querySelector('span.text-sm').textContent = term ? 'Keine Treffer für deine Suche' : 'Keine akzeptierten Gruppen';
+        if (pagination) { pagination.classList.add('hidden'); pagination.classList.remove('flex'); pagination.innerHTML = ''; }
         return;
       }
       empty.classList.add('hidden');
       empty.classList.remove('flex');
-      container.innerHTML = list.map(approvedItemTemplate).join('');
+
+      const totalPages = Math.max(1, Math.ceil(list.length / ADMIN_APPROVED_PAGE_SIZE));
+      if (adminApprovedPage > totalPages) adminApprovedPage = totalPages;
+      if (adminApprovedPage < 1) adminApprovedPage = 1;
+
+      const startIdx = (adminApprovedPage - 1) * ADMIN_APPROVED_PAGE_SIZE;
+      const pageItems = list.slice(startIdx, startIdx + ADMIN_APPROVED_PAGE_SIZE);
+
+      container.innerHTML = pageItems.map(approvedItemTemplate).join('');
+      renderAdminApprovedPagination(totalPages);
     }
 
+    function getAdminPaginationPageNumbers(current, total) {
+      const delta = 1;
+      const range = [];
+      const withDots = [];
+      let last;
+      for (let i = 1; i <= total; i++) {
+        if (i === 1 || i === total || (i >= current - delta && i <= current + delta)) range.push(i);
+      }
+      range.forEach(function(i) {
+        if (last) {
+          if (i - last === 2) withDots.push(last + 1);
+          else if (i - last > 2) withDots.push('...');
+        }
+        withDots.push(i);
+        last = i;
+      });
+      return withDots;
+    }
+
+    function renderAdminApprovedPagination(totalPages) {
+      const pagination = document.getElementById('admin-approved-pagination');
+      if (!pagination) return;
+      if (totalPages <= 1) {
+        pagination.classList.add('hidden');
+        pagination.classList.remove('flex');
+        pagination.innerHTML = '';
+        return;
+      }
+      pagination.classList.remove('hidden');
+      pagination.classList.add('flex');
+
+      const btnBase = 'w-8 h-8 rounded-lg text-xs font-semibold flex items-center justify-center transition-colors';
+      let html = '<button type="button" class="' + btnBase + ' ' + (adminApprovedPage === 1 ? 'text-slate-300 cursor-not-allowed' : 'text-slate-600 hover:bg-slate-100') + '" ' + (adminApprovedPage === 1 ? 'disabled' : '') + ' onclick="goToAdminApprovedPage(' + (adminApprovedPage - 1) + ')" title="Vorherige Seite"><span class="material-symbols-outlined text-[18px] notranslate" translate="no">chevron_left</span></button>';
+
+      getAdminPaginationPageNumbers(adminApprovedPage, totalPages).forEach(function(p) {
+        if (p === '...') {
+          html += '<span class="w-8 h-8 flex items-center justify-center text-slate-400 text-xs">…</span>';
+        } else {
+          const isActive = p === adminApprovedPage;
+          html += '<button type="button" class="' + btnBase + ' ' + (isActive ? 'bg-[#00a884] text-white' : 'text-slate-600 hover:bg-slate-100') + '" onclick="goToAdminApprovedPage(' + p + ')">' + p + '</button>';
+        }
+      });
+
+      html += '<button type="button" class="' + btnBase + ' ' + (adminApprovedPage === totalPages ? 'text-slate-300 cursor-not-allowed' : 'text-slate-600 hover:bg-slate-100') + '" ' + (adminApprovedPage === totalPages ? 'disabled' : '') + ' onclick="goToAdminApprovedPage(' + (adminApprovedPage + 1) + ')" title="Nächste Seite"><span class="material-symbols-outlined text-[18px] notranslate" translate="no">chevron_right</span></button>';
+
+      pagination.innerHTML = html;
+    }
+
+    window.goToAdminApprovedPage = function(page) {
+      adminApprovedPage = page;
+      renderApprovedListFromCache();
+      const container = document.getElementById('admin-approved-list');
+      if (container) container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    };
+
     function applyAdminSearch() {
+      adminApprovedPage = 1;
       if (adminActiveTab === 'approved') {
         renderApprovedListFromCache();
       } else {
@@ -4185,6 +4259,7 @@ Gruppen verwalten
 
     window.switchAdminTab = function(tab) {
       adminActiveTab = tab === 'approved' ? 'approved' : 'pending';
+      adminApprovedPage = 1;
       const pendingList = document.getElementById('admin-pending-list');
       const pendingEmpty = document.getElementById('admin-empty-state');
       const approvedList = document.getElementById('admin-approved-list');
