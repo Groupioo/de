@@ -2321,25 +2321,25 @@ Gruppen verwalten
 <!-- ===================== FIN COMMUNITY CHAT MODAL ===================== -->
 
 <!-- SIMPLE FOOTER -->
-<footer class="w-full bg-white border-t border-slate-200 mt-10 py-6 text-xs text-slate-500">
+<footer class="w-full bg-[#0d5c46] border-t border-[#0a4736] mt-10 py-6 text-xs text-emerald-100">
 <div class="max-w-[1240px] mx-auto px-4 flex flex-col gap-4">
 <div class="flex flex-wrap items-center justify-center gap-2" id="footer-country-row">
-<span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wide mr-1">Länder:</span>
-<button type="button" class="country-filter-btn flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-slate-200 bg-slate-50 text-slate-600 text-[11px] sm:text-xs font-medium hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-700 transition-colors" data-country="de"><span>🇩🇪</span> Deutschland</button>
-<button type="button" class="country-filter-btn flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-slate-200 bg-slate-50 text-slate-600 text-[11px] sm:text-xs font-medium hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-700 transition-colors" data-country="ch"><span>🇨🇭</span> Schweiz</button>
-<button type="button" class="country-filter-btn flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-slate-200 bg-slate-50 text-slate-600 text-[11px] sm:text-xs font-medium hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-700 transition-colors" data-country="at"><span>🇦🇹</span> Österreich</button>
-<button type="button" class="country-filter-btn flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-slate-200 bg-slate-50 text-slate-600 text-[11px] sm:text-xs font-medium hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-700 transition-colors" data-country="us"><span>🇺🇸</span> USA</button>
+<span class="text-[11px] font-semibold text-emerald-200/70 uppercase tracking-wide mr-1">Länder:</span>
+<button type="button" class="country-filter-btn flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-white/20 bg-white/10 text-emerald-50 text-[11px] sm:text-xs font-medium hover:bg-white/20 hover:border-white/30 transition-colors" data-country="de"><span>🇩🇪</span> Deutschland</button>
+<button type="button" class="country-filter-btn flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-white/20 bg-white/10 text-emerald-50 text-[11px] sm:text-xs font-medium hover:bg-white/20 hover:border-white/30 transition-colors" data-country="ch"><span>🇨🇭</span> Schweiz</button>
+<button type="button" class="country-filter-btn flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-white/20 bg-white/10 text-emerald-50 text-[11px] sm:text-xs font-medium hover:bg-white/20 hover:border-white/30 transition-colors" data-country="at"><span>🇦🇹</span> Österreich</button>
+<button type="button" class="country-filter-btn flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-white/20 bg-white/10 text-emerald-50 text-[11px] sm:text-xs font-medium hover:bg-white/20 hover:border-white/30 transition-colors" data-country="us"><span>🇺🇸</span> USA</button>
 </div>
-<div class="flex flex-col sm:flex-row items-center justify-center sm:justify-between gap-3 text-center border-t border-slate-100 pt-4">
+<div class="flex flex-col sm:flex-row items-center justify-center sm:justify-between gap-3 text-center border-t border-white/10 pt-4">
 <div class="flex items-center gap-2 flex-wrap justify-center">
-<span class="font-bold text-emerald-800 font-display">Groupchat</span>
-<span class="">© 2026 Groupchat Platform. Alle Rechte vorbehalten.</span>
+<span class="font-bold text-white font-display">Groupchat</span>
+<span class="text-emerald-100">© 2026 Groupchat Platform. Alle Rechte vorbehalten.</span>
 </div>
 <div class="flex items-center gap-3 sm:gap-4 flex-wrap justify-center">
-<a class="hover:text-emerald-700" href="#" onclick="openPrivacyModal(); return false;">Datenschutz</a>
-<a class="hover:text-emerald-700" href="#" onclick="openTermsModal(); return false;">Nutzungsbedingungen</a>
-<a class="hover:text-emerald-700" href="#" onclick="openRulesModal(); return false;">Gruppenregeln</a>
-<a class="hover:text-emerald-700" href="#" onclick="openContactModal(); return false;">Kontakt</a>
+<a class="text-emerald-100 hover:text-white" href="#" onclick="openPrivacyModal(); return false;">Datenschutz</a>
+<a class="text-emerald-100 hover:text-white" href="#" onclick="openTermsModal(); return false;">Nutzungsbedingungen</a>
+<a class="text-emerald-100 hover:text-white" href="#" onclick="openRulesModal(); return false;">Gruppenregeln</a>
+<a class="text-emerald-100 hover:text-white" href="#" onclick="openContactModal(); return false;">Kontakt</a>
 </div>
 </div>
 </div>
@@ -3995,8 +3995,8 @@ Gruppen verwalten
         + '</div>'
         + '</div>'
         + '<div class="flex sm:flex-col gap-2 shrink-0">'
-        + '<button class="px-3 py-2 rounded-lg bg-white border border-red-200 hover:bg-red-50 text-red-600 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors" onclick="deleteApprovedGroup(\'' + escapeHtml(item.id) + '\')">'
-        + '<span class="material-symbols-outlined text-[16px] notranslate" translate="no">delete</span> Löschen</button>'
+        + '<button class="px-3 py-2 rounded-lg bg-white border border-red-200 hover:bg-red-50 text-red-600 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors" data-confirming="0" onclick="handleDeleteApprovedClick(this, \'' + escapeHtml(item.id) + '\')">'
+        + '<span class="material-symbols-outlined text-[16px] notranslate" translate="no">delete</span> <span class="delete-label">Löschen</span></button>'
         + '</div></div>';
     }
 
@@ -4103,8 +4103,27 @@ Gruppen verwalten
       }
     };
 
-    window.deleteApprovedGroup = async function(id) {
-      if (!confirm('Diese Gruppe wirklich endgültig löschen? Dies kann nicht rückgängig gemacht werden.')) return;
+    window.handleDeleteApprovedClick = function(btn, id) {
+      if (!btn) return;
+      if (btn.dataset.confirming === '1') {
+        clearTimeout(btn._confirmTimeout);
+        window.deleteApprovedGroup(id, btn);
+        return;
+      }
+      btn.dataset.confirming = '1';
+      const label = btn.querySelector('.delete-label');
+      if (label) label.textContent = 'Wirklich löschen?';
+      btn.classList.remove('bg-white', 'text-red-600', 'border-red-200', 'hover:bg-red-50');
+      btn.classList.add('bg-red-600', 'text-white', 'border-red-600', 'hover:bg-red-700');
+      btn._confirmTimeout = setTimeout(function() {
+        btn.dataset.confirming = '0';
+        if (label) label.textContent = 'Löschen';
+        btn.classList.add('bg-white', 'text-red-600', 'border-red-200', 'hover:bg-red-50');
+        btn.classList.remove('bg-red-600', 'text-white', 'border-red-600', 'hover:bg-red-700');
+      }, 4000);
+    };
+
+    window.deleteApprovedGroup = async function(id, btn) {
       try {
         await deleteDoc(doc(db, 'groups', id));
         await renderApprovedList();
@@ -4112,7 +4131,15 @@ Gruppen verwalten
         if (window.reloadApprovedGroups) window.reloadApprovedGroups();
       } catch (err) {
         console.error('Fehler beim Löschen der Gruppe:', err);
-        showAdminFeedback('Fehler beim Löschen der Gruppe.', true);
+        if (btn) {
+          btn.dataset.confirming = '0';
+          const label = btn.querySelector('.delete-label');
+          if (label) label.textContent = 'Löschen';
+          btn.classList.add('bg-white', 'text-red-600', 'border-red-200', 'hover:bg-red-50');
+          btn.classList.remove('bg-red-600', 'text-white', 'border-red-600', 'hover:bg-red-700');
+        }
+        const detail = (err && (err.code || err.message)) ? ' (' + (err.code || err.message) + ')' : '';
+        showAdminFeedback('Fehler beim Löschen der Gruppe' + detail + '. Prüfe ggf. die Firestore-Sicherheitsregeln für Löschungen.', true);
       }
     };
 
@@ -4180,7 +4207,8 @@ Gruppen verwalten
         : 'p-3.5 rounded-xl text-xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-200';
       fb.textContent = message;
       fb.classList.remove('hidden');
-      setTimeout(() => fb.classList.add('hidden'), 2200);
+      clearTimeout(fb._hideTimeout);
+      fb._hideTimeout = setTimeout(() => fb.classList.add('hidden'), isError ? 8000 : 2200);
     }
 
     window.approvePendingGroup = async function(id) {
@@ -4503,8 +4531,8 @@ Gruppen verwalten
         btn.classList.toggle('bg-emerald-600', !!isActive);
         btn.classList.toggle('border-emerald-600', !!isActive);
         btn.classList.toggle('text-white', !!isActive);
-        btn.classList.toggle('bg-slate-50', !isActive);
-        btn.classList.toggle('text-slate-600', !isActive);
+        btn.classList.toggle('bg-white/10', !isActive);
+        btn.classList.toggle('text-emerald-50', !isActive);
       });
     }
 
