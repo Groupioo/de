@@ -1,37 +1,26 @@
 {
-  "name": "Groupchat",
-  "short_name": "Groupchat",
-  "description": "Entdecke und teile die besten deutschen WhatsApp-Gruppen: Gaming, Musik, Adult, Finanzen, Anime und mehr.",
-  "start_url": "/de/",
-  "scope": "/de/",
+  "name": "Gruppeniink",
+  "short_name": "Gruppeniink",
+  "description": "Deutsche Adult WhatsApp Gruppen 2026",
+  "start_url": "/",
   "display": "standalone",
-  "background_color": "#0d5c46",
+  "background_color": "#ffffff",
   "theme_color": "#0d5c46",
-  "lang": "de",
   "icons": [
     {
-      "src": "icon-192.png",
+      "src": "favicon-16.png",
+      "sizes": "16x16",
+      "type": "image/png"
+    },
+    {
+      "src": "logo_groupchat.png",
       "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any"
+      "type": "image/png"
     },
     {
-      "src": "icon-512.png",
+      "src": "logo_groupchat.png",
       "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "icon-maskable-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "maskable"
-    },
-    {
-      "src": "icon-maskable-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "maskable"
+      "type": "image/png"
     }
   ]
 }
