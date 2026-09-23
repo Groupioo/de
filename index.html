@@ -1357,15 +1357,19 @@ Gruppen verwalten
 </div>
 </div>
 
-<!-- Tabs: Ausstehend / Akzeptiert -->
+<!-- Tabs: Ausstehend / Akzeptiert / Abgelaufen / Mitteilung -->
 <div class="flex items-center p-1 bg-slate-100 rounded-xl">
-  <button type="button" class="flex-1 py-1.5 px-3 text-xs font-semibold rounded-lg transition-all bg-white text-[#006b53] shadow-xs" id="admin-tab-pending-btn" onclick="switchAdminTab('pending')">
+  <button type="button" class="flex-1 py-1.5 px-2 text-[11px] sm:text-xs font-semibold rounded-lg transition-all bg-white text-[#006b53] shadow-xs" id="admin-tab-pending-btn" onclick="switchAdminTab('pending')">
     Ausstehend
   </button>
-  <button type="button" class="flex-1 py-1.5 px-3 text-xs font-semibold rounded-lg transition-all text-slate-500 hover:text-slate-800" id="admin-tab-approved-btn" onclick="switchAdminTab('approved')">
+  <button type="button" class="flex-1 py-1.5 px-2 text-[11px] sm:text-xs font-semibold rounded-lg transition-all text-slate-500 hover:text-slate-800" id="admin-tab-approved-btn" onclick="switchAdminTab('approved')">
     Akzeptiert
   </button>
-  <button type="button" class="flex-1 py-1.5 px-3 text-xs font-semibold rounded-lg transition-all text-slate-500 hover:text-slate-800" id="admin-tab-broadcast-btn" onclick="switchAdminTab('broadcast')">
+  <button type="button" class="flex-1 py-1.5 px-2 text-[11px] sm:text-xs font-semibold rounded-lg transition-all text-slate-500 hover:text-slate-800 relative" id="admin-tab-expired-btn" onclick="switchAdminTab('expired')">
+    Abgelaufen
+    <span class="admin-expired-badge hidden absolute -top-1.5 -right-1 min-w-[16px] h-4 px-1 rounded-full bg-red-500 text-white text-[10px] font-bold items-center justify-center">0</span>
+  </button>
+  <button type="button" class="flex-1 py-1.5 px-2 text-[11px] sm:text-xs font-semibold rounded-lg transition-all text-slate-500 hover:text-slate-800" id="admin-tab-broadcast-btn" onclick="switchAdminTab('broadcast')">
     Mitteilung
   </button>
 </div>
@@ -1400,6 +1404,26 @@ Gruppen verwalten
 </div>
 <div class="hidden items-center justify-center gap-1.5 pt-1 flex-wrap" id="admin-approved-pagination">
 <!-- wird dynamisch befüllt -->
+</div>
+
+<!-- ABGELAUFENE LINKS: prüft ALLE akzeptierten Gruppen site-weit, unabhängig davon,
+     wer sie eingetragen hat (im Unterschied zur Glocke/„Meine Gruppen“, die nur die
+     eigenen Gruppen des jeweils eingeloggten Nutzers prüfen). -->
+<div class="hidden flex-col gap-3" id="admin-expired-panel">
+  <div class="flex items-center justify-between gap-2 flex-wrap">
+    <p class="text-[11px] text-slate-400 flex-1 min-w-[180px]">Prüft alle akzeptierten Gruppen site-weit auf abgelaufene/ungültige Einladungslinks — unabhängig vom Ersteller.</p>
+    <button type="button" class="shrink-0 px-3 py-1.5 rounded-lg bg-red-50 border border-red-200 hover:bg-red-100 text-red-700 text-[11px] font-semibold flex items-center gap-1.5" onclick="window.scanExpiredApprovedGroups()">
+      <span class="material-symbols-outlined text-[15px] notranslate" translate="no">sync</span> Jetzt prüfen
+    </button>
+  </div>
+  <p class="text-[11px] text-slate-400 hidden" id="admin-expired-scan-status"></p>
+  <div class="flex flex-col gap-3" id="admin-expired-list">
+  <!-- wird dynamisch befüllt -->
+  </div>
+  <div class="hidden flex-col items-center justify-center gap-2 py-10 text-slate-400" id="admin-expired-empty-state">
+    <span class="material-symbols-outlined text-[40px] notranslate" translate="no">link_off</span>
+    <span class="text-sm font-medium">Keine abgelaufenen Links gefunden</span>
+  </div>
 </div>
 
 <!-- BENACHRICHTIGUNG AN ALLE NUTZER -->
@@ -3021,6 +3045,10 @@ Gruppen verwalten
     // der Link als abgelaufen/ungültig und der Nutzer wird per Glocke im Header
     // benachrichtigt, mit der Möglichkeit, direkt einen neuen Link zu speichern.
     const LINK_CHECK_PROXY_URL = 'https://groupio-whatsapp.cristhianzh1994.workers.dev?url=';
+    // Wie lange nach dem Speichern eines neuen Links die automatische Live-Prüfung
+    // aussetzt, damit ein gerade erst reparierter Link nicht sofort wieder fälschlich
+    // als "abgelaufen" auftaucht (z. B. bei einem kurzen Hänger des Proxys).
+    const LINK_RECHECK_GRACE_MS = 30 * 60 * 1000; // 30 Minuten
     let expiredOwnGroups = [];
     let isCheckingOwnLinks = false;
     let broadcastNotifs = [];
@@ -3227,7 +3255,21 @@ Gruppen verwalten
         const stillExpired = [];
         for (const g of myGroups) {
           if (!g.link) continue;
-          const alive = await checkWhatsappLinkAlive(g.link);
+
+          // Gerade erst repariert? Dann diesem Link eine kurze "Schonfrist" geben, statt ihn
+          // sofort wieder live zu prüfen. Das verhindert, dass ein einzelner wackliger Check
+          // des externen Proxys einen Link, der der Nutzer buchstäblich vor Sekunden gespeichert
+          // hat, erneut als "abgelaufen" markiert.
+          if (g.linkUpdatedAt && (Date.now() - g.linkUpdatedAt) < LINK_RECHECK_GRACE_MS) continue;
+
+          let alive = await checkWhatsappLinkAlive(g.link);
+          if (alive === false) {
+            // Einmal erneut prüfen, bevor der Link endgültig als tot gilt — ein einzelner
+            // fehlgeschlagener Aufruf des Proxys (Netzwerk-Hänger, kurzzeitiges Rate-Limit
+            // bei WhatsApp) soll nicht sofort zu einer Fehlmeldung führen.
+            await new Promise(function(res) { setTimeout(res, 900); });
+            alive = await checkWhatsappLinkAlive(g.link);
+          }
           if (alive === false) stillExpired.push({ id: g.id, name: g.name, link: g.link });
         }
         expiredOwnGroups = stillExpired;
@@ -3350,7 +3392,7 @@ Gruppen verwalten
         }
       } catch (e) { /* Bild ist optional, Link wird trotzdem gespeichert */ }
 
-      const updatePayload = { link: newLink };
+      const updatePayload = { link: newLink, linkUpdatedAt: Date.now() };
       if (fetchedImageUrl) updatePayload.image = fetchedImageUrl;
 
       try {
@@ -4755,6 +4797,107 @@ Gruppen verwalten
       renderAdminApprovedPagination(totalPages);
     }
 
+    // ---------- ABGELAUFENE LINKS (site-weit, alle akzeptierten Gruppen) ----------
+    // Im Unterschied zu checkOwnGroupLinks() (nur eigene Gruppen des eingeloggten Nutzers)
+    // prüft dies ALLE akzeptierten Gruppen — auch von anderen Nutzern oder Gästen einge-
+    // tragene, für die es sonst nie eine automatische Erinnerung geben könnte (Gäste haben
+    // kein Konto, in das sie sich je wieder einloggen könnten, um die Glocke zu sehen).
+    let adminExpiredCache = [];
+    let isScanningExpiredAdmin = false;
+
+    function updateAdminExpiredBadge() {
+      const count = adminExpiredCache.length;
+      document.querySelectorAll('.admin-expired-badge').forEach(function(b) {
+        if (count > 0) {
+          b.textContent = count > 9 ? '9+' : String(count);
+          b.classList.remove('hidden');
+          b.classList.add('flex');
+        } else {
+          b.classList.add('hidden');
+          b.classList.remove('flex');
+        }
+      });
+    }
+
+    function renderAdminExpiredList() {
+      const container = document.getElementById('admin-expired-list');
+      const empty = document.getElementById('admin-expired-empty-state');
+      if (!container) return;
+      const searchEl = document.getElementById('admin-search-input');
+      const term = (searchEl && searchEl.value || '').trim().toLowerCase();
+      const list = adminExpiredCache.filter(item => matchesAdminSearch(item, term));
+
+      if (!list.length) {
+        container.innerHTML = '';
+        if (empty) {
+          empty.classList.remove('hidden');
+          empty.classList.add('flex');
+          empty.querySelector('span.text-sm').textContent = term
+            ? 'Keine Treffer für deine Suche'
+            : (isScanningExpiredAdmin ? 'Prüfung läuft...' : 'Keine abgelaufenen Links gefunden');
+        }
+        return;
+      }
+      if (empty) { empty.classList.add('hidden'); empty.classList.remove('flex'); }
+      // Wiederverwendet dieselbe Kartenvorlage wie der "Akzeptiert"-Tab — inklusive des
+      // bereits vorhandenen Link-Eingabefelds + "Speichern"-Buttons (updateGroupLink).
+      container.innerHTML = list.map(approvedItemTemplate).join('');
+    }
+
+    // Prüft nacheinander jede akzeptierte Gruppe live über den WhatsApp-Proxy. Läuft nur
+    // auf Anfrage (Tab öffnen / "Jetzt prüfen"), nicht automatisch im Hintergrund für
+    // jede Sitzung, um den externen Proxy nicht unnötig site-weit zu belasten.
+    window.scanExpiredApprovedGroups = async function() {
+      if (isScanningExpiredAdmin) return;
+      isScanningExpiredAdmin = true;
+      const statusEl = document.getElementById('admin-expired-scan-status');
+      if (statusEl) { statusEl.classList.remove('hidden'); statusEl.textContent = 'Lade Gruppenliste...'; }
+      renderAdminExpiredList();
+
+      try {
+        if (!adminApprovedCache.length) {
+          const snap = await getDocs(query(groupsCol, where('status', '==', 'approved')));
+          adminApprovedCache = snap.docs.map(d => Object.assign({ id: d.id }, d.data()));
+          adminApprovedCache.sort((a, b) => (b.votes || 0) - (a.votes || 0));
+        }
+
+        const withLink = adminApprovedCache.filter(g => g.link);
+        const total = withLink.length;
+        let checked = 0;
+        const stillExpired = [];
+
+        for (const g of withLink) {
+          checked++;
+          if (statusEl) statusEl.textContent = 'Prüfe Links... (' + checked + ' / ' + total + ')';
+
+          // Gerade erst repariert -> kurze Schonfrist, nicht sofort erneut prüfen
+          // (siehe LINK_RECHECK_GRACE_MS bei checkOwnGroupLinks).
+          if (g.linkUpdatedAt && (Date.now() - g.linkUpdatedAt) < LINK_RECHECK_GRACE_MS) continue;
+
+          let alive = await checkWhatsappLinkAlive(g.link);
+          if (alive === false) {
+            // Ein einzelner fehlgeschlagener Versuch reicht nicht — einmal erneut prüfen,
+            // um einen kurzen Netzwerk-/Proxy-Hänger nicht als "abgelaufen" fehlzudeuten.
+            await new Promise(function(res) { setTimeout(res, 700); });
+            alive = await checkWhatsappLinkAlive(g.link);
+          }
+          if (alive === false) stillExpired.push(g);
+        }
+
+        adminExpiredCache = stillExpired;
+        renderAdminExpiredList();
+        updateAdminExpiredBadge();
+      } catch (err) {
+        console.error('Fehler bei der site-weiten Link-Prüfung:', err);
+        const container = document.getElementById('admin-expired-list');
+        if (container) container.innerHTML = '<p class="text-xs text-red-400 text-center py-4">Fehler bei der Prüfung.</p>';
+      } finally {
+        isScanningExpiredAdmin = false;
+        if (statusEl) statusEl.classList.add('hidden');
+      }
+    };
+    // ---------- ENDE ABGELAUFENE LINKS ----------
+
     function getAdminPaginationPageNumbers(current, total) {
       const delta = 1;
       const range = [];
@@ -4899,7 +5042,7 @@ Gruppen verwalten
         photoFetchNote = 'Netzwerkfehler beim Bildabruf: ' + (err && err.message ? err.message : 'unbekannt');
       }
 
-      const updatePayload = { link: newLink };
+      const updatePayload = { link: newLink, linkUpdatedAt: Date.now() };
       if (fetchedImageUrl) updatePayload.image = fetchedImageUrl;
 
       try {
@@ -4907,6 +5050,10 @@ Gruppen verwalten
         const cachedItem = adminApprovedCache.find(g => g.id === id);
         if (cachedItem) Object.assign(cachedItem, updatePayload);
         renderApprovedListFromCache();
+        // Auch aus der "Abgelaufen"-Ansicht entfernen, falls dort gerade sichtbar
+        adminExpiredCache = adminExpiredCache.filter(function(g) { return g.id !== id; });
+        renderAdminExpiredList();
+        updateAdminExpiredBadge();
         showAdminFeedback(
           fetchedImageUrl
             ? '✓ Link und Gruppenbild wurden aktualisiert.'
@@ -4969,14 +5116,17 @@ Gruppen verwalten
       const pendingEmpty = document.getElementById('admin-empty-state');
       const approvedList = document.getElementById('admin-approved-list');
       const approvedEmpty = document.getElementById('admin-approved-empty-state');
+      const expiredPanel = document.getElementById('admin-expired-panel');
       const broadcastPanel = document.getElementById('admin-broadcast-panel');
       const searchInputEl = document.getElementById('admin-search-input');
       const tabPendingBtn = document.getElementById('admin-tab-pending-btn');
       const tabApprovedBtn = document.getElementById('admin-tab-approved-btn');
+      const tabExpiredBtn = document.getElementById('admin-tab-expired-btn');
       const tabBroadcastBtn = document.getElementById('admin-tab-broadcast-btn');
 
-      const activeCls = "flex-1 py-1.5 px-3 text-xs font-semibold rounded-lg transition-all bg-white text-[#006b53] shadow-xs";
-      const inactiveCls = "flex-1 py-1.5 px-3 text-xs font-semibold rounded-lg transition-all text-slate-500 hover:text-slate-800";
+      const activeCls = "flex-1 py-1.5 px-2 text-[11px] sm:text-xs font-semibold rounded-lg transition-all bg-white text-[#006b53] shadow-xs";
+      const inactiveCls = "flex-1 py-1.5 px-2 text-[11px] sm:text-xs font-semibold rounded-lg transition-all text-slate-500 hover:text-slate-800";
+      const inactiveClsRelative = inactiveCls + " relative";
 
       pendingList.classList.add('hidden');
       pendingEmpty.classList.add('hidden');
@@ -4985,10 +5135,12 @@ Gruppen verwalten
       approvedList.classList.remove('flex');
       approvedEmpty.classList.add('hidden');
       approvedEmpty.classList.remove('flex');
+      if (expiredPanel) { expiredPanel.classList.add('hidden'); expiredPanel.classList.remove('flex'); }
       broadcastPanel.classList.add('hidden');
       broadcastPanel.classList.remove('flex');
       tabPendingBtn.className = inactiveCls;
       tabApprovedBtn.className = inactiveCls;
+      if (tabExpiredBtn) tabExpiredBtn.className = inactiveClsRelative;
       tabBroadcastBtn.className = inactiveCls;
       if (searchInputEl) searchInputEl.classList.remove('hidden');
 
@@ -4997,6 +5149,11 @@ Gruppen verwalten
         approvedList.classList.add('flex');
         tabApprovedBtn.className = activeCls;
         renderApprovedList();
+      } else if (adminActiveTab === 'expired') {
+        if (expiredPanel) { expiredPanel.classList.remove('hidden'); expiredPanel.classList.add('flex'); }
+        if (tabExpiredBtn) tabExpiredBtn.className = activeCls + ' relative';
+        renderAdminExpiredList();
+        if (window.scanExpiredApprovedGroups) window.scanExpiredApprovedGroups();
       } else if (adminActiveTab === 'broadcast') {
         broadcastPanel.classList.remove('hidden');
         broadcastPanel.classList.add('flex');
