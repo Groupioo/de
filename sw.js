@@ -25,3 +25,23 @@ self.addEventListener('fetch', (event) => {
       .catch(() => caches.match(event.request))
   );
 });
+
+// ================== LOKALE BENACHRICHTIGUNGEN (ohne Push-Server) ==================
+// Die Seite selbst ruft registration.showNotification(...) auf, sobald sie im
+// Hintergrund/Vordergrund läuft (Tab offen oder kürzlich geöffnete PWA) und eine
+// neue Admin-Mitteilung oder eine Gruppen-Freischaltung erkennt. Ein echter
+// Push, der auch bei vollständig geschlossener App ankommt, würde zusätzlich
+// einen Server (z. B. Firebase Cloud Functions) benötigen.
+
+// Klick auf die Benachrichtigung: App-Fenster fokussieren oder öffnen.
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      for (const client of clientList) {
+        if ('focus' in client) return client.focus();
+      }
+      if (self.clients.openWindow) return self.clients.openWindow('/');
+    })
+  );
+});

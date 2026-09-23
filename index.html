@@ -3001,6 +3001,49 @@ Gruppen verwalten
       } catch (e) { return ''; }
     }
 
+    // ================== GERÄTE-BENACHRICHTIGUNGEN (App-Icon-Badge & OS-Popup) ==================
+    // Hinweis: Ohne eigenen Push-Server (z. B. Firebase Cloud Functions) kommen
+    // diese Benachrichtigungen nur an, während die PWA irgendwo geöffnet/im
+    // Hintergrund geladen ist — nicht bei vollständig geschlossener App.
+    const NOTIF_PERMISSION_ASKED_KEY = 'groupio_notif_permission_asked';
+
+    window.requestNotifPermissionIfNeeded = async function() {
+      try {
+        if (!('Notification' in window)) return;
+        if (Notification.permission !== 'default') return;
+        if (localStorage.getItem(NOTIF_PERMISSION_ASKED_KEY)) return;
+        localStorage.setItem(NOTIF_PERMISSION_ASKED_KEY, '1');
+        await Notification.requestPermission();
+      } catch (e) { /* Berechtigung optional — App funktioniert auch ohne */ }
+    };
+
+    async function showDeviceNotification(title, body, tag) {
+      try {
+        if (!('Notification' in window) || Notification.permission !== 'granted') return;
+        const opts = {
+          body: body || '',
+          icon: 'apple-touch-icon.png',
+          badge: 'favicon-16.png',
+          tag: tag || 'groupio-notif',
+          renotify: false
+        };
+        if ('serviceWorker' in navigator) {
+          const reg = await navigator.serviceWorker.ready;
+          if (reg && reg.showNotification) { await reg.showNotification(title, opts); return; }
+        }
+        new Notification(title, opts);
+      } catch (e) { console.error('Benachrichtigung konnte nicht angezeigt werden:', e); }
+    }
+
+    function updateAppBadge(count) {
+      try {
+        if ('setAppBadge' in navigator) {
+          if (count > 0) navigator.setAppBadge(count); else navigator.clearAppBadge();
+        }
+      } catch (e) { /* Badging API evtl. nicht unterstützt */ }
+    }
+    // ================== ENDE GERÄTE-BENACHRICHTIGUNGEN ==================
+
     // true = Link aktiv, false = eindeutig abgelaufen/ungültig, null = unbekannt (z. B. Netzwerkfehler -> keine Falschmeldung)
     async function checkWhatsappLinkAlive(link) {
       try {
@@ -3051,6 +3094,7 @@ Gruppen verwalten
       const readIds = getReadBroadcastIds();
       const unreadBroadcastCount = broadcastNotifs.filter(function(n) { return readIds.indexOf(n.id) === -1; }).length;
       const count = expiredOwnGroups.length + unreadBroadcastCount;
+      updateAppBadge(count);
       document.querySelectorAll('.link-notif-badge').forEach(function(b) {
         if (count > 0) {
           b.textContent = count > 9 ? '9+' : String(count);
@@ -3093,6 +3137,32 @@ Gruppen verwalten
       }
     };
 
+    // Beobachtet die eigenen Gruppen live und löst eine Geräte-Benachrichtigung
+    // aus, sobald der Admin eine davon von "pending" auf "approved" setzt.
+    let ownGroupApprovalUnsub = null;
+    let ownGroupPrevStatus = {};
+    window.startOwnGroupApprovalListener = function(username) {
+      if (window.stopOwnGroupApprovalListener) window.stopOwnGroupApprovalListener();
+      ownGroupPrevStatus = {};
+      let isFirstSnapshot = true;
+      try {
+        ownGroupApprovalUnsub = onSnapshot(query(groupsCol, where('submittedBy', '==', username)), function(snap) {
+          snap.docChanges().forEach(function(change) {
+            const data = change.doc.data();
+            const prevStatus = ownGroupPrevStatus[change.doc.id];
+            if (!isFirstSnapshot && prevStatus && prevStatus !== 'approved' && data.status === 'approved') {
+              showDeviceNotification('GruppenLink — Gruppe freigeschaltet', '"' + (data.name || 'Deine Gruppe') + '" wurde vom Admin angenommen und ist jetzt öffentlich sichtbar.', 'approved-' + change.doc.id);
+            }
+            ownGroupPrevStatus[change.doc.id] = data.status;
+          });
+          isFirstSnapshot = false;
+        }, function(err) { console.error('Fehler beim Beobachten eigener Gruppen:', err); });
+      } catch (e) { console.error('Gruppen-Freischaltungs-Listener konnte nicht gestartet werden:', e); }
+    };
+    window.stopOwnGroupApprovalListener = function() {
+      if (ownGroupApprovalUnsub) { ownGroupApprovalUnsub(); ownGroupApprovalUnsub = null; }
+    };
+
     window.toggleNotifPanel = function(evt, panelId) {
       if (evt) evt.stopPropagation();
       const panel = document.getElementById(panelId);
@@ -3103,6 +3173,7 @@ Gruppen verwalten
         const wasHidden = panel.classList.contains('hidden');
         panel.classList.toggle('hidden');
         if (wasHidden) {
+          window.requestNotifPermissionIfNeeded();
           markAllBroadcastsRead();
           updateNotifBadges();
         }
@@ -3110,11 +3181,23 @@ Gruppen verwalten
     };
 
     // Hört auf neue Mitteilungen des Admins (letzte 20) und aktualisiert
-    // die Glocke live für alle Nutzer, auch ohne Neuladen der Seite.
+    // die Glocke live für alle Nutzer, auch ohne Neuladen der Seite. Ab dem
+    // zweiten Snapshot (also wirklich neue Mitteilungen) wird zusätzlich eine
+    // Geräte-Benachrichtigung mit App-Icon-Badge ausgelöst.
     function startBroadcastNotifListener() {
+      let isFirstSnapshot = true;
       try {
         onSnapshot(query(broadcastNotifsCol, orderBy('createdAt', 'desc'), limit(20)), function(snap) {
           broadcastNotifs = snap.docs.map(function(d) { return Object.assign({ id: d.id }, d.data()); });
+          if (!isFirstSnapshot) {
+            snap.docChanges().forEach(function(change) {
+              if (change.type === 'added') {
+                const n = change.doc.data();
+                showDeviceNotification('GruppenLink — Neue Mitteilung', n.message || '', 'broadcast-' + change.doc.id);
+              }
+            });
+          }
+          isFirstSnapshot = false;
           updateNotifBadges();
         }, function(err) { console.error('Fehler beim Laden der Mitteilungen:', err); });
       } catch (e) { console.error('Broadcast-Listener konnte nicht gestartet werden:', e); }
@@ -3534,6 +3617,7 @@ Gruppen verwalten
         // Eigene Gruppenlinks im Hintergrund prüfen (Benachrichtigungs-Glocke),
         // ohne die restliche Header-Anzeige zu blockieren.
         if (window.checkOwnGroupLinks) window.checkOwnGroupLinks();
+        if (window.startOwnGroupApprovalListener) window.startOwnGroupApprovalListener(session.username);
 
         if (session.role === 'admin') {
           adminBtn.classList.remove('hidden');
@@ -3577,6 +3661,7 @@ Gruppen verwalten
         setHeaderAvatar('');
         // Kein angemeldeter Nutzer -> keine Benachrichtigungen zu abgelaufenen Links anzeigen.
         expiredOwnGroups = [];
+        if (window.stopOwnGroupApprovalListener) window.stopOwnGroupApprovalListener();
         updateNotifBadges();
       }
     }
