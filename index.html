@@ -1218,10 +1218,11 @@ Gruppen verwalten
     </div>
   </div>
 
-  <!-- Anzeigename -->
+  <!-- Anzeigename (= Benutzername bei der Registrierung, danach nicht mehr änderbar) -->
   <div class="flex flex-col gap-1">
     <label class="text-xs font-semibold text-slate-700" for="edit-profile-displayname">Anzeigename</label>
-    <input class="w-full bg-slate-50 border border-slate-200 text-slate-800 placeholder-slate-400 px-3 py-2 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:bg-white transition-all" id="edit-profile-displayname" placeholder="Dein Anzeigename" type="text">
+    <input class="w-full bg-slate-100 border border-slate-200 text-slate-500 placeholder-slate-400 px-3 py-2 rounded-lg text-xs sm:text-sm cursor-not-allowed" id="edit-profile-displayname" placeholder="Dein Anzeigename" type="text" readonly disabled>
+    <span class="text-[11px] text-slate-400">Der Benutzername wurde bei der Registrierung festgelegt und kann nicht mehr geändert werden.</span>
   </div>
 
   <!-- Geschlecht & Orientierung -->
@@ -3996,7 +3997,9 @@ Gruppen verwalten
       const data = window.currentProfileData || {};
       editProfilePendingPhoto = null;
 
-      document.getElementById('edit-profile-displayname').value = data.displayName || session.displayName || session.username;
+      // Anzeigename ist fest an den bei der Registrierung gewählten Benutzernamen gebunden
+      // und wird hier nur informativ angezeigt (Feld ist deaktiviert/readonly).
+      document.getElementById('edit-profile-displayname').value = session.username;
       document.getElementById('edit-profile-gender').value = data.gender || '';
       document.getElementById('edit-profile-orientation').value = data.orientation || '';
       document.getElementById('edit-profile-birthdate').value = data.birthdate || '';
@@ -4056,7 +4059,9 @@ Gruppen verwalten
       submitBtn.classList.add('opacity-60', 'cursor-not-allowed');
 
       const payload = {
-        displayName: (document.getElementById('edit-profile-displayname').value || session.username).trim(),
+        // Der Anzeigename entspricht immer dem bei der Registrierung gewählten Benutzernamen
+        // und kann über dieses Formular nicht geändert werden (Feld ist deaktiviert).
+        displayName: session.username,
         gender: document.getElementById('edit-profile-gender').value || '',
         orientation: document.getElementById('edit-profile-orientation').value || '',
         birthdate: document.getElementById('edit-profile-birthdate').value || '',
