@@ -299,15 +299,6 @@
 </button>
 </div>
 </div>
-<!-- Mobile Search Row (nur auf Mobile, per Icon umschaltbar) -->
-<div class="sm:hidden hidden px-3 pb-3" id="mobile-search-row">
-<div class="relative w-full flex items-center">
-<input class="w-full bg-white text-slate-800 placeholder-slate-400 pl-4 pr-10 py-2 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 shadow-sm transition-all" id="header-search-mobile" placeholder="Suche nach Gruppen..." type="text">
-<button class="absolute right-1 w-7 h-7 bg-emerald-700 hover:bg-emerald-800 text-white rounded-full flex items-center justify-center transition-colors" id="header-search-mobile-btn" title="Suchen">
-<span class="material-symbols-outlined text-[16px] notranslate" translate="no">search</span>
-</button>
-</div>
-</div>
 </header>
 
 <!-- MODAL: NEUE GRUPPE HINZUFÜGEN / EINTRAGEN -->
@@ -691,6 +682,15 @@
 <span class="font-medium bg-white px-2.5 py-1 rounded-full border border-slate-200 shadow-2xs inline-block max-w-full truncate" id="page-summary-top">
           Página 1 de 2 (12 grupos por página) | Total: 24 Gruppen
         </span>
+</div>
+</div>
+<!-- Mobile Search Row (nur auf Mobile, per Icon umschaltbar) -->
+<div class="sm:hidden hidden" id="mobile-search-row">
+<div class="relative w-full flex items-center">
+<input class="w-full bg-white text-slate-800 placeholder-slate-400 pl-4 pr-10 py-2 rounded-full text-sm border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-400 shadow-sm transition-all" id="header-search-mobile" placeholder="Suche nach Gruppen..." type="text">
+<button class="absolute right-1 w-7 h-7 bg-emerald-700 hover:bg-emerald-800 text-white rounded-full flex items-center justify-center transition-colors" id="header-search-mobile-btn" title="Suchen">
+<span class="material-symbols-outlined text-[16px] notranslate" translate="no">search</span>
+</button>
 </div>
 </div>
 <!-- 4. GROUP CARDS (Grid 4 cols desktop, 3 cols tablet, 2 cols mobile) -->
