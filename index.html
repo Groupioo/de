@@ -352,6 +352,21 @@
 <span class="material-symbols-outlined text-[18px] sm:text-[16px] notranslate" translate="no">add</span>
 <span class="hidden sm:inline">Gruppe eintragen</span>
 </button>
+<!-- Benachrichtigungs-Glocke: warnt, wenn der eigene Gruppenlink abgelaufen ist -->
+<div class="relative">
+<button class="link-notif-bell-btn relative w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 text-white flex items-center justify-center transition-all cursor-pointer shrink-0" onclick="toggleNotifPanel(event, 'header-notif-panel')" title="Benachrichtigungen" type="button">
+<span class="material-symbols-outlined text-[18px] notranslate" translate="no">notifications</span>
+<span class="link-notif-badge hidden absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full bg-red-500 text-white text-[10px] font-bold items-center justify-center">0</span>
+</button>
+<div class="link-notif-panel hidden absolute right-0 top-full mt-2.5 w-72 max-w-[85vw] bg-white text-slate-800 rounded-xl shadow-2xl ring-1 ring-slate-200 z-[95] overflow-hidden" id="header-notif-panel">
+<div class="px-3 py-2.5 border-b border-slate-100 bg-slate-50">
+<p class="text-xs font-bold text-slate-700">Benachrichtigungen</p>
+</div>
+<div class="link-notif-list max-h-80 overflow-y-auto custom-scroll p-2 flex flex-col gap-2">
+<p class="text-xs text-slate-400 text-center py-6 px-3">Keine Benachrichtigungen.</p>
+</div>
+</div>
+</div>
 <!-- Hamburger-Menü: bündelt die Icon-Buttons in der mobilen Ansicht -->
 <div class="relative">
 <button class="header-menu-toggle-btn sm:hidden w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 text-white flex items-center justify-center transition-all cursor-pointer shrink-0" id="header-menu-toggle" onclick="toggleHeaderMenu(event, 'header-mobile-menu', this)" title="Menü" aria-expanded="false" aria-controls="header-mobile-menu">
@@ -1012,6 +1027,21 @@
 <span class="material-symbols-outlined text-[18px] sm:text-[16px] notranslate" translate="no">add</span>
 <span class="hidden sm:inline">Gruppe eintragen</span>
 </button>
+<!-- Benachrichtigungs-Glocke: warnt, wenn der eigene Gruppenlink abgelaufen ist -->
+<div class="relative">
+<button class="link-notif-bell-btn relative w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 text-white flex items-center justify-center transition-all cursor-pointer shrink-0" onclick="toggleNotifPanel(event, 'profile-notif-panel')" title="Benachrichtigungen" type="button">
+<span class="material-symbols-outlined text-[18px] notranslate" translate="no">notifications</span>
+<span class="link-notif-badge hidden absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full bg-red-500 text-white text-[10px] font-bold items-center justify-center">0</span>
+</button>
+<div class="link-notif-panel hidden absolute right-0 top-full mt-2.5 w-72 max-w-[85vw] bg-white text-slate-800 rounded-xl shadow-2xl ring-1 ring-slate-200 z-[95] overflow-hidden" id="profile-notif-panel">
+<div class="px-3 py-2.5 border-b border-slate-100 bg-slate-50">
+<p class="text-xs font-bold text-slate-700">Benachrichtigungen</p>
+</div>
+<div class="link-notif-list max-h-80 overflow-y-auto custom-scroll p-2 flex flex-col gap-2">
+<p class="text-xs text-slate-400 text-center py-6 px-3">Keine Benachrichtigungen.</p>
+</div>
+</div>
+</div>
 <!-- Hamburger-Menü: bündelt Community/Admin in der mobilen Ansicht -->
 <div class="relative">
 <button class="header-menu-toggle-btn sm:hidden w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 text-white flex items-center justify-center transition-all cursor-pointer shrink-0" id="profile-menu-toggle" onclick="toggleHeaderMenu(event, 'profile-mobile-menu', this)" title="Menü" aria-expanded="false" aria-controls="profile-mobile-menu">
@@ -2916,6 +2946,159 @@ Gruppen verwalten
     function setSession(session) { localStorage.setItem(SESSION_KEY, JSON.stringify(session)); }
     function clearSession() { localStorage.removeItem(SESSION_KEY); }
 
+    // ================== BENACHRICHTIGUNG: ABGELAUFENER GRUPPENLINK ==================
+    // Prüft die eigenen Gruppen über denselben WhatsApp-Proxy, der schon für die
+    // Bildvorschau genutzt wird. Liefert der Proxy kein Gruppenbild zurück, gilt
+    // der Link als abgelaufen/ungültig und der Nutzer wird per Glocke im Header
+    // benachrichtigt, mit der Möglichkeit, direkt einen neuen Link zu speichern.
+    const LINK_CHECK_PROXY_URL = 'https://groupio-whatsapp.cristhianzh1994.workers.dev?url=';
+    let expiredOwnGroups = [];
+    let isCheckingOwnLinks = false;
+
+    // true = Link aktiv, false = eindeutig abgelaufen/ungültig, null = unbekannt (z. B. Netzwerkfehler -> keine Falschmeldung)
+    async function checkWhatsappLinkAlive(link) {
+      try {
+        const response = await fetch(LINK_CHECK_PROXY_URL + encodeURIComponent(link));
+        if (!response.ok) return null;
+        const data = await response.json();
+        return !!(data && data.imageUrl);
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function renderNotifPanels() {
+      document.querySelectorAll('.link-notif-list').forEach(function(list) {
+        if (!expiredOwnGroups.length) {
+          list.innerHTML = '<p class="text-xs text-slate-400 text-center py-6 px-3">Keine Benachrichtigungen. Deine Gruppenlinks sind aktuell gültig.</p>';
+          return;
+        }
+        list.innerHTML = expiredOwnGroups.map(function(g) {
+          const safeName = escapeHtml(g.name || 'Deine Gruppe');
+          const safeId = escapeHtml(g.id);
+          return '<div class="border border-red-200 bg-red-50 rounded-lg p-2.5 flex flex-col gap-1.5 text-left" data-notif-group-id="' + safeId + '">'
+            + '<div class="flex items-start gap-2">'
+            + '<span class="material-symbols-outlined text-red-500 text-[18px] shrink-0 notranslate" translate="no">link_off</span>'
+            + '<div class="min-w-0"><p class="text-xs font-semibold text-slate-800 truncate">' + safeName + '</p>'
+            + '<p class="text-[11px] text-red-600 leading-snug">Dein Gruppenlink ist abgelaufen. Aktualisiere ihn, damit deine Gruppe weiter sichtbar bleibt.</p></div></div>'
+            + '<div class="flex items-center gap-1.5">'
+            + '<input type="url" placeholder="Neuer WhatsApp-Gruppenlink" class="link-notif-input flex-1 min-w-0 px-2 py-1.5 border border-slate-200 rounded-md text-[11px] text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400">'
+            + '<button type="button" class="link-notif-save-btn shrink-0 px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-semibold rounded-md transition-colors" onclick="window.saveNotifGroupLink(\'' + safeId + '\', this)">Speichern</button>'
+            + '</div>'
+            + '<p class="link-notif-feedback text-[11px] hidden"></p>'
+            + '</div>';
+        }).join('');
+      });
+    }
+
+    function updateNotifBadges() {
+      const count = expiredOwnGroups.length;
+      document.querySelectorAll('.link-notif-badge').forEach(function(b) {
+        if (count > 0) {
+          b.textContent = count > 9 ? '9+' : String(count);
+          b.classList.remove('hidden');
+          b.classList.add('flex');
+        } else {
+          b.classList.add('hidden');
+          b.classList.remove('flex');
+        }
+      });
+      document.querySelectorAll('.link-notif-bell-btn').forEach(function(btn) {
+        btn.title = count > 0
+          ? (count === 1 ? '1 Benachrichtigung: Gruppenlink abgelaufen' : count + ' Benachrichtigungen: Gruppenlinks abgelaufen')
+          : 'Benachrichtigungen';
+      });
+      renderNotifPanels();
+    }
+
+    // Prüft alle eigenen (genehmigten) Gruppen; wird beim Betreten der Seite/des
+    // Profils (angemeldeter Zustand) automatisch aufgerufen.
+    window.checkOwnGroupLinks = async function() {
+      const session = getSession();
+      if (!session || !session.username || isCheckingOwnLinks) return;
+      isCheckingOwnLinks = true;
+      try {
+        const snap = await getDocs(query(groupsCol, where('submittedBy', '==', session.username), where('status', '==', 'approved')));
+        const myGroups = snap.docs.map(function(d) { return Object.assign({ id: d.id }, d.data()); });
+        const stillExpired = [];
+        for (const g of myGroups) {
+          if (!g.link) continue;
+          const alive = await checkWhatsappLinkAlive(g.link);
+          if (alive === false) stillExpired.push({ id: g.id, name: g.name, link: g.link });
+        }
+        expiredOwnGroups = stillExpired;
+        updateNotifBadges();
+      } catch (err) {
+        console.error('Fehler bei der Prüfung der eigenen Gruppenlinks:', err);
+      } finally {
+        isCheckingOwnLinks = false;
+      }
+    };
+
+    window.toggleNotifPanel = function(evt, panelId) {
+      if (evt) evt.stopPropagation();
+      const panel = document.getElementById(panelId);
+      document.querySelectorAll('.link-notif-panel').forEach(function(p) {
+        if (p !== panel) p.classList.add('hidden');
+      });
+      if (panel) panel.classList.toggle('hidden');
+    };
+
+    document.addEventListener('click', function(e) {
+      if (e.target.closest('.link-notif-bell-btn') || e.target.closest('.link-notif-panel')) return;
+      document.querySelectorAll('.link-notif-panel').forEach(function(p) { p.classList.add('hidden'); });
+    });
+
+    // Speichert den neuen Link, den der Nutzer direkt aus der Benachrichtigung einträgt.
+    window.saveNotifGroupLink = async function(groupId, btn) {
+      const wrap = document.querySelector('[data-notif-group-id="' + groupId + '"]');
+      if (!wrap) return;
+      const input = wrap.querySelector('.link-notif-input');
+      const feedback = wrap.querySelector('.link-notif-feedback');
+      const newLink = (input.value || '').trim();
+
+      function showFeedback(msg, isError) {
+        feedback.textContent = msg;
+        feedback.className = 'link-notif-feedback text-[11px] ' + (isError ? 'text-red-600' : 'text-emerald-700');
+        feedback.classList.remove('hidden');
+      }
+
+      if (!newLink || !window.isValidWhatsappGroupLink || !window.isValidWhatsappGroupLink(newLink)) {
+        showFeedback('Bitte gib einen gültigen WhatsApp-Gruppenlink ein (https://chat.whatsapp.com/...).', true);
+        return;
+      }
+
+      const originalText = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = '...';
+
+      let fetchedImageUrl = null;
+      try {
+        const response = await fetch(LINK_CHECK_PROXY_URL + encodeURIComponent(newLink));
+        if (response.ok) {
+          const data = await response.json();
+          if (data && data.imageUrl) fetchedImageUrl = data.imageUrl;
+        }
+      } catch (e) { /* Bild ist optional, Link wird trotzdem gespeichert */ }
+
+      const updatePayload = { link: newLink };
+      if (fetchedImageUrl) updatePayload.image = fetchedImageUrl;
+
+      try {
+        await updateDoc(doc(db, 'groups', groupId), updatePayload);
+        expiredOwnGroups = expiredOwnGroups.filter(function(g) { return g.id !== groupId; });
+        updateNotifBadges();
+        showFeedback('✓ Link wurde erfolgreich aktualisiert.', false);
+        if (window.reloadApprovedGroups) window.reloadApprovedGroups();
+      } catch (err) {
+        console.error('Fehler beim Aktualisieren des Gruppenlinks:', err);
+        btn.disabled = false;
+        btn.textContent = originalText;
+        showFeedback('Fehler beim Speichern. Bitte versuche es erneut.', true);
+      }
+    };
+    // ================== ENDE BENACHRICHTIGUNG ==================
+
     // ---------- DEVICE FINGERPRINT (capa extra, no sustituye al uid) ----------
     // Genera un ID a partir de características del navegador (canvas, fuentes,
     // hardware, etc.). Es una capa ADICIONAL de fricción, no una solución perfecta:
@@ -3271,6 +3454,10 @@ Gruppen verwalten
             .catch(() => {});
         }
 
+        // Eigene Gruppenlinks im Hintergrund prüfen (Benachrichtigungs-Glocke),
+        // ohne die restliche Header-Anzeige zu blockieren.
+        if (window.checkOwnGroupLinks) window.checkOwnGroupLinks();
+
         if (session.role === 'admin') {
           adminBtn.classList.remove('hidden');
           adminBtn.classList.add('flex');
@@ -3311,6 +3498,9 @@ Gruppen verwalten
         adminBtn.classList.remove('flex');
         if (profileAdminBtn) { profileAdminBtn.classList.add('hidden'); profileAdminBtn.classList.remove('flex'); }
         setHeaderAvatar('');
+        // Kein angemeldeter Nutzer -> keine Benachrichtigungen zu abgelaufenen Links anzeigen.
+        expiredOwnGroups = [];
+        updateNotifBadges();
       }
     }
 
@@ -3865,6 +4055,7 @@ Gruppen verwalten
       modal.classList.remove('hidden');
       modal.scrollTop = 0;
       pushProfileHistoryState();
+      if (window.checkOwnGroupLinks) window.checkOwnGroupLinks();
 
       // 2) Firestore-Daten im Hintergrund laden, ohne die Modal-Öffnung zu blockieren
       if (session.role === 'admin') {
