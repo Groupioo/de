@@ -507,7 +507,6 @@
           <select class="w-full bg-slate-50 border border-slate-200 text-slate-800 pl-9 pr-8 py-2.5 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:bg-white transition-all appearance-none cursor-pointer" id="group-cat-select" name="category" required="">
             <option value="" disabled="" selected="">Kategorie wählen</option>
             <option value="Adult">Adult (18+)</option>
-            <option value="Chatrooms">Chatrooms</option>
             <option value="Gaming">Gaming</option>
             <option value="Fan Gruppen">Fan Gruppen</option>
             <option value="Flohmarkt">Flohmarkt</option>
@@ -4934,7 +4933,12 @@ Gruppen verwalten
         const btn = e.target.closest('.category-filter-btn');
         if (!btn) return;
         e.preventDefault();
-        window.filterByCategory(btn.getAttribute('data-category'));
+        const cat = btn.getAttribute('data-category');
+        if (cat === 'Chatrooms') {
+          if (window.openCommunityModal) window.openCommunityModal();
+          return;
+        }
+        window.filterByCategory(cat);
       });
     }
 
