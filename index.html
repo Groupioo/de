@@ -129,6 +129,11 @@
       0%, 100% { transform: scale(1); opacity: 1; }
       50% { transform: scale(1.25); opacity: 0.75; }
     }
+    /* La estrella del propio botón "Top-Gruppen" late igual que las estrellas de las tarjetas mientras el filtro está activo */
+    .top-voted-btn.star-ring-active .material-symbols-outlined {
+      display: inline-block;
+      animation: star-soft-pulse 1.6s ease-in-out infinite;
+    }
     /* Tarjetas de grupos: toda la tarjeta cambia a #9EFFE3 al pasar el cursor */
     .group-card { transition: background-color 0.2s ease, border-color 0.2s ease; }
     .group-card:hover { background-color: #9EFFE3; border-color: #9EFFE3; }
