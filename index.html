@@ -3061,7 +3061,6 @@ Gruppen verwalten
     const EXPIRED_GROUPS_NOTIF_TITLE = 'GruppenLink — Abgelaufene Gruppen';
     const EXPIRED_GROUPS_NOTIF_TEXT = 'Hallo, du hast aktuell abgelaufene Gruppen. Stelle sie jetzt sofort wieder her.';
     const EXPIRED_NOTIFIED_KEY = 'groupio_expired_notified';
-    let isCheckingOwnLinks = false;
     let broadcastNotifs = [];
     const READ_BROADCASTS_KEY = 'groupio_read_broadcasts';
 
@@ -3122,16 +3121,60 @@ Gruppen verwalten
     }
     // ================== ENDE GERÄTE-BENACHRICHTIGUNGEN ==================
 
-    // true = Link aktiv, false = eindeutig abgelaufen/ungültig, null = unbekannt (z. B. Netzwerkfehler -> keine Falschmeldung)
+    // WhatsApp zeigt bei ungültigen/zurückgesetzten Links nur eine generische Seite
+    // ("WhatsApp Group Invite") ohne echten Gruppennamen. Ein solcher Name zählt NICHT
+    // als Lebenszeichen.
+    function isGenericWhatsappName(name) {
+      const n = String(name == null ? '' : name).trim().toLowerCase();
+      if (!n || n === 'whatsapp') return true;
+      return n.indexOf('whatsapp') !== -1 && /(invite|einladung|invitation|invitaci)/.test(n);
+    }
+
+    function sleepMs(ms) { return new Promise(function(res) { setTimeout(res, ms); }); }
+
+    // true = Link aktiv, false = keine Lebenszeichen (evtl. abgelaufen), null = unbekannt
+    // (z. B. Netzwerkfehler/Proxy-Fehler -> niemals als abgelaufen werten).
+    // Wichtig: Eine aktive Gruppe OHNE Profilbild liefert keine imageUrl, hat aber einen
+    // echten Gruppennamen -> gilt als aktiv. Früher wurde sie fälschlich als abgelaufen gemeldet.
     async function checkWhatsappLinkAlive(link) {
       try {
-        const response = await fetch(LINK_CHECK_PROXY_URL + encodeURIComponent(link));
+        const response = await fetch(LINK_CHECK_PROXY_URL + encodeURIComponent(String(link || '').trim()));
         if (!response.ok) return null;
         const data = await response.json();
-        return !!(data && data.imageUrl);
+        if (!data) return null;
+        if (data.imageUrl) return true;
+        const name = data.name || data.groupName || data.subject || data.title;
+        if (name && !isGenericWhatsappName(name)) return true;
+        return false;
       } catch (e) {
         return null;
       }
+    }
+
+    // Ein Link gilt nur dann als wirklich abgelaufen, wenn ALLE 3 Prüfungen (mit Pausen
+    // dazwischen) eindeutig "kein Lebenszeichen" liefern. Sobald ein Versuch "aktiv" oder
+    // "unbekannt" ergibt, wird der Link NICHT als abgelaufen gemeldet. So führen kurze
+    // Proxy-Aussetzer oder WhatsApp-Rate-Limits nicht mehr zu Falschmeldungen.
+    async function confirmWhatsappLinkExpired(link) {
+      const pauses = [1200, 2500];
+      for (let i = 0; i <= pauses.length; i++) {
+        const alive = await checkWhatsappLinkAlive(link);
+        if (alive !== false) return false;
+        if (i < pauses.length) await sleepMs(pauses[i]);
+      }
+      return true;
+    }
+
+    // Merkt sich Links, die als aktiv bestätigt wurden (6 Std.), damit sie nicht bei jeder
+    // Hintergrundprüfung erneut geprüft (und evtl. fälschlich beanstandet) werden.
+    const ALIVE_CACHE_KEY = 'groupio_alive_links';
+    const ALIVE_CACHE_TTL_MS = 6 * 60 * 60 * 1000;
+    function aliveCacheKey(g) { return g.id + '|' + String(g.link || '').trim(); }
+    function readAliveCache() {
+      try { return JSON.parse(localStorage.getItem(ALIVE_CACHE_KEY)) || {}; } catch (e) { return {}; }
+    }
+    function writeAliveCache(cache) {
+      try { localStorage.setItem(ALIVE_CACHE_KEY, JSON.stringify(cache)); } catch (e) {}
     }
 
     // Karte für eine eigene Gruppe mit abgelaufenem Link. Gleiche Optik wie die Gruppen-Karten
@@ -3321,41 +3364,52 @@ Gruppen verwalten
 
     // Prüft alle eigenen (genehmigten) Gruppen; wird automatisch beim Anmelden/Laden der Seite,
     // beim Öffnen des Profils, regelmäßig im Hintergrund und beim Öffnen von "Meine Gruppen" aufgerufen.
-    window.checkOwnGroupLinks = async function() {
+    let ownLinksCheckPromise = null;
+    window.checkOwnGroupLinks = function() {
+      // Läuft bereits eine Prüfung (z. B. im Hintergrund), auf deren Ergebnis warten, statt
+      // sofort mit einem veralteten/leeren Stand zurückzukehren.
+      if (ownLinksCheckPromise) return ownLinksCheckPromise;
       const session = getSession();
-      if (!session || !session.username || isCheckingOwnLinks) return;
-      isCheckingOwnLinks = true;
-      try {
-        const snap = await getDocs(query(groupsCol, where('submittedBy', '==', session.username), where('status', '==', 'approved')));
-        const myGroups = snap.docs.map(function(d) { return Object.assign({ id: d.id }, d.data()); });
-        const stillExpired = [];
-        for (const g of myGroups) {
-          if (!g.link) continue;
+      if (!session || !session.username) return Promise.resolve();
+      ownLinksCheckPromise = (async function() {
+        try {
+          const snap = await getDocs(query(groupsCol, where('submittedBy', '==', session.username), where('status', '==', 'approved')));
+          const myGroups = snap.docs.map(function(d) { return Object.assign({ id: d.id }, d.data()); });
+          const aliveCache = readAliveCache();
+          const stillExpired = [];
+          let cacheChanged = false;
+          for (const g of myGroups) {
+            if (!g.link) continue;
 
-          // Gerade erst repariert? Dann diesem Link eine kurze "Schonfrist" geben, statt ihn
-          // sofort wieder live zu prüfen. Das verhindert, dass ein einzelner wackliger Check
-          // des externen Proxys einen Link, der der Nutzer buchstäblich vor Sekunden gespeichert
-          // hat, erneut als "abgelaufen" markiert.
-          if (g.linkUpdatedAt && (Date.now() - g.linkUpdatedAt) < LINK_RECHECK_GRACE_MS) continue;
+            // Gerade erst repariert? Dann diesem Link eine kurze "Schonfrist" geben.
+            if (g.linkUpdatedAt && (Date.now() - g.linkUpdatedAt) < LINK_RECHECK_GRACE_MS) continue;
 
-          let alive = await checkWhatsappLinkAlive(g.link);
-          if (alive === false) {
-            // Einmal erneut prüfen, bevor der Link endgültig als tot gilt — ein einzelner
-            // fehlgeschlagener Aufruf des Proxys (Netzwerk-Hänger, kurzzeitiges Rate-Limit
-            // bei WhatsApp) soll nicht sofort zu einer Fehlmeldung führen.
-            await new Promise(function(res) { setTimeout(res, 900); });
-            alive = await checkWhatsappLinkAlive(g.link);
+            // Vor Kurzem als aktiv bestätigt? Dann nicht erneut prüfen.
+            const key = aliveCacheKey(g);
+            if (aliveCache[key] && (Date.now() - aliveCache[key]) < ALIVE_CACHE_TTL_MS) continue;
+
+            const alive = await checkWhatsappLinkAlive(g.link);
+            if (alive === true) {
+              aliveCache[key] = Date.now();
+              cacheChanged = true;
+            } else if (alive === false) {
+              // Erst nach mehreren eindeutigen Fehlversuchen gilt der Link als abgelaufen.
+              if (await confirmWhatsappLinkExpired(g.link)) stillExpired.push(g);
+            }
+            // Kurze Pause zwischen den Gruppen, um den Proxy/WhatsApp nicht zu überlasten.
+            await sleepMs(250);
           }
-          if (alive === false) stillExpired.push(g);
+          if (cacheChanged) writeAliveCache(aliveCache);
+          expiredOwnGroups = stillExpired;
+          updateNotifBadges();
+          notifyExpiredGroupsIfNeeded();
+        } catch (err) {
+          console.error('Fehler bei der Prüfung der eigenen Gruppenlinks:', err);
+        } finally {
+          ownLinksCheckPromise = null;
         }
-        expiredOwnGroups = stillExpired;
-        updateNotifBadges();
-        notifyExpiredGroupsIfNeeded();
-      } catch (err) {
-        console.error('Fehler bei der Prüfung der eigenen Gruppenlinks:', err);
-      } finally {
-        isCheckingOwnLinks = false;
-      }
+      })();
+      return ownLinksCheckPromise;
     };
 
     // Beobachtet die eigenen Gruppen live und löst eine Geräte-Benachrichtigung
@@ -3478,7 +3532,16 @@ Gruppen verwalten
       if (fetchedImageUrl) updatePayload.image = fetchedImageUrl;
 
       try {
-        await updateDoc(doc(db, 'groups', groupId), updatePayload);
+        try {
+          await updateDoc(doc(db, 'groups', groupId), updatePayload);
+        } catch (firstErr) {
+          // Manche Firestore-Regeln erlauben nur das Feld "link". Dann mit dem Minimum erneut versuchen.
+          if (firstErr && firstErr.code === 'permission-denied' && Object.keys(updatePayload).length > 1) {
+            await updateDoc(doc(db, 'groups', groupId), { link: newLink });
+          } else {
+            throw firstErr;
+          }
+        }
         showFeedback('✓ Link wurde erfolgreich aktualisiert.', false);
         expiredOwnGroups = expiredOwnGroups.filter(function(g) { return g.id !== groupId; });
         // Kurz warten, damit der Nutzer die Erfolgsmeldung noch sieht, bevor die Karte
@@ -3489,7 +3552,10 @@ Gruppen verwalten
         console.error('Fehler beim Aktualisieren des Gruppenlinks:', err);
         btn.disabled = false;
         btn.textContent = originalText;
-        showFeedback('Fehler beim Speichern. Bitte versuche es erneut.', true);
+        const code = err && err.code ? err.code : '';
+        showFeedback(code === 'permission-denied'
+          ? 'Speichern nicht erlaubt (permission-denied). Die Firestore-Regeln erlauben diese Änderung nicht.'
+          : 'Fehler beim Speichern' + (code ? ' (' + code + ')' : '') + '. Bitte versuche es erneut.', true);
       }
     };
     // ================== ENDE BENACHRICHTIGUNG ==================
@@ -4956,14 +5022,9 @@ Gruppen verwalten
           // (siehe LINK_RECHECK_GRACE_MS bei checkOwnGroupLinks).
           if (g.linkUpdatedAt && (Date.now() - g.linkUpdatedAt) < LINK_RECHECK_GRACE_MS) continue;
 
-          let alive = await checkWhatsappLinkAlive(g.link);
-          if (alive === false) {
-            // Ein einzelner fehlgeschlagener Versuch reicht nicht — einmal erneut prüfen,
-            // um einen kurzen Netzwerk-/Proxy-Hänger nicht als "abgelaufen" fehlzudeuten.
-            await new Promise(function(res) { setTimeout(res, 700); });
-            alive = await checkWhatsappLinkAlive(g.link);
-          }
-          if (alive === false) stillExpired.push(g);
+          const alive = await checkWhatsappLinkAlive(g.link);
+          if (alive === false && await confirmWhatsappLinkExpired(g.link)) stillExpired.push(g);
+          await sleepMs(250);
         }
 
         adminExpiredCache = stillExpired;
