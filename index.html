@@ -1353,6 +1353,9 @@ Gruppen verwalten
   <button type="button" class="flex-1 py-1.5 px-3 text-xs font-semibold rounded-lg transition-all text-slate-500 hover:text-slate-800" id="admin-tab-approved-btn" onclick="switchAdminTab('approved')">
     Akzeptiert
   </button>
+  <button type="button" class="flex-1 py-1.5 px-3 text-xs font-semibold rounded-lg transition-all text-slate-500 hover:text-slate-800" id="admin-tab-broadcast-btn" onclick="switchAdminTab('broadcast')">
+    Mitteilung
+  </button>
 </div>
 
 <!-- Gruppensuche im Admin-Panel -->
@@ -1386,6 +1389,32 @@ Gruppen verwalten
 <div class="hidden items-center justify-center gap-1.5 pt-1 flex-wrap" id="admin-approved-pagination">
 <!-- wird dynamisch befüllt -->
 </div>
+</div>
+
+<!-- BENACHRICHTIGUNG AN ALLE NUTZER -->
+<div class="hidden flex-col gap-3" id="admin-broadcast-panel">
+  <div class="flex flex-col gap-2">
+    <label class="text-xs font-semibold text-slate-700" for="admin-broadcast-input">Nachricht an alle Nutzer senden</label>
+    <textarea id="admin-broadcast-input" rows="3" maxlength="300" placeholder="Deine Mitteilung, z. B. Wartungsarbeiten, neue Funktionen, Hinweise..." class="w-full bg-slate-50 border border-slate-200 text-slate-800 placeholder-slate-400 px-3 py-2.5 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:bg-white transition-all resize-none"></textarea>
+    <div class="flex items-center justify-between">
+      <span class="text-[11px] text-slate-400">Erscheint im Benachrichtigungs-Glocken-Menü aller Nutzer.</span>
+      <button type="button" id="admin-broadcast-send-btn" onclick="window.sendBroadcastNotification()" class="shrink-0 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5">
+        <span class="material-symbols-outlined text-[16px] notranslate" translate="no">campaign</span>
+        Senden
+      </button>
+    </div>
+  </div>
+
+  <div class="border-t border-slate-100 pt-3 flex flex-col gap-2">
+    <span class="text-xs font-semibold text-slate-700">Gesendete Mitteilungen</span>
+    <div class="flex flex-col gap-2" id="admin-broadcast-list">
+      <!-- wird dynamisch befüllt -->
+    </div>
+    <div class="hidden flex-col items-center justify-center gap-2 py-8 text-slate-400" id="admin-broadcast-empty-state">
+      <span class="material-symbols-outlined text-[36px] notranslate" translate="no">campaign</span>
+      <span class="text-sm font-medium">Noch keine Mitteilungen gesendet</span>
+    </div>
+  </div>
 </div>
 
 </div>
@@ -2935,6 +2964,7 @@ Gruppen verwalten
 
     const groupsCol = collection(db, 'groups');
     const usersCol = collection(db, 'users');
+    const broadcastNotifsCol = collection(db, 'broadcastNotifications');
 
     const SESSION_KEY = 'groupio_session';
     const ADMIN_USERNAME = 'admin';
@@ -2954,6 +2984,22 @@ Gruppen verwalten
     const LINK_CHECK_PROXY_URL = 'https://groupio-whatsapp.cristhianzh1994.workers.dev?url=';
     let expiredOwnGroups = [];
     let isCheckingOwnLinks = false;
+    let broadcastNotifs = [];
+    const READ_BROADCASTS_KEY = 'groupio_read_broadcasts';
+
+    function getReadBroadcastIds() {
+      try { return JSON.parse(localStorage.getItem(READ_BROADCASTS_KEY)) || []; } catch (e) { return []; }
+    }
+    function markAllBroadcastsRead() {
+      try { localStorage.setItem(READ_BROADCASTS_KEY, JSON.stringify(broadcastNotifs.map(function(n) { return n.id; }))); } catch (e) {}
+    }
+    function formatNotifDate(ts) {
+      try {
+        const d = ts && ts.toDate ? ts.toDate() : (ts ? new Date(ts) : null);
+        if (!d) return '';
+        return d.toLocaleDateString('de-DE') + ' ' + d.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+      } catch (e) { return ''; }
+    }
 
     // true = Link aktiv, false = eindeutig abgelaufen/ungültig, null = unbekannt (z. B. Netzwerkfehler -> keine Falschmeldung)
     async function checkWhatsappLinkAlive(link) {
@@ -2969,11 +3015,20 @@ Gruppen verwalten
 
     function renderNotifPanels() {
       document.querySelectorAll('.link-notif-list').forEach(function(list) {
-        if (!expiredOwnGroups.length) {
+        if (!expiredOwnGroups.length && !broadcastNotifs.length) {
           list.innerHTML = '<p class="text-xs text-slate-400 text-center py-6 px-3">Keine Benachrichtigungen. Deine Gruppenlinks sind aktuell gültig.</p>';
           return;
         }
-        list.innerHTML = expiredOwnGroups.map(function(g) {
+        const broadcastHtml = broadcastNotifs.map(function(n) {
+          const safeMsg = escapeHtml(n.message || '');
+          const safeDate = escapeHtml(formatNotifDate(n.createdAt));
+          return '<div class="border border-amber-200 bg-amber-50 rounded-lg p-2.5 flex items-start gap-2 text-left">'
+            + '<span class="material-symbols-outlined text-amber-500 text-[18px] shrink-0 notranslate" translate="no">campaign</span>'
+            + '<div class="min-w-0"><p class="text-xs text-slate-800 leading-snug whitespace-pre-line">' + safeMsg + '</p>'
+            + (safeDate ? '<p class="text-[10px] text-slate-400 mt-1">' + safeDate + '</p>' : '')
+            + '</div></div>';
+        }).join('');
+        const expiredHtml = expiredOwnGroups.map(function(g) {
           const safeName = escapeHtml(g.name || 'Deine Gruppe');
           const safeId = escapeHtml(g.id);
           return '<div class="border border-red-200 bg-red-50 rounded-lg p-2.5 flex flex-col gap-1.5 text-left" data-notif-group-id="' + safeId + '">'
@@ -2988,11 +3043,14 @@ Gruppen verwalten
             + '<p class="link-notif-feedback text-[11px] hidden"></p>'
             + '</div>';
         }).join('');
+        list.innerHTML = broadcastHtml + expiredHtml;
       });
     }
 
     function updateNotifBadges() {
-      const count = expiredOwnGroups.length;
+      const readIds = getReadBroadcastIds();
+      const unreadBroadcastCount = broadcastNotifs.filter(function(n) { return readIds.indexOf(n.id) === -1; }).length;
+      const count = expiredOwnGroups.length + unreadBroadcastCount;
       document.querySelectorAll('.link-notif-badge').forEach(function(b) {
         if (count > 0) {
           b.textContent = count > 9 ? '9+' : String(count);
@@ -3041,8 +3099,27 @@ Gruppen verwalten
       document.querySelectorAll('.link-notif-panel').forEach(function(p) {
         if (p !== panel) p.classList.add('hidden');
       });
-      if (panel) panel.classList.toggle('hidden');
+      if (panel) {
+        const wasHidden = panel.classList.contains('hidden');
+        panel.classList.toggle('hidden');
+        if (wasHidden) {
+          markAllBroadcastsRead();
+          updateNotifBadges();
+        }
+      }
     };
+
+    // Hört auf neue Mitteilungen des Admins (letzte 20) und aktualisiert
+    // die Glocke live für alle Nutzer, auch ohne Neuladen der Seite.
+    function startBroadcastNotifListener() {
+      try {
+        onSnapshot(query(broadcastNotifsCol, orderBy('createdAt', 'desc'), limit(20)), function(snap) {
+          broadcastNotifs = snap.docs.map(function(d) { return Object.assign({ id: d.id }, d.data()); });
+          updateNotifBadges();
+        }, function(err) { console.error('Fehler beim Laden der Mitteilungen:', err); });
+      } catch (e) { console.error('Broadcast-Listener konnte nicht gestartet werden:', e); }
+    }
+    startBroadcastNotifListener();
 
     document.addEventListener('click', function(e) {
       if (e.target.closest('.link-notif-bell-btn') || e.target.closest('.link-notif-panel')) return;
@@ -4690,35 +4767,49 @@ Gruppen verwalten
     };
 
     window.switchAdminTab = function(tab) {
-      adminActiveTab = tab === 'approved' ? 'approved' : 'pending';
+      adminActiveTab = (tab === 'approved' || tab === 'broadcast') ? tab : 'pending';
       adminApprovedPage = 1;
       const pendingList = document.getElementById('admin-pending-list');
       const pendingEmpty = document.getElementById('admin-empty-state');
       const approvedList = document.getElementById('admin-approved-list');
       const approvedEmpty = document.getElementById('admin-approved-empty-state');
+      const broadcastPanel = document.getElementById('admin-broadcast-panel');
+      const searchInputEl = document.getElementById('admin-search-input');
       const tabPendingBtn = document.getElementById('admin-tab-pending-btn');
       const tabApprovedBtn = document.getElementById('admin-tab-approved-btn');
+      const tabBroadcastBtn = document.getElementById('admin-tab-broadcast-btn');
 
       const activeCls = "flex-1 py-1.5 px-3 text-xs font-semibold rounded-lg transition-all bg-white text-[#006b53] shadow-xs";
       const inactiveCls = "flex-1 py-1.5 px-3 text-xs font-semibold rounded-lg transition-all text-slate-500 hover:text-slate-800";
 
+      pendingList.classList.add('hidden');
+      pendingEmpty.classList.add('hidden');
+      pendingEmpty.classList.remove('flex');
+      approvedList.classList.add('hidden');
+      approvedList.classList.remove('flex');
+      approvedEmpty.classList.add('hidden');
+      approvedEmpty.classList.remove('flex');
+      broadcastPanel.classList.add('hidden');
+      broadcastPanel.classList.remove('flex');
+      tabPendingBtn.className = inactiveCls;
+      tabApprovedBtn.className = inactiveCls;
+      tabBroadcastBtn.className = inactiveCls;
+      if (searchInputEl) searchInputEl.classList.remove('hidden');
+
       if (adminActiveTab === 'approved') {
-        pendingList.classList.add('hidden');
-        pendingEmpty.classList.add('hidden');
-        pendingEmpty.classList.remove('flex');
         approvedList.classList.remove('hidden');
         approvedList.classList.add('flex');
         tabApprovedBtn.className = activeCls;
-        tabPendingBtn.className = inactiveCls;
         renderApprovedList();
+      } else if (adminActiveTab === 'broadcast') {
+        broadcastPanel.classList.remove('hidden');
+        broadcastPanel.classList.add('flex');
+        tabBroadcastBtn.className = activeCls;
+        if (searchInputEl) searchInputEl.classList.add('hidden');
+        renderAdminBroadcastList();
       } else {
-        approvedList.classList.add('hidden');
-        approvedList.classList.remove('flex');
-        approvedEmpty.classList.add('hidden');
-        approvedEmpty.classList.remove('flex');
         pendingList.classList.remove('hidden');
         tabPendingBtn.className = activeCls;
-        tabApprovedBtn.className = inactiveCls;
         renderPendingList();
       }
     };
@@ -4761,6 +4852,86 @@ Gruppen verwalten
       // Bewusst KEIN automatisches Ausblenden mehr — der Hinweis bleibt sichtbar,
       // bis der Admin ihn selbst über das X schließt.
     }
+
+    // Admin: Mitteilung an alle Nutzer senden (erscheint in der Benachrichtigungs-Glocke)
+    window.sendBroadcastNotification = async function() {
+      const session = getSession();
+      if (!session || session.role !== 'admin') return;
+      const input = document.getElementById('admin-broadcast-input');
+      const btn = document.getElementById('admin-broadcast-send-btn');
+      const message = (input.value || '').trim();
+      if (!message) {
+        showAdminFeedback('Bitte gib eine Nachricht ein, bevor du sie sendest.', true);
+        return;
+      }
+      const originalHtml = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '<span class="material-symbols-outlined text-[16px] notranslate animate-spin" translate="no">progress_activity</span> Senden...';
+      try {
+        await addDoc(broadcastNotifsCol, {
+          message: message,
+          createdAt: serverTimestamp(),
+          createdBy: session.username
+        });
+        input.value = '';
+        showAdminFeedback('✓ Mitteilung wurde an alle Nutzer gesendet.', false);
+        renderAdminBroadcastList();
+      } catch (err) {
+        console.error('Fehler beim Senden der Mitteilung:', err);
+        showAdminFeedback('Fehler beim Senden der Mitteilung. Bitte versuche es erneut.', true);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalHtml;
+      }
+    };
+
+    // Admin: Liste der gesendeten Mitteilungen im Admin-Panel anzeigen
+    window.renderAdminBroadcastList = async function() {
+      const list = document.getElementById('admin-broadcast-list');
+      const emptyState = document.getElementById('admin-broadcast-empty-state');
+      if (!list) return;
+      list.innerHTML = '<p class="text-xs text-slate-400 text-center py-4">Lädt...</p>';
+      try {
+        const snap = await getDocs(query(broadcastNotifsCol, orderBy('createdAt', 'desc'), limit(20)));
+        const items = snap.docs.map(function(d) { return Object.assign({ id: d.id }, d.data()); });
+        if (!items.length) {
+          list.innerHTML = '';
+          emptyState.classList.remove('hidden');
+          emptyState.classList.add('flex');
+          return;
+        }
+        emptyState.classList.add('hidden');
+        emptyState.classList.remove('flex');
+        list.innerHTML = items.map(function(n) {
+          const safeMsg = escapeHtml(n.message || '');
+          const safeDate = escapeHtml(formatNotifDate(n.createdAt));
+          const safeId = escapeHtml(n.id);
+          return '<div class="border border-slate-200 bg-slate-50 rounded-lg p-2.5 flex items-start gap-2">'
+            + '<span class="material-symbols-outlined text-amber-500 text-[18px] shrink-0 notranslate" translate="no">campaign</span>'
+            + '<div class="min-w-0 flex-1"><p class="text-xs text-slate-800 leading-snug whitespace-pre-line">' + safeMsg + '</p>'
+            + (safeDate ? '<p class="text-[10px] text-slate-400 mt-1">' + safeDate + '</p>' : '')
+            + '</div>'
+            + '<button type="button" class="shrink-0 p-1 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors" title="Mitteilung löschen" onclick="window.deleteBroadcastNotification(\'' + safeId + '\')">'
+            + '<span class="material-symbols-outlined text-[16px] block notranslate" translate="no">delete</span></button>'
+            + '</div>';
+        }).join('');
+      } catch (err) {
+        console.error('Fehler beim Laden der Mitteilungen:', err);
+        list.innerHTML = '<p class="text-xs text-red-500 text-center py-4">Fehler beim Laden der Mitteilungen.</p>';
+      }
+    };
+
+    // Admin: einzelne Mitteilung löschen
+    window.deleteBroadcastNotification = async function(id) {
+      try {
+        await deleteDoc(doc(db, 'broadcastNotifications', id));
+        renderAdminBroadcastList();
+        showAdminFeedback('✓ Mitteilung wurde gelöscht.', false);
+      } catch (err) {
+        console.error('Fehler beim Löschen der Mitteilung:', err);
+        showAdminFeedback('Fehler beim Löschen der Mitteilung.', true);
+      }
+    };
 
     window.approvePendingGroup = async function(id) {
       try {
