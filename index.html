@@ -3057,6 +3057,9 @@ Gruppen verwalten
     // als "abgelaufen" auftaucht (z. B. bei einem kurzen Hänger des Proxys).
     const LINK_RECHECK_GRACE_MS = 30 * 60 * 1000; // 30 Minuten
     let expiredOwnGroups = [];
+    // Welche Benachrichtigungen beim Öffnen der Glocke sichtbar waren: Sie bleiben sichtbar,
+    // solange das Panel offen ist, und sind beim nächsten Öffnen weg (bis etwas Neues kommt).
+    let notifPanelOpenSnapshot = null;
     // Text der automatischen Benachrichtigung bei abgelaufenen Gruppen
     const EXPIRED_GROUPS_NOTIF_TITLE = 'GruppenLink — Abgelaufene Gruppen';
     const EXPIRED_GROUPS_NOTIF_TEXT = 'Hallo, du hast aktuell abgelaufene Gruppen. Stelle sie jetzt sofort wieder her.';
@@ -3232,18 +3235,53 @@ Gruppen verwalten
       }
     };
 
+    // ---- "Gesehen"-Status der Warnung für abgelaufene Gruppen (pro Nutzer, dauerhaft) ----
+    // Wurde die Glocke (oder "Meine Gruppen") geöffnet, gelten die aktuell abgelaufenen Gruppen
+    // als gesehen. Eine neue Benachrichtigung erscheint erst wieder, wenn eine ANDERE Gruppe
+    // als abgelaufen erkannt wird oder der Admin eine neue Mitteilung sendet.
+    function seenExpiredKey() {
+      const sess = getSession();
+      return 'groupio_seen_expired_' + (sess && sess.username ? String(sess.username).toLowerCase() : '');
+    }
+    function getSeenExpiredIds() {
+      try { return JSON.parse(localStorage.getItem(seenExpiredKey())) || []; } catch (e) { return []; }
+    }
+    function setSeenExpiredIds(ids) {
+      try { localStorage.setItem(seenExpiredKey(), JSON.stringify(ids)); } catch (e) {}
+    }
+    function getUnseenExpiredIds() {
+      const seen = getSeenExpiredIds();
+      return expiredOwnGroups.map(function(g) { return g.id; }).filter(function(id) { return seen.indexOf(id) === -1; });
+    }
+    function markExpiredSeen() {
+      const seen = getSeenExpiredIds();
+      expiredOwnGroups.forEach(function(g) { if (seen.indexOf(g.id) === -1) seen.push(g.id); });
+      setSeenExpiredIds(seen);
+    }
+    // Gruppen, die nicht mehr abgelaufen sind (erneuert), aus "gesehen" entfernen — läuft eine
+    // davon später erneut ab, gibt es wieder eine neue Benachrichtigung.
+    function pruneSeenExpired() {
+      const current = expiredOwnGroups.map(function(g) { return g.id; });
+      setSeenExpiredIds(getSeenExpiredIds().filter(function(id) { return current.indexOf(id) !== -1; }));
+    }
+    function isRenewModalOpen() {
+      const m = document.getElementById('my-groups-renew-modal');
+      return !!(m && !m.classList.contains('hidden'));
+    }
+
     // Öffnet "Meine Gruppen" direkt aus der Benachrichtigung.
     window.openMyGroupsFromNotif = function() {
+      notifPanelOpenSnapshot = null;
       document.querySelectorAll('.link-notif-panel').forEach(function(p) { p.classList.add('hidden'); });
       window.openMyGroupsRenewModal();
     };
 
-    // Löst die Geräte-Benachrichtigung (OS-Popup) aus, sobald abgelaufene Gruppen erkannt
-    // wurden. Pro Sitzung nur einmal je Gruppen-Zusammensetzung, damit sie nicht bei jeder
-    // Prüfung erneut erscheint.
+    // Löst die Geräte-Benachrichtigung (OS-Popup) nur für NEUE (ungesehene) abgelaufene Gruppen
+    // aus. Pro Sitzung nur einmal je Zusammensetzung, damit sie nicht bei jeder Prüfung erneut erscheint.
     function notifyExpiredGroupsIfNeeded() {
-      if (!expiredOwnGroups.length) return;
-      const key = expiredOwnGroups.map(function(g) { return g.id; }).sort().join(',');
+      const unseen = getUnseenExpiredIds();
+      if (!unseen.length) return;
+      const key = unseen.slice().sort().join(',');
       try {
         if (sessionStorage.getItem(EXPIRED_NOTIFIED_KEY) === key) return;
         sessionStorage.setItem(EXPIRED_NOTIFIED_KEY, key);
@@ -3251,9 +3289,17 @@ Gruppen verwalten
       showDeviceNotification(EXPIRED_GROUPS_NOTIF_TITLE, EXPIRED_GROUPS_NOTIF_TEXT, 'expired-groups');
     }
 
-    // Glocken-Panel: Warnung bei abgelaufenen Gruppen (mit Button) + Admin-Mitteilungen.
+    // Glocken-Panel: zeigt nur NEUE (ungesehene) Benachrichtigungen. Was beim Öffnen des
+    // Panels sichtbar war, bleibt bis zum Schließen sichtbar und ist danach weg.
     function renderNotifPanels() {
-      const expiredNotifHtml = expiredOwnGroups.length
+      const readIds = getReadBroadcastIds();
+      const snap = notifPanelOpenSnapshot;
+      const visibleBroadcasts = broadcastNotifs.filter(function(n) {
+        return readIds.indexOf(n.id) === -1 || (snap && snap.broadcastIds.indexOf(n.id) !== -1);
+      });
+      const showExpired = expiredOwnGroups.length > 0
+        && (getUnseenExpiredIds().length > 0 || (snap && snap.expired));
+      const expiredNotifHtml = showExpired
         ? '<div class="border border-red-200 bg-red-50 rounded-lg p-2.5 flex flex-col gap-2 text-left">'
           + '<div class="flex items-start gap-2">'
           + '<span class="material-symbols-outlined text-red-500 text-[18px] shrink-0 notranslate" translate="no">link_off</span>'
@@ -3262,11 +3308,11 @@ Gruppen verwalten
           + '</div>'
         : '';
       document.querySelectorAll('.link-notif-list').forEach(function(list) {
-        if (!expiredNotifHtml && !broadcastNotifs.length) {
+        if (!expiredNotifHtml && !visibleBroadcasts.length) {
           list.innerHTML = '<p class="text-xs text-slate-400 text-center py-6 px-3">Keine Benachrichtigungen.</p>';
           return;
         }
-        const broadcastHtml = broadcastNotifs.map(function(n) {
+        const broadcastHtml = visibleBroadcasts.map(function(n) {
           const safeMsg = escapeHtml(n.message || '');
           const safeDate = escapeHtml(formatNotifDate(n.createdAt));
           return '<div class="border border-amber-200 bg-amber-50 rounded-lg p-2.5 flex items-start gap-2 text-left">'
@@ -3327,6 +3373,10 @@ Gruppen verwalten
       modal.classList.add('flex');
       document.body.style.overflow = 'hidden';
 
+      // Der Nutzer sieht die abgelaufenen Gruppen jetzt -> keine erneute Benachrichtigung dafür.
+      markExpiredSeen();
+      updateNotifBadges();
+
       const fresh = ownLinksCheckedUser === session.username
         && (Date.now() - ownLinksLastCheckAt) < OWN_LINKS_FRESH_MS;
       if (!fresh) window.checkOwnGroupLinks();
@@ -3345,7 +3395,8 @@ Gruppen verwalten
     function updateNotifBadges() {
       const readIds = getReadBroadcastIds();
       const unreadBroadcastCount = broadcastNotifs.filter(function(n) { return readIds.indexOf(n.id) === -1; }).length;
-      const count = unreadBroadcastCount + (expiredOwnGroups.length ? 1 : 0);
+      const unseenExpiredCount = getUnseenExpiredIds().length;
+      const count = unreadBroadcastCount + (unseenExpiredCount ? 1 : 0);
       updateAppBadge(count);
       document.querySelectorAll('.link-notif-badge').forEach(function(b) {
         if (count > 0) {
@@ -3364,8 +3415,8 @@ Gruppen verwalten
       });
       renderNotifPanels();
 
-      // "Meine Gruppen"-Button: Badge mit der Anzahl der Gruppen mit abgelaufenem Link
-      const renewCount = expiredOwnGroups.length;
+      // "Meine Gruppen"-Button: Badge mit der Anzahl NEU erkannter abgelaufener Gruppen
+      const renewCount = unseenExpiredCount;
       document.querySelectorAll('.my-groups-renew-badge').forEach(function(b) {
         if (renewCount > 0) {
           b.textContent = renewCount > 9 ? '9+' : String(renewCount);
@@ -3429,6 +3480,7 @@ Gruppen verwalten
                 // Sofort anzeigen, ohne auf die übrigen Gruppen zu warten.
                 if (!expiredOwnGroups.some(function(e) { return e.id === g.id; })) {
                   expiredOwnGroups = expiredOwnGroups.concat([g]);
+                  if (isRenewModalOpen()) markExpiredSeen();
                   updateNotifBadges();
                   renderMyGroupsRenewList();
                 }
@@ -3444,6 +3496,8 @@ Gruppen verwalten
           expiredOwnGroups = confirmed;
           ownLinksLastCheckAt = Date.now();
           ownLinksCheckedUser = username;
+          pruneSeenExpired();
+          if (isRenewModalOpen()) markExpiredSeen();
           updateNotifBadges();
           notifyExpiredGroupsIfNeeded();
         } catch (err) {
@@ -3498,8 +3552,20 @@ Gruppen verwalten
         panel.classList.toggle('hidden');
         if (wasHidden) {
           window.requestNotifPermissionIfNeeded();
+          // Aktuell neue Benachrichtigungen merken, damit sie im geöffneten Panel sichtbar
+          // bleiben; danach als gesehen markieren -> beim nächsten Öffnen sind sie weg.
+          const readNow = getReadBroadcastIds();
+          notifPanelOpenSnapshot = {
+            broadcastIds: broadcastNotifs.filter(function(n) { return readNow.indexOf(n.id) === -1; }).map(function(n) { return n.id; }),
+            expired: getUnseenExpiredIds().length > 0
+          };
+          renderNotifPanels();
           markAllBroadcastsRead();
+          markExpiredSeen();
           updateNotifBadges();
+        } else {
+          notifPanelOpenSnapshot = null;
+          renderNotifPanels();
         }
       }
     };
@@ -3531,6 +3597,7 @@ Gruppen verwalten
     document.addEventListener('click', function(e) {
       if (e.target.closest('.link-notif-bell-btn') || e.target.closest('.link-notif-panel')) return;
       document.querySelectorAll('.link-notif-panel').forEach(function(p) { p.classList.add('hidden'); });
+      if (notifPanelOpenSnapshot) { notifPanelOpenSnapshot = null; renderNotifPanels(); }
     });
 
     // Speichert den neuen Link, den der Nutzer direkt aus der Benachrichtigung einträgt.
@@ -3588,6 +3655,7 @@ Gruppen verwalten
         }
         showFeedback('✓ Link wurde erfolgreich aktualisiert.', false);
         expiredOwnGroups = expiredOwnGroups.filter(function(g) { return g.id !== groupId; });
+        pruneSeenExpired();
         // Kurz warten, damit der Nutzer die Erfolgsmeldung noch sieht, bevor die Karte
         // aus der Liste verschwindet.
         setTimeout(function() { updateNotifBadges(); renderMyGroupsRenewList(); }, 900);
