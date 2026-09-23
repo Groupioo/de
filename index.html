@@ -3312,8 +3312,15 @@ Gruppen verwalten
     });
 
     // Speichert den neuen Link, den der Nutzer direkt aus der Benachrichtigung einträgt.
+    // Wichtig: Dieselbe Gruppen-Karte kann gleichzeitig an mehreren Stellen im DOM stehen
+    // (Header-Glocke, Profil-Glocke und "Meine Gruppen"-Modal — alle teilen dasselbe
+    // data-notif-group-id). Ein globales document.querySelector(...) würde deshalb immer
+    // die ERSTE Kopie im DOM treffen, egal wo der Nutzer tatsächlich geklickt hat — meist
+    // eine leere, unsichtbare Kopie. Deshalb wird hier vom tatsächlich geklickten Button
+    // (btn) aus zum nächsten umschließenden Wrapper navigiert, damit immer der richtige
+    // (sichtbare) Eingabewert gelesen und gespeichert wird.
     window.saveNotifGroupLink = async function(groupId, btn) {
-      const wrap = document.querySelector('[data-notif-group-id="' + groupId + '"]');
+      const wrap = btn.closest('[data-notif-group-id="' + groupId + '"]');
       if (!wrap) return;
       const input = wrap.querySelector('.link-notif-input');
       const feedback = wrap.querySelector('.link-notif-feedback');
@@ -3348,9 +3355,11 @@ Gruppen verwalten
 
       try {
         await updateDoc(doc(db, 'groups', groupId), updatePayload);
-        expiredOwnGroups = expiredOwnGroups.filter(function(g) { return g.id !== groupId; });
-        updateNotifBadges();
         showFeedback('✓ Link wurde erfolgreich aktualisiert.', false);
+        expiredOwnGroups = expiredOwnGroups.filter(function(g) { return g.id !== groupId; });
+        // Kurz warten, damit der Nutzer die Erfolgsmeldung noch sieht, bevor die Karte
+        // aus der Liste verschwindet (updateNotifBadges rendert die Listen neu).
+        setTimeout(updateNotifBadges, 900);
         if (window.reloadApprovedGroups) window.reloadApprovedGroups();
       } catch (err) {
         console.error('Fehler beim Aktualisieren des Gruppenlinks:', err);
