@@ -8,17 +8,17 @@
   "theme_color": "#0d5c46",
   "icons": [
     {
-      "src": "favicon-16.png",
+      "src": "favicon-16.png?v=2",
       "sizes": "16x16",
       "type": "image/png"
     },
     {
-      "src": "logo_groupchat.png",
+      "src": "logo_groupchat.png?v=2",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "logo_groupchat.png",
+      "src": "logo_groupchat.png?v=2",
       "sizes": "512x512",
       "type": "image/png"
     }
