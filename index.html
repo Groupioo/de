@@ -249,7 +249,7 @@
 <!-- Logo -->
 <a class="flex items-center gap-2 text-white font-bold text-xl sm:text-2xl tracking-tight shrink-0 font-display" href="#" id="main-logo-link">
 <img alt="GruppenLink" class="w-11 h-11 shrink-0 object-contain" src="logo_groupchat.png"/>
-<span class="">GruppenLink</span>
+<span class="max-[380px]:hidden">GruppenLink</span>
 </a>
 <!-- Search Input in Header (versteckt auf Mobile, ersetzt durch Such-Icon) -->
 <div class="hidden sm:flex flex-1 max-w-xl mx-2 sm:mx-6">
@@ -261,13 +261,13 @@
 </div>
 </div>
 <!-- Right Action Buttons -->
-<div class="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
+<div class="flex items-center gap-1 sm:gap-2.5 shrink-0">
 <!-- Mobile search toggle (nur auf Mobile sichtbar) -->
 <button class="sm:hidden w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 text-white flex items-center justify-center transition-all cursor-pointer shrink-0" id="mobile-search-toggle" title="Suche" onclick="toggleMobileSearch()">
 <span class="material-symbols-outlined text-[18px] notranslate" translate="no">search</span>
 </button>
 <!-- Top-Gruppen Button (rundes Symbol mit Stern): zeigt die bestbewerteten Gruppen -->
-<button class="top-voted-btn w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 text-white flex items-center justify-center transition-all cursor-pointer shrink-0" id="top-voted-btn" title="Top-Gruppen nach Bewertung" onclick="toggleTopVotedFilter()">
+<button class="top-voted-btn max-[380px]:hidden w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 text-white flex items-center justify-center transition-all cursor-pointer shrink-0" id="top-voted-btn" title="Top-Gruppen nach Bewertung" onclick="toggleTopVotedFilter()">
 <span class="material-symbols-outlined text-[18px] text-amber-300 notranslate" translate="no" style="font-variation-settings: 'FILL' 1;">star</span>
 </button>
 <!-- Community-Button (neues Icon) -->
@@ -838,7 +838,7 @@
 <!-- Logo -->
 <a class="flex items-center gap-2 text-white font-bold text-xl sm:text-2xl tracking-tight shrink-0 font-display cursor-pointer" id="profile-header-logo" title="Zur Startseite">
 <img alt="GruppenLink" class="w-11 h-11 shrink-0 object-contain" src="logo_groupchat.png"/>
-<span class="">GruppenLink</span>
+<span class="max-[380px]:hidden">GruppenLink</span>
 </a>
 <!-- Search Input in Header (versteckt auf Mobile, ersetzt durch Such-Icon) -->
 <div class="hidden sm:flex flex-1 max-w-xl mx-2 sm:mx-6">
@@ -850,7 +850,7 @@
 </div>
 </div>
 <!-- Right Action Buttons -->
-<div class="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
+<div class="flex items-center gap-1 sm:gap-2.5 shrink-0">
 <button class="sm:hidden w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 text-white flex items-center justify-center transition-all cursor-pointer shrink-0" id="profile-mobile-search-toggle" title="Suche">
 <span class="material-symbols-outlined text-[18px] notranslate" translate="no">search</span>
 </button>
