@@ -1190,7 +1190,7 @@
 </script>
 <style>
   #gl-join-toast {
-    position: fixed; inset: 0; z-index: 70;
+    position: fixed; inset: 0; z-index: 120;
     background: rgba(15, 23, 42, .55);
     display: none; align-items: center; justify-content: center;
     padding: 16px;
@@ -2370,8 +2370,8 @@ Gruppen verwalten
         <span class="material-symbols-outlined text-[24px] notranslate" translate="no">edit</span>
       </div>
       <div class="flex flex-col pr-8">
-        <h2 class="font-bold text-slate-900 text-lg leading-tight font-display">Gruppe bearbeiten</h2>
-        <span class="text-xs text-slate-500">Der Link ist abgelaufen. Trage einen neuen WhatsApp-Link ein.</span>
+        <h2 class="font-bold text-slate-900 text-lg leading-tight font-display" id="eg-title">Gruppe bearbeiten</h2>
+        <span class="text-xs text-slate-500" id="eg-subtitle">Ändere den Link oder die Angaben deiner Gruppe.</span>
       </div>
     </div>
 
@@ -2392,7 +2392,7 @@ Gruppen verwalten
         <input class="w-full bg-slate-50 border border-slate-200 text-slate-800 placeholder-slate-400 px-3 py-2 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:bg-white transition-all" id="eg-name" maxlength="80" type="text">
       </div>
       <div class="flex flex-col gap-1">
-        <label class="text-xs font-semibold text-slate-700" for="eg-link">Neuer WhatsApp-Gruppenlink <span class="text-red-500">*</span></label>
+        <label class="text-xs font-semibold text-slate-700" for="eg-link">WhatsApp-Gruppenlink <span class="text-red-500">*</span></label>
         <input class="w-full bg-slate-50 border border-slate-200 text-slate-800 placeholder-slate-400 px-3 py-2 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:bg-white transition-all" id="eg-link" placeholder="https://chat.whatsapp.com/..." type="url">
         <span class="text-[11px] text-slate-400 truncate" id="eg-old-link"></span>
       </div>
@@ -4133,6 +4133,7 @@ Gruppen verwalten
     // dann auf "pending" (mit renewalRequested=true) und der Admin bekommt eine Benachrichtigung,
     // um sie manuell wieder anzunehmen.
     let editingExpiredGroup = null;
+    let editingExpiredIsExpired = false;
     let expiredEditCloseTimer = null;
     const EXPIRED_EDIT_SUCCESS_TEXT = 'Deine Gruppe wird bald wiederhergestellt!';
 
@@ -4143,8 +4144,13 @@ Gruppen verwalten
       editingExpiredGroup = g;
       clearTimeout(expiredEditCloseTimer);
       document.getElementById('eg-name').value = g.name || '';
-      document.getElementById('eg-link').value = '';
-      document.getElementById('eg-old-link').textContent = g.link ? 'Abgelaufener Link: ' + g.link : '';
+      const isExp = expiredOwnGroups.some(function(e) { return e.id === g.id; });
+      editingExpiredIsExpired = isExp;
+      document.getElementById('eg-subtitle').textContent = isExp
+        ? 'Der Link ist abgelaufen. Trage einen neuen WhatsApp-Link ein.'
+        : 'Ändere den Link oder die Angaben deiner Gruppe.';
+      document.getElementById('eg-link').value = isExp ? '' : (g.link || '');
+      document.getElementById('eg-old-link').textContent = (isExp && g.link) ? 'Abgelaufener Link: ' + g.link : '';
       document.getElementById('eg-category').value = g.category || 'Allgemein';
       document.getElementById('eg-country').value = (g.country || 'de').toLowerCase();
       document.getElementById('eg-desc').value = g.description || '';
@@ -4189,7 +4195,9 @@ Gruppen verwalten
       if (!newLink || !window.isValidWhatsappGroupLink || !window.isValidWhatsappGroupLink(newLink)) {
         return showErr('Bitte gib einen gültigen WhatsApp-Gruppenlink ein (https://chat.whatsapp.com/...).');
       }
-      if (window.normalizeWhatsappLink(newLink) === window.normalizeWhatsappLink(g.link || '')) {
+      const isExp = editingExpiredIsExpired;
+      const linkChanged = window.normalizeWhatsappLink(newLink) !== window.normalizeWhatsappLink(g.link || '');
+      if (isExp && !linkChanged) {
         return showErr('Das ist noch derselbe abgelaufene Link. Bitte gib einen neuen Link ein.');
       }
 
@@ -4203,23 +4211,23 @@ Gruppen verwalten
           getDocs(query(groupsCol, where('status', '==', 'pending'))),
           getDocs(query(groupsCol, where('status', '==', 'approved')))
         ]);
-        const dup = [...pSnap.docs, ...aSnap.docs].some(function(d) {
+        const dup = linkChanged && [...pSnap.docs, ...aSnap.docs].some(function(d) {
           return d.id !== g.id && window.normalizeWhatsappLink(d.data().link) === normNew;
         });
         if (dup) { btn.disabled = false; btn.textContent = 'Änderungen speichern'; return showErr('Diese Gruppe wurde bereits eingetragen.'); }
       } catch (e) { /* bei Lesefehler nicht blockieren */ }
 
       let fetchedImageUrl = null;
-      try {
-        const response = await fetch(LINK_CHECK_PROXY_URL + encodeURIComponent(newLink));
-        if (response.ok) { const data = await response.json(); if (data && data.imageUrl) fetchedImageUrl = data.imageUrl; }
-      } catch (e) { /* Bild ist optional */ }
+      if (linkChanged) {
+        try {
+          const response = await fetch(LINK_CHECK_PROXY_URL + encodeURIComponent(newLink));
+          if (response.ok) { const data = await response.json(); if (data && data.imageUrl) fetchedImageUrl = data.imageUrl; }
+        } catch (e) { /* Bild ist optional */ }
+      }
 
-      const payload = {
-        name: name, link: newLink, category: category, country: country, description: description, tags: tags,
-        linkUpdatedAt: Date.now(), previousLink: g.link || '',
-        status: 'pending', renewalRequested: true, renewalRequestedAt: serverTimestamp()
-      };
+      const payload = { name: name, link: newLink, category: category, country: country, description: description, tags: tags };
+      if (linkChanged) { payload.linkUpdatedAt = Date.now(); payload.previousLink = g.link || ''; }
+      if (isExp) { payload.status = 'pending'; payload.renewalRequested = true; payload.renewalRequestedAt = serverTimestamp(); }
       if (fetchedImageUrl) payload.image = fetchedImageUrl;
 
       try {
@@ -4227,7 +4235,9 @@ Gruppen verwalten
           await updateDoc(doc(db, 'groups', g.id), payload);
         } catch (firstErr) {
           if (firstErr && firstErr.code === 'permission-denied') {
-            await updateDoc(doc(db, 'groups', g.id), { link: newLink, linkUpdatedAt: payload.linkUpdatedAt, status: 'pending', renewalRequested: true });
+            const minimal = { link: newLink, linkUpdatedAt: Date.now() };
+            if (isExp) { minimal.status = 'pending'; minimal.renewalRequested = true; }
+            await updateDoc(doc(db, 'groups', g.id), minimal);
           } else { throw firstErr; }
         }
       } catch (err) {
@@ -4242,10 +4252,12 @@ Gruppen verwalten
       // Erfolg: Meldung anzeigen, lokalen Zustand aktualisieren
       document.getElementById('eg-form').classList.add('hidden');
       const ok = document.getElementById('eg-success'); ok.classList.remove('hidden'); ok.classList.add('flex');
-      ok.querySelector('h3').textContent = EXPIRED_EDIT_SUCCESS_TEXT;
+      ok.querySelector('h3').textContent = isExp ? EXPIRED_EDIT_SUCCESS_TEXT : 'Deine Änderungen wurden gespeichert!';
       const updated = Object.assign({}, g, payload, { renewalRequestedAt: null });
-      expiredOwnGroups = expiredOwnGroups.filter(function(e) { return e.id !== g.id; });
-      pruneSeenExpired();
+      if (isExp) {
+        expiredOwnGroups = expiredOwnGroups.filter(function(e) { return e.id !== g.id; });
+        pruneSeenExpired();
+      }
       if (typeof profileGroupsAll !== 'undefined') {
         const idx = profileGroupsAll.findIndex(function(e) { return e.id === g.id; });
         if (idx !== -1) profileGroupsAll[idx] = Object.assign({}, profileGroupsAll[idx], updated);
@@ -4863,7 +4875,8 @@ Gruppen verwalten
     function profileGroupCardTemplate(item) {
       const isPending = item.status === 'pending';
       const isRenewal = isPending && item.renewalRequested === true;
-      const isExpired = !window.viewingOtherProfile && item.status === 'approved' && expiredOwnGroups.some(function(e) { return e.id === item.id; });
+      const canEdit = !window.viewingOtherProfile && item.status === 'approved';
+      const isExpired = canEdit && expiredOwnGroups.some(function(e) { return e.id === item.id; });
       const groupTitle = item.name || (item.tags ? item.tags.split(' ')[0] : (item.category || 'WhatsApp Gruppe'));
       const desc = item.tags ? (item.tags + ' ' + (item.description || '')) : (item.description || '');
       const imgTag = item.image
@@ -4896,7 +4909,7 @@ Gruppen verwalten
         + '<div class="flex items-center justify-between pt-3 mt-2 border-t border-slate-100 text-[11px]">'
         + '<span class="text-slate-400">' + escapeHtml(dateStr) + '</span>'
         + '<div class="flex items-center gap-1.5">'
-        + (isExpired ? '<button type="button" class="card-edit-btn w-6 h-6 rounded-full bg-red-50 hover:bg-red-100 text-red-600 flex items-center justify-center transition-colors" data-edit-id="' + escapeHtml(item.id) + '" title="Abgelaufene Gruppe bearbeiten"><span class="material-symbols-outlined text-[14px] notranslate" translate="no">edit</span></button>' : '')
+        + (canEdit ? '<button type="button" class="card-edit-btn w-6 h-6 rounded-full flex items-center justify-center transition-colors ' + (isExpired ? 'bg-red-50 hover:bg-red-100 text-red-600' : 'bg-slate-100 hover:bg-slate-200 text-slate-500') + '" data-edit-id="' + escapeHtml(item.id) + '" title="' + (isExpired ? 'Abgelaufene Gruppe bearbeiten' : 'Gruppe bearbeiten') + '"><span class="material-symbols-outlined text-[14px] notranslate" translate="no">edit</span></button>' : '')
         + '<button type="button" class="card-share-btn w-6 h-6 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition-colors" data-share-title="' + escapeHtml(groupTitle) + '" data-share-image="' + escapeHtml(item.image || '') + '" title="Gruppe teilen"><span class="material-symbols-outlined text-[14px] notranslate" translate="no">share</span></button>'
         + (item.category === 'Adult' ? '<span class="px-1.5 py-0.5 bg-red-600 text-white font-bold rounded text-[10px] tracking-wide">Ab 18+</span>' : '')
         + '</div>'
