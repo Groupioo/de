@@ -254,6 +254,10 @@
   };
   window.GL_CATEGORY_SLUGS = {};
   window.GL_CATEGORIES.forEach(function (c) { window.GL_CATEGORY_SLUGS[window.glCatSlug(c)] = c; });
+  // Gruppen-URL: bei Adult-Gruppen steht der Kategoriename mit in der Adresse (?ersteller=Name&kategorie=adult&gruppe=...)
+  window.glGroupCatParam = function (cat) {
+    return String(cat || '') === 'Adult' ? '&kategorie=' + encodeURIComponent(window.glCatSlug(cat)) : '';
+  };
   window.glCategoryFromPath = function () {
     try {
       var m = window.location.pathname.match(/^\/([^\/]+)\/?$/);
@@ -1221,7 +1225,7 @@
     if (!guest) {
       var slug = (d.title || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9\s-]/g, '').trim().replace(/\s+/g, '-');
       try {
-        window.history.replaceState({ groupId: gid, data: d }, '', window.GL_BASE_PATH + '?ersteller=' + encodeURIComponent(d.creator) + (slug ? '&gruppe=' + encodeURIComponent(slug) : ''));
+        window.history.replaceState({ groupId: gid, data: d }, '', window.GL_BASE_PATH + '?ersteller=' + encodeURIComponent(d.creator) + window.glGroupCatParam(d.cat) + (slug ? '&gruppe=' + encodeURIComponent(slug) : ''));
       } catch (e) {}
     }
   } catch (e) { /* Fallback: normale Anzeige nach dem Laden der Gruppenliste */ }
@@ -6943,6 +6947,7 @@ Gruppen verwalten
           if (!cardIsGuest && stored) {
             const cardSlug = slugify(cardData.title);
             newTabUrl = window.GL_BASE_PATH + '?ersteller=' + encodeURIComponent(cardCreator)
+              + window.glGroupCatParam(cardData.cat)
               + (cardSlug ? '&gruppe=' + encodeURIComponent(cardSlug) : '');
           }
           const newTab = window.open(newTabUrl, '_blank');
@@ -7170,8 +7175,11 @@ Gruppen verwalten
 
     // ?kategorie=<Name>: Kategorie-Filter direkt anwenden (z. B. Klick auf eine Kategorie in der Gruppen-Ansicht)
     (function applyCategoryFromUrl() {
-      const cat = new URLSearchParams(window.location.search).get('kategorie');
+      const _qp = new URLSearchParams(window.location.search);
+      const cat = _qp.get('kategorie');
       if (!cat) return;
+      // In einer Gruppen-Adresse ist "kategorie" nur Teil des Links (kein Filter)
+      if (_qp.get('ersteller') || _qp.get('grupo') || _qp.get('gruppe')) return;
       window.history.replaceState({}, '', window.GL_BASE_PATH + window.location.hash);
       if (cat === 'Chatrooms') { if (window.openCommunityModal) window.openCommunityModal(); return; }
       applyCategory(cat, false);
@@ -7256,6 +7264,7 @@ Gruppen verwalten
           try {
             const mSlug = slugify(fakeCard.getAttribute('data-title') || '');
             window.history.replaceState({ groupId: match.id, data: { title: fakeCard.getAttribute('data-title') || '', cat: fakeCard.getAttribute('data-cat') || 'Allgemein', desc: fakeCard.getAttribute('data-desc') || '', link: fakeCard.getAttribute('data-link') || '', votes: parseInt(fakeCard.getAttribute('data-votes'), 10) || 0, image: fakeCard.getAttribute('data-image') || '', creator: mCreator } }, '', window.GL_BASE_PATH + '?ersteller=' + encodeURIComponent(mCreator)
+              + window.glGroupCatParam(fakeCard.getAttribute('data-cat'))
               + (mSlug ? '&gruppe=' + encodeURIComponent(mSlug) : ''));
           } catch (e) {}
         }
