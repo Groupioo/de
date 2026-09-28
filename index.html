@@ -254,9 +254,10 @@
   };
   window.GL_CATEGORY_SLUGS = {};
   window.GL_CATEGORIES.forEach(function (c) { window.GL_CATEGORY_SLUGS[window.glCatSlug(c)] = c; });
-  // Gruppen-URL: bei Adult-Gruppen steht der Kategoriename mit in der Adresse (?ersteller=Name&kategorie=adult&gruppe=...)
+  // Gruppen-URL: bei allen Kategorien steht der Kategoriename mit in der Adresse (?ersteller=Name&kategorie=gaming&gruppe=...)
   window.glGroupCatParam = function (cat) {
-    return String(cat || '') === 'Adult' ? '&kategorie=' + encodeURIComponent(window.glCatSlug(cat)) : '';
+    var slug = window.glCatSlug(cat);
+    return slug ? '&kategorie=' + encodeURIComponent(slug) : '';
   };
   window.glCategoryFromPath = function () {
     try {
