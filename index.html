@@ -241,7 +241,8 @@
   // Gruppen-Ansicht (neuer Tab): Header + nur das Beitreten-Modal, eingebettet in die Seite
   (function () {
     try {
-      if (new URLSearchParams(window.location.search).get('grupo')) {
+      var _q = new URLSearchParams(window.location.search);
+      if (_q.get('grupo') || _q.get('ersteller')) {
         document.documentElement.classList.add('group-view');
       }
     } catch (e) {}
@@ -321,6 +322,7 @@
   @media (min-width: 641px) and (max-width: 1024px) {
     html.group-view body { background-size: 480px auto !important; }
   }
+  html.group-view #groupio-loader { display: none !important; }
   html.group-view main { display: none !important; }
   html.group-view #pagination-bar { display: none !important; }
   html.group-view #join-modal {
@@ -443,7 +445,10 @@
   }
 </style>
 <script>
-  document.documentElement.classList.add('groupio-loading');
+  // In der Gruppen-Ansicht (?grupo= / ?ersteller=) keine Ladeanimation: Modal sofort anzeigen
+  if (!document.documentElement.classList.contains('group-view')) {
+    document.documentElement.classList.add('groupio-loading');
+  }
 </script>
 <div id="groupio-loader">
   <div class="groupio-loader-wrap">
@@ -1135,6 +1140,163 @@
 </div>
 </div>
 
+<script>
+// SOFORT-ANZEIGE (Gruppen-Ansicht): Modal aus den mitgegebenen Daten füllen, ohne auf Firebase zu warten
+(function () {
+  try {
+    if (!document.documentElement.classList.contains('group-view')) return;
+    var q = new URLSearchParams(window.location.search);
+    var creatorParam = (q.get('ersteller') || '').toLowerCase();
+    var idParam = q.get('grupo') || '';
+    var d = null, gid = null;
+    var pend = null;
+    try { pend = JSON.parse(localStorage.getItem('gl_pending_group') || 'null'); } catch (e) {}
+    if (pend && pend.data && (Date.now() - pend.t) < 60000 &&
+        ((creatorParam && String(pend.creator || '').toLowerCase() === creatorParam) || (idParam && pend.id === idParam))) {
+      d = pend.data; gid = pend.id;
+    } else if (window.history.state && window.history.state.data) {
+      d = window.history.state.data; gid = window.history.state.groupId;
+    }
+    if (!d || !d.link) return;
+    var $ = function (id) { return document.getElementById(id); };
+    $('modal-group-title').textContent = d.title;
+    $('modal-group-cat').textContent = d.cat;
+    $('modal-group-desc').textContent = d.desc || 'WhatsApp Gruppe';
+    $('modal-votes-count').textContent = d.votes + ' Stimmen';
+    $('modal-whatsapp-link').href = d.link;
+    var qr = $('modal-qr-img');
+    if (qr) qr.src = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&margin=0&color=0d5c46&data=' + encodeURIComponent(d.link);
+    var ph = $('modal-group-photo'), fb = $('modal-group-photo-fallback');
+    if (ph && fb && d.image) { ph.src = d.image; ph.classList.remove('hidden'); fb.classList.add('hidden'); }
+    var cb = $('modal-creator-btn'), cl = $('modal-creator-label');
+    var guest = !d.creator || String(d.creator).toLowerCase().indexOf('gast-') === 0;
+    if (cb && cl) {
+      if (guest) cb.classList.add('hidden');
+      else { cb.classList.remove('hidden'); cl.textContent = 'Erstellt von ' + d.creator + ' — Profil ansehen'; }
+    }
+    var m = $('join-modal');
+    m.classList.remove('hidden');
+    m.classList.add('gv-ready');
+    document.title = d.title + ' – GruppenLink';
+    // URL sofort mit Namen des Erstellers und der Gruppe anzeigen
+    if (!guest) {
+      var slug = (d.title || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9\s-]/g, '').trim().replace(/\s+/g, '-');
+      try {
+        window.history.replaceState({ groupId: gid, data: d }, '', window.location.pathname + '?ersteller=' + encodeURIComponent(d.creator) + (slug ? '&gruppe=' + encodeURIComponent(slug) : ''));
+      } catch (e) {}
+    }
+  } catch (e) { /* Fallback: normale Anzeige nach dem Laden der Gruppenliste */ }
+})();
+</script>
+<style>
+  #gl-join-toast {
+    position: fixed; inset: 0; z-index: 70;
+    background: rgba(15, 23, 42, .55);
+    display: none; align-items: center; justify-content: center;
+    padding: 16px;
+  }
+  #gl-join-toast.show { display: flex; }
+  html.group-view #gl-join-toast { display: none !important; }
+  #gl-join-toast .gl-t-box {
+    position: relative;
+    width: 100%; max-width: 420px;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 20px 50px -10px rgba(0, 0, 0, .45);
+    padding: 22px 24px 32px;
+    display: flex; flex-direction: column; align-items: center;
+  }
+  #gl-join-toast .gl-t-close {
+    position: absolute; top: 12px; right: 14px;
+    width: 28px; height: 28px; border: 0; background: transparent; cursor: pointer;
+    color: #6b7280; display: flex; align-items: center; justify-content: center;
+  }
+  #gl-join-toast .gl-t-close:hover { color: #111827; }
+  #gl-join-toast .gl-t-votes {
+    align-self: flex-end; margin: 26px 34px 0 0;
+    display: flex; align-items: center; gap: 6px;
+    font-size: 14px; color: #1f2937;
+  }
+  #gl-join-toast .gl-t-photo { position: relative; margin-top: -6px; }
+  #gl-join-toast .gl-t-photo-inner {
+    width: 128px; height: 128px; border-radius: 9999px; overflow: hidden;
+    background: #f1f5f9;
+    display: flex; align-items: center; justify-content: center;
+  }
+  #gl-join-toast .gl-t-photo-inner img { width: 100%; height: 100%; object-fit: cover; }
+  #gl-join-toast .gl-t-dot {
+    position: absolute; right: -2px; bottom: 6px; width: 13px; height: 13px;
+    background: #25d366; border-radius: 9999px;
+  }
+  #gl-join-toast .gl-t-name {
+    margin-top: 22px; font-weight: 700; font-size: 17px; color: #1f2937;
+    text-align: center; line-height: 1.3; max-width: 100%; word-break: break-word;
+  }
+  #gl-join-toast .gl-t-btn {
+    margin-top: 24px; border: 0; cursor: pointer; border-radius: 4px;
+    background: #25d366; color: #fff; font-weight: 500; font-size: 15px;
+    padding: 12px 30px; transition: background-color .15s ease;
+  }
+  #gl-join-toast .gl-t-btn:hover { background: #20bd5a; }
+</style>
+<div id="gl-join-toast" role="dialog" aria-modal="true">
+  <div class="gl-t-box">
+    <button type="button" class="gl-t-close" id="gl-join-toast-close" aria-label="Schließen">
+      <span class="material-symbols-outlined notranslate" translate="no" style="font-size:24px;font-weight:700">close</span>
+    </button>
+    <div class="gl-t-votes">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="#1f2937" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 21 12 17.77 5.82 21 7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+      <span id="gl-join-toast-votes">0</span>
+    </div>
+    <div class="gl-t-photo">
+      <div class="gl-t-photo-inner" id="gl-join-toast-photo"></div>
+      <span class="gl-t-dot"></span>
+    </div>
+    <div class="gl-t-name" id="gl-join-toast-name"></div>
+    <button type="button" class="gl-t-btn" id="gl-join-toast-btn">Jetzt dem Chat beitreten</button>
+  </div>
+</div>
+<script>
+// Statische Benachrichtigung auf der Startseite: Gruppenfoto + Name + Button "Jetzt dem Chat beitreten"
+(function () {
+  var toast = document.getElementById('gl-join-toast');
+  if (!toast) return;
+  var currentLink = '';
+  var currentOnJoin = null;
+  var icon = '<span class="material-symbols-outlined notranslate" translate="no" style="font-size:64px;color:#cbd5e1">groups</span>';
+
+  window.glShowJoinToast = function (d) {
+    if (!d) return;
+    currentLink = d.link;
+    currentOnJoin = d.onJoin || null;
+    var box = document.getElementById('gl-join-toast-photo');
+    document.getElementById('gl-join-toast-name').textContent = d.title || '';
+    document.getElementById('gl-join-toast-votes').textContent = (d.votes || 0);
+    box.innerHTML = '';
+    if (d.image) {
+      var im = document.createElement('img');
+      im.alt = d.title || '';
+      im.src = d.image;
+      im.onerror = function () { box.innerHTML = icon; };
+      box.appendChild(im);
+    } else {
+      box.innerHTML = icon;
+    }
+    toast.classList.add('show');
+  };
+  window.glHideJoinToast = function () { toast.classList.remove('show'); };
+
+  document.getElementById('gl-join-toast-close').addEventListener('click', window.glHideJoinToast);
+  toast.addEventListener('click', function (e) { if (e.target === toast) window.glHideJoinToast(); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') window.glHideJoinToast(); });
+  document.getElementById('gl-join-toast-btn').addEventListener('click', function () {
+    var fn = currentOnJoin;
+    window.glHideJoinToast();
+    if (fn) { fn(); return; }
+    if (currentLink && currentLink !== '#') window.open(currentLink, '_blank', 'noopener,noreferrer');
+  });
+})();
+</script>
 <div class="fixed inset-0 z-[80] bg-slate-100 hidden overflow-y-auto custom-scroll" id="profile-page-modal">
 <!-- Overlay hinter dem geöffneten Hamburger-Menü innerhalb der Profilseite (nur mobil) -->
 <div class="header-menu-backdrop fixed inset-0 bg-slate-900/30 backdrop-blur-[2px] opacity-0 pointer-events-none z-30 sm:hidden" id="profile-menu-backdrop" onclick="closeAllHeaderMenus()"></div>
@@ -6316,11 +6478,43 @@ Gruppen verwalten
 
         const card = e.target.closest('.group-card');
         if (!card) return;
-        // Klick auf eine Gruppe: gleiche Seite in NEUEM Tab öffnen (Profil des Erstellers + Modal)
-        const newTabUrl = window.location.pathname + '?grupo=' + encodeURIComponent(card.getAttribute('data-id') || '');
-        const newTab = window.open(newTabUrl, '_blank');
-        // Fallback: falls der Browser das Pop-up blockiert, Modal wie bisher im selben Tab öffnen
-        if (!newTab) window.openGroupModalFromCard(card);
+        // Klick auf eine Gruppe: ZUERST erscheint die Benachrichtigung (Foto, Name, Button).
+        // Erst beim Klick auf "Jetzt dem Chat beitreten" öffnet sich die neue Registerkarte mit dem Modal.
+        const cardId = card.getAttribute('data-id') || '';
+        const cardCreator = card.getAttribute('data-submitted-by') || '';
+        const cardIsGuest = !cardCreator || cardCreator.toLowerCase().startsWith('gast-');
+        const cardData = {
+          title: card.getAttribute('data-title') || '',
+          cat: card.getAttribute('data-cat') || 'Allgemein',
+          desc: card.getAttribute('data-desc') || '',
+          link: card.getAttribute('data-link') || '',
+          votes: parseInt(card.getAttribute('data-votes'), 10) || 0,
+          image: card.getAttribute('data-image') || '',
+          creator: cardCreator
+        };
+        const openGroupInNewTab = function() {
+          // Bei registrierten Erstellern steht dessen Name in der URL (?ersteller=Name&gruppe=...); Gast-Einträge nutzen ?grupo=<id>.
+          // Die Gruppendaten werden kurz zwischengespeichert, damit die neue Registerkarte das Modal SOFORT zeigt.
+          let newTabUrl = window.location.pathname + '?grupo=' + encodeURIComponent(cardId);
+          let stored = false;
+          try {
+            localStorage.setItem('gl_pending_group', JSON.stringify({ id: cardId, creator: cardCreator, t: Date.now(), data: cardData }));
+            stored = true;
+          } catch (err) {}
+          if (!cardIsGuest && stored) {
+            const cardSlug = slugify(cardData.title);
+            newTabUrl = window.location.pathname + '?ersteller=' + encodeURIComponent(cardCreator)
+              + (cardSlug ? '&gruppe=' + encodeURIComponent(cardSlug) : '');
+          }
+          const newTab = window.open(newTabUrl, '_blank');
+          // Fallback: falls der Browser das Pop-up blockiert, Modal im selben Tab öffnen
+          if (!newTab) window.openGroupModalFromCard(card);
+        };
+        if (window.glShowJoinToast) {
+          window.glShowJoinToast({ title: cardData.title, image: cardData.image, link: cardData.link, votes: cardData.votes, onJoin: openGroupInNewTab });
+        } else {
+          openGroupInNewTab();
+        }
       });
     }
 
@@ -6549,27 +6743,46 @@ Gruppen verwalten
       const params = new URLSearchParams(window.location.search);
       const sharedSlug = params.get('gruppe');
       const sharedId = params.get('grupo');
-      if (!sharedSlug && !sharedId) return;
+      const sharedCreator = params.get('ersteller');
+      if (!sharedSlug && !sharedId && !sharedCreator) return;
 
-      // Auf das Laden der Gruppenliste warten (max. ca. 6 Sekunden)
+      // Auf das Laden der Gruppenliste warten (max. ca. 15 Sekunden)
       let attempts = 0;
       while (!allApprovedGroups.length && attempts < 75) {
         await new Promise(function(resolve) { setTimeout(resolve, 200); });
         attempts++;
       }
 
-      const match = allApprovedGroups.find(function(item) {
-        if (sharedId) return item.id === sharedId;
-        const title = item.name || (item.tags ? item.tags.split(' ')[0] : (item.category || 'WhatsApp Gruppe'));
-        return slugify(title) === sharedSlug;
-      });
+      let match;
+      if (sharedCreator) {
+        // Gruppe des Erstellers bestimmen: 1) gerade angeklickte Gruppe, 2) beim Neuladen gemerkte, 3) beliebteste
+        const cLower = sharedCreator.toLowerCase();
+        const ofCreator = allApprovedGroups.filter(function(g) { return String(g.submittedBy || '').toLowerCase() === cLower; });
+        let wantedId = null;
+        try {
+          const pend = JSON.parse(localStorage.getItem('gl_pending_group') || 'null');
+          if (pend && pend.creator && String(pend.creator).toLowerCase() === cLower && (Date.now() - pend.t) < 60000) wantedId = pend.id;
+          localStorage.removeItem('gl_pending_group');
+        } catch (e) {}
+        if (!wantedId && window.history.state && window.history.state.groupId) wantedId = window.history.state.groupId;
+        const titleOf = function(g) { return g.name || (g.tags ? g.tags.split(' ')[0] : (g.category || 'WhatsApp Gruppe')); };
+        match = ofCreator.find(function(g) { return g.id === wantedId; })
+          || (sharedSlug ? ofCreator.find(function(g) { return slugify(titleOf(g)) === sharedSlug; }) : null)
+          || ofCreator[0]; // Liste ist nach Stimmen sortiert
+      } else {
+        match = allApprovedGroups.find(function(item) {
+          if (sharedId) return item.id === sharedId;
+          const title = item.name || (item.tags ? item.tags.split(' ')[0] : (item.category || 'WhatsApp Gruppe'));
+          return slugify(title) === sharedSlug;
+        });
+      }
       if (!match) {
-        if (sharedId) window.location.replace(window.location.pathname);
+        if (sharedId || sharedCreator) window.location.replace(window.location.pathname);
         return;
       }
 
       // Gruppen-Ansicht: Modal direkt in der Seite anzeigen (ohne Kartenliste / Profil)
-      if (sharedId) {
+      if (sharedId || sharedCreator) {
         const tmp = document.createElement('div');
         tmp.innerHTML = groupCardHtml(match);
         const fakeCard = tmp.firstElementChild;
@@ -6577,6 +6790,15 @@ Gruppen verwalten
         joinModal.classList.add('gv-ready');
         joinModal.classList.remove('hidden');
         try { document.title = (fakeCard.getAttribute('data-title') || 'Gruppe') + ' – GruppenLink'; } catch (e) {}
+        // URL im Browser: Name des Erstellers statt Gruppen-ID (gruppenlink.de/?ersteller=Name)
+        const mCreator = match.submittedBy || '';
+        if (mCreator && !mCreator.toLowerCase().startsWith('gast-')) {
+          try {
+            const mSlug = slugify(fakeCard.getAttribute('data-title') || '');
+            window.history.replaceState({ groupId: match.id, data: { title: fakeCard.getAttribute('data-title') || '', cat: fakeCard.getAttribute('data-cat') || 'Allgemein', desc: fakeCard.getAttribute('data-desc') || '', link: fakeCard.getAttribute('data-link') || '', votes: parseInt(fakeCard.getAttribute('data-votes'), 10) || 0, image: fakeCard.getAttribute('data-image') || '', creator: mCreator } }, '', window.location.pathname + '?ersteller=' + encodeURIComponent(mCreator)
+              + (mSlug ? '&gruppe=' + encodeURIComponent(mSlug) : ''));
+          } catch (e) {}
+        }
         return;
       }
 
