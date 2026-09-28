@@ -567,12 +567,6 @@
 <span class="material-symbols-outlined text-[18px] text-amber-300 notranslate" translate="no" style="font-variation-settings: 'FILL' 1;">groups</span>
 <span class="inline sm:hidden text-sm font-medium">Community</span>
 </button>
-<!-- "Meine Gruppen"-Button: öffnet eine Profil-Ansicht mit den eigenen Gruppen, deren Link abgelaufen ist (zum Wiederherstellen) -->
-<button class="my-groups-renew-btn relative w-full sm:w-9 h-10 sm:h-9 rounded-lg sm:rounded-full bg-white/10 hover:bg-white/20 border border-white/15 text-white flex items-center justify-start sm:justify-center gap-2 sm:gap-0 px-3 sm:px-0 transition-colors cursor-pointer shrink-0" id="my-groups-renew-btn" title="Meine Gruppen" onclick="window.openMyGroupsRenewModal()">
-<span class="material-symbols-outlined text-[18px] text-amber-300 notranslate" translate="no">sync_problem</span>
-<span class="inline sm:hidden text-sm font-medium">Meine Gruppen</span>
-<span class="my-groups-renew-badge hidden absolute top-1 right-2 sm:-top-1 sm:-right-1 min-w-[16px] h-4 px-1 rounded-full bg-red-500 text-white text-[10px] font-bold items-center justify-center">0</span>
-</button>
 <div class="h-px bg-white/10 my-0.5 sm:hidden" aria-hidden="true"></div>
 <!-- Admin quick-access (nur sichtbar wenn als Administrator angemeldet) -->
 <button class="hidden relative items-center gap-2 sm:gap-1.5 w-full sm:w-auto h-10 sm:h-auto px-3 sm:px-3 py-0 sm:py-1.5 justify-start sm:justify-center bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold rounded-lg sm:rounded-full shadow-sm transition-all cursor-pointer shrink-0" id="admin-panel-btn" onclick="openAdminPanel()" title="Admin-Panel">
@@ -1399,12 +1393,6 @@
 <button class="w-full sm:w-9 h-10 sm:h-9 rounded-lg sm:rounded-full bg-white/10 hover:bg-white/20 border border-white/15 text-white flex items-center justify-start sm:justify-center gap-2 sm:gap-0 px-3 sm:px-0 transition-colors cursor-pointer shrink-0" id="profile-community-btn" title="Community" onclick="openCommunityModal()">
 <span class="material-symbols-outlined text-[18px] text-amber-300 notranslate" translate="no" style="font-variation-settings: 'FILL' 1;">groups</span>
 <span class="inline sm:hidden text-sm font-medium">Community</span>
-</button>
-<!-- "Meine Gruppen"-Button: öffnet eine Profil-Ansicht mit den eigenen Gruppen, deren Link abgelaufen ist (zum Wiederherstellen) -->
-<button class="my-groups-renew-btn relative w-full sm:w-9 h-10 sm:h-9 rounded-lg sm:rounded-full bg-white/10 hover:bg-white/20 border border-white/15 text-white flex items-center justify-start sm:justify-center gap-2 sm:gap-0 px-3 sm:px-0 transition-colors cursor-pointer shrink-0" id="profile-my-groups-renew-btn" title="Meine Gruppen" onclick="window.openMyGroupsRenewModal()">
-<span class="material-symbols-outlined text-[18px] text-amber-300 notranslate" translate="no">sync_problem</span>
-<span class="inline sm:hidden text-sm font-medium">Meine Gruppen</span>
-<span class="my-groups-renew-badge hidden absolute top-1 right-2 sm:-top-1 sm:-right-1 min-w-[16px] h-4 px-1 rounded-full bg-red-500 text-white text-[10px] font-bold items-center justify-center">0</span>
 </button>
 <!-- Admin quick-access (nur sichtbar wenn als Administrator angemeldet) -->
 <button class="hidden relative items-center gap-2 sm:gap-1.5 w-full sm:w-auto h-10 sm:h-auto px-3 sm:px-3 py-0 sm:py-1.5 justify-start sm:justify-center bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold rounded-lg sm:rounded-full shadow-sm transition-all cursor-pointer shrink-0" id="profile-admin-panel-btn" title="Admin-Panel" onclick="closeProfilePage(); openAdminPanel();">
@@ -2370,38 +2358,6 @@ Gruppen verwalten
   </div>
 </div>
 <!-- ===================== FIN COMMUNITY CHAT MODAL ===================== -->
-
-<!-- ===================== "MEINE GRUPPEN" MODAL (abgelaufene Gruppen wiederherstellen) ===================== -->
-<div class="fixed inset-0 z-[85] bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center p-3 sm:p-4 overflow-y-auto" id="my-groups-renew-modal" onclick="if (event.target === this) window.closeMyGroupsRenewModal();">
-  <div class="bg-slate-100 rounded-2xl max-w-4xl w-full shadow-2xl flex flex-col relative animate-in fade-in zoom-in-95 duration-150 my-auto max-h-[90vh]">
-    <button class="absolute top-4 right-4 p-1.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 transition-colors z-10" onclick="window.closeMyGroupsRenewModal()" title="Schließen">
-      <span class="material-symbols-outlined text-[20px] block notranslate" translate="no">close</span>
-    </button>
-
-    <!-- Header -->
-    <div class="flex items-center gap-3 px-5 sm:px-7 pt-6 pb-4 bg-white rounded-t-2xl border-b border-slate-200 shrink-0">
-      <div class="w-11 h-11 rounded-xl bg-red-50 text-red-600 flex items-center justify-center shrink-0 border border-red-200">
-        <span class="material-symbols-outlined text-[24px] notranslate" translate="no">sync_problem</span>
-      </div>
-      <div class="flex flex-col pr-8">
-        <h2 class="font-bold text-slate-900 text-lg leading-tight font-display">Meine Gruppen</h2>
-        <span class="text-xs text-slate-500" id="my-groups-renew-subtitle">Nur Gruppen mit abgelaufenem Link werden hier angezeigt. Stelle sie mit einem neuen Link wieder her.</span>
-      </div>
-    </div>
-
-    <!-- Gruppen-Karten (gleiche Optik wie im Profil), nur mit abgelaufenem Link -->
-    <div class="flex flex-col items-center gap-3 px-4 sm:px-7 py-5 overflow-y-auto custom-scroll">
-      <div class="flex items-center justify-center gap-2">
-        <span class="material-symbols-outlined text-red-500 text-[20px] notranslate" translate="no">link_off</span>
-        <h3 class="font-bold text-slate-800 text-sm" id="my-groups-renew-heading">Abgelaufene Gruppen</h3>
-      </div>
-      <div class="w-full grid grid-cols-2 md:grid-cols-3 gap-3.5 sm:gap-4" id="my-groups-renew-list">
-        <p class="col-span-full text-xs text-slate-400 text-center py-8">Prüfe deine Gruppenlinks...</p>
-      </div>
-    </div>
-  </div>
-</div>
-<!-- ===================== FIN "MEINE GRUPPEN" MODAL ===================== -->
 
 <!-- ===================== GRUPPE BEARBEITEN (abgelaufene Gruppe wiederherstellen) ===================== -->
 <div class="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center p-3 sm:p-4 overflow-y-auto" id="expired-group-edit-modal" onclick="if (event.target === this) window.closeExpiredGroupEditModal();">
@@ -3549,8 +3505,8 @@ Gruppen verwalten
     // Prüft die eigenen Gruppen über denselben WhatsApp-Proxy, der schon für die
     // Bildvorschau genutzt wird. Liefert der Proxy kein Gruppenbild zurück, gilt
     // der Link als abgelaufen/ungültig. Der Nutzer wird automatisch benachrichtigt
-    // (Glocke, Badge am "Meine Gruppen"-Button und Geräte-Benachrichtigung) und kann in
-    // "Meine Gruppen" direkt einen neuen Link speichern (Wiederherstellen).
+    // (Glocke und Geräte-Benachrichtigung); abgelaufene Gruppen lassen sich im Profil
+    // über den Bearbeiten-Button mit einem neuen Link wiederherstellen.
     const LINK_CHECK_PROXY_URL = 'https://groupio-whatsapp.cristhianzh1994.workers.dev?url=';
     // Wie lange nach dem Speichern eines neuen Links die automatische Live-Prüfung
     // aussetzt, damit ein gerade erst reparierter Link nicht sofort wieder fälschlich
@@ -3732,7 +3688,7 @@ Gruppen verwalten
     };
 
     // ---- "Gesehen"-Status der Warnung für abgelaufene Gruppen (pro Nutzer, dauerhaft) ----
-    // Wurde die Glocke (oder "Meine Gruppen") geöffnet, gelten die aktuell abgelaufenen Gruppen
+    // Wurde die Glocke geöffnet, gelten die aktuell abgelaufenen Gruppen
     // als gesehen. Eine neue Benachrichtigung erscheint erst wieder, wenn eine ANDERE Gruppe
     // als abgelaufen erkannt wird oder der Admin eine neue Mitteilung sendet.
     function seenExpiredKey() {
@@ -3760,17 +3716,6 @@ Gruppen verwalten
       const current = expiredOwnGroups.map(function(g) { return g.id; });
       setSeenExpiredIds(getSeenExpiredIds().filter(function(id) { return current.indexOf(id) !== -1; }));
     }
-    function isRenewModalOpen() {
-      const m = document.getElementById('my-groups-renew-modal');
-      return !!(m && !m.classList.contains('hidden'));
-    }
-
-    // Öffnet "Meine Gruppen" direkt aus der Benachrichtigung.
-    window.openMyGroupsFromNotif = function() {
-      notifPanelOpenSnapshot = null;
-      document.querySelectorAll('.link-notif-panel').forEach(function(p) { p.classList.add('hidden'); });
-      window.openMyGroupsRenewModal();
-    };
 
     // Löst die Geräte-Benachrichtigung (OS-Popup) nur für NEUE (ungesehene) abgelaufene Gruppen
     // aus. Pro Sitzung nur einmal je Zusammensetzung, damit sie nicht bei jeder Prüfung erneut erscheint.
@@ -3829,7 +3774,6 @@ Gruppen verwalten
           + '<div class="flex items-start gap-2">'
           + '<span class="material-symbols-outlined text-red-500 text-[18px] shrink-0 notranslate" translate="no">link_off</span>'
           + '<p class="text-xs text-slate-800 leading-snug">' + escapeHtml(EXPIRED_GROUPS_NOTIF_TEXT) + '</p></div>'
-          + '<button type="button" class="self-start px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-semibold rounded-md transition-colors" onclick="window.openMyGroupsFromNotif()">Meine Gruppen öffnen</button>'
           + '</div>'
         : '';
       document.querySelectorAll('.link-notif-list').forEach(function(list) {
@@ -3849,72 +3793,6 @@ Gruppen verwalten
         list.innerHTML = renewalNotifHtml + expiredNotifHtml + broadcastHtml;
       });
     }
-
-    // Rendert die Karten im "Meine Gruppen"-Modal: zeigt ausschließlich die eigenen
-    // Gruppen, deren Link gerade als abgelaufen erkannt wurde.
-    const RENEW_SUBTITLE_DEFAULT = 'Nur Gruppen mit abgelaufenem Link werden hier angezeigt. Stelle sie mit einem neuen Link wieder her.';
-    function renderMyGroupsRenewList() {
-      const list = document.getElementById('my-groups-renew-list');
-      if (!list) return;
-      const checking = !!ownLinksCheckPromise;
-      const heading = document.getElementById('my-groups-renew-heading');
-      if (heading) heading.textContent = 'Abgelaufene Gruppen' + (expiredOwnGroups.length ? ' (' + expiredOwnGroups.length + ')' : '');
-      const subtitle = document.getElementById('my-groups-renew-subtitle');
-      if (subtitle) subtitle.textContent = checking ? 'Prüfe deine Gruppenlinks...' : RENEW_SUBTITLE_DEFAULT;
-
-      // Nur Hinweis-Texte entfernen; vorhandene Karten bleiben unangetastet, damit ein
-      // geöffnetes Eingabefeld (und bereits getippter Link) beim Nachladen nicht verloren geht.
-      list.querySelectorAll(':scope > p').forEach(function(el) { el.remove(); });
-
-      const existing = {};
-      list.querySelectorAll(':scope > [data-notif-group-id]').forEach(function(el) {
-        existing[el.getAttribute('data-notif-group-id')] = el;
-      });
-      Object.keys(existing).forEach(function(id) {
-        if (!expiredOwnGroups.some(function(g) { return g.id === id; })) existing[id].remove();
-      });
-      expiredOwnGroups.forEach(function(g) {
-        if (!existing[g.id]) list.insertAdjacentHTML('beforeend', expiredGroupItemHtml(g));
-      });
-
-      if (!expiredOwnGroups.length) {
-        list.innerHTML = checking
-          ? '<p class="col-span-full text-xs text-slate-400 text-center py-8 px-3">Prüfe deine Gruppenlinks...</p>'
-          : '<p class="col-span-full text-xs text-slate-400 text-center py-8 px-3">Alle deine Gruppenlinks sind aktuell gültig. Es gibt nichts wiederherzustellen.</p>';
-      }
-    }
-
-    // Öffnet das "Meine Gruppen"-Modal SOFORT. Bereits bekannte abgelaufene Gruppen (aus der
-    // automatischen Hintergrundprüfung) erscheinen ohne Wartezeit; nur wenn die letzte Prüfung
-    // länger als 5 Minuten her ist, wird im Hintergrund neu geprüft — Karten erscheinen dann
-    // nach und nach, sobald sie als abgelaufen bestätigt sind.
-    window.openMyGroupsRenewModal = function() {
-      const session = getSession();
-      if (!session) { window.openAuthModal('login'); return; }
-
-      const modal = document.getElementById('my-groups-renew-modal');
-      if (!modal) return;
-      modal.classList.remove('hidden');
-      modal.classList.add('flex');
-      document.body.style.overflow = 'hidden';
-
-      // Der Nutzer sieht die abgelaufenen Gruppen jetzt -> keine erneute Benachrichtigung dafür.
-      markExpiredSeen();
-      updateNotifBadges();
-
-      const fresh = ownLinksCheckedUser === session.username
-        && (Date.now() - ownLinksLastCheckAt) < OWN_LINKS_FRESH_MS;
-      if (!fresh) window.checkOwnGroupLinks();
-      renderMyGroupsRenewList();
-    };
-
-    window.closeMyGroupsRenewModal = function() {
-      const modal = document.getElementById('my-groups-renew-modal');
-      if (!modal) return;
-      modal.classList.add('hidden');
-      modal.classList.remove('flex');
-      document.body.style.overflow = '';
-    };
 
     // Badge/Tooltip der Glocke: ungelesene Admin-Mitteilungen + 1 Warnung bei abgelaufenen Gruppen.
     function updateNotifBadges() {
@@ -3940,27 +3818,10 @@ Gruppen verwalten
       });
       renderNotifPanels();
 
-      // "Meine Gruppen"-Button: Badge mit der Anzahl NEU erkannter abgelaufener Gruppen
-      const renewCount = unseenExpiredCount;
-      document.querySelectorAll('.my-groups-renew-badge').forEach(function(b) {
-        if (renewCount > 0) {
-          b.textContent = renewCount > 9 ? '9+' : String(renewCount);
-          b.classList.remove('hidden');
-          b.classList.add('flex');
-        } else {
-          b.classList.add('hidden');
-          b.classList.remove('flex');
-        }
-      });
-      document.querySelectorAll('.my-groups-renew-btn').forEach(function(btn) {
-        btn.title = renewCount > 0
-          ? (renewCount === 1 ? 'Meine Gruppen — 1 Link muss erneuert werden' : 'Meine Gruppen — ' + renewCount + ' Links müssen erneuert werden')
-          : 'Meine Gruppen';
-      });
     }
 
     // Prüft alle eigenen (genehmigten) Gruppen; wird automatisch beim Anmelden/Laden der Seite,
-    // beim Öffnen des Profils, regelmäßig im Hintergrund und beim Öffnen von "Meine Gruppen" aufgerufen.
+    // beim Öffnen des Profils und regelmäßig im Hintergrund aufgerufen.
     let ownLinksCheckPromise = null;
     let ownLinksLastCheckAt = 0;
     let ownLinksCheckedUser = '';
@@ -4005,9 +3866,7 @@ Gruppen verwalten
                 // Sofort anzeigen, ohne auf die übrigen Gruppen zu warten.
                 if (!expiredOwnGroups.some(function(e) { return e.id === g.id; })) {
                   expiredOwnGroups = expiredOwnGroups.concat([g]);
-                  if (isRenewModalOpen()) markExpiredSeen();
                   updateNotifBadges();
-                  renderMyGroupsRenewList();
                   if (window.refreshProfileGroupsIfOpen) window.refreshProfileGroupsIfOpen();
                 }
               }
@@ -4023,14 +3882,12 @@ Gruppen verwalten
           ownLinksLastCheckAt = Date.now();
           ownLinksCheckedUser = username;
           pruneSeenExpired();
-          if (isRenewModalOpen()) markExpiredSeen();
           updateNotifBadges();
           notifyExpiredGroupsIfNeeded();
         } catch (err) {
           console.error('Fehler bei der Prüfung der eigenen Gruppenlinks:', err);
         } finally {
           ownLinksCheckPromise = null;
-          renderMyGroupsRenewList();
           if (window.refreshProfileGroupsIfOpen) window.refreshProfileGroupsIfOpen();
         }
       })();
@@ -4130,7 +3987,7 @@ Gruppen verwalten
 
     // Speichert den neuen Link, den der Nutzer direkt aus der Benachrichtigung einträgt.
     // Wichtig: Dieselbe Gruppen-Karte kann gleichzeitig an mehreren Stellen im DOM stehen
-    // (Header-Glocke, Profil-Glocke und "Meine Gruppen"-Modal — alle teilen dasselbe
+    // (Header-Glocke und Profil-Glocke — beide teilen dasselbe
     // data-notif-group-id). Ein globales document.querySelector(...) würde deshalb immer
     // die ERSTE Kopie im DOM treffen, egal wo der Nutzer tatsächlich geklickt hat — meist
     // eine leere, unsichtbare Kopie. Deshalb wird hier vom tatsächlich geklickten Button
@@ -4186,7 +4043,7 @@ Gruppen verwalten
         pruneSeenExpired();
         // Kurz warten, damit der Nutzer die Erfolgsmeldung noch sieht, bevor die Karte
         // aus der Liste verschwindet.
-        setTimeout(function() { updateNotifBadges(); renderMyGroupsRenewList(); }, 900);
+        setTimeout(function() { updateNotifBadges(); }, 900);
         if (window.reloadApprovedGroups) window.reloadApprovedGroups();
       } catch (err) {
         console.error('Fehler beim Aktualisieren des Gruppenlinks:', err);
@@ -4414,7 +4271,6 @@ Gruppen verwalten
         if (idx !== -1) profileGroupsAll[idx] = Object.assign({}, profileGroupsAll[idx], updated);
       }
       updateNotifBadges();
-      renderMyGroupsRenewList();
       if (window.refreshProfileGroupsIfOpen) window.refreshProfileGroupsIfOpen();
       if (window.reloadApprovedGroups) window.reloadApprovedGroups();
       expiredEditCloseTimer = setTimeout(window.closeExpiredGroupEditModal, 3500);
