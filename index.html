@@ -247,19 +247,34 @@
       }
     } catch (e) {}
   })();
+  // Kategorie-URL: gruppenlink.de/<kategorie> (z. B. /gaming, /serien-filme, /anime-manga)
+  window.GL_CATEGORIES = ['Allgemein', 'Gaming', 'Fan Gruppen', 'Flohmarkt', 'Musik', 'Selbsthilfe', 'Serien & Filme', 'Freundschaft', 'Adult', 'Chatrooms', 'Finanzen', 'Anime & Manga'];
+  window.glCatSlug = function (name) {
+    return String(name || '').toLowerCase().replace(/&/g, ' ').trim().replace(/\s+/g, '-');
+  };
+  window.GL_CATEGORY_SLUGS = {};
+  window.GL_CATEGORIES.forEach(function (c) { window.GL_CATEGORY_SLUGS[window.glCatSlug(c)] = c; });
+  window.glCategoryFromPath = function () {
+    try {
+      var m = window.location.pathname.match(/^\/([^\/]+)\/?$/);
+      if (!m) return null;
+      return window.GL_CATEGORY_SLUGS[decodeURIComponent(m[1]).toLowerCase()] || null;
+    } catch (e) { return null; }
+  };
   // Profil-URL: gruppenlink.de/<Benutzername>. glProfileFromPath() liefert den Namen aus dem Pfad (oder null).
   window.glProfileFromPath = function () {
     try {
       var m = window.location.pathname.match(/^\/([^\/]+)\/?$/);
       if (!m) return null;
       var seg = decodeURIComponent(m[1]).trim();
-      if (!seg || /\.(html?|php|js|css|png|jpe?g|gif|svg|ico|webp|txt|xml|json|webmanifest|map)$/i.test(seg)) return null;
+      if (!seg || window.GL_CATEGORY_SLUGS[window.glCatSlug(seg)] || /\.(html?|php|js|css|png|jpe?g|gif|svg|ico|webp|txt|xml|json|webmanifest|map)$/i.test(seg)) return null;
       return seg;
     } catch (e) { return null; }
   };
   window.GL_PROFILE_PATH = window.glProfileFromPath();
   // Basispfad der Startseite (bei direkt geöffnetem Profil-Link ist das "/")
-  window.GL_BASE_PATH = window.GL_PROFILE_PATH ? '/' : window.location.pathname;
+  window.GL_BASE_PATH = (window.GL_PROFILE_PATH || window.glCategoryFromPath()) ? '/' : window.location.pathname;
+  window.GL_BASE_TITLE = document.title;
 </script>
 <style>
   /* Animierter Beitreten-Button: sanftes Pulsieren + Lichtreflex + wackelndes Icon */
@@ -2713,6 +2728,14 @@ Gruppen verwalten
     };
 
     window.openCommunityModal = function() {
+      try {
+        var _pm = document.getElementById('profile-page-modal');
+        if (!document.documentElement.classList.contains('group-view') && !(_pm && !_pm.classList.contains('hidden'))) {
+          window.__glPreCommUrl = (window.glCategoryFromPath && window.glCategoryFromPath() === 'Chatrooms')
+            ? '/' : (window.location.pathname + window.location.search + window.location.hash);
+          history.replaceState(history.state, '', '/chatrooms');
+        }
+      } catch (e) {}
       renderRoomList();
       startPresenceTracking();
       applyPresenceUI();
@@ -2729,6 +2752,10 @@ Gruppen verwalten
       modal.classList.add('hidden');
       modal.classList.remove('flex');
       document.body.style.overflow = '';
+      if (window.__glPreCommUrl) {
+        try { history.replaceState(history.state, '', window.__glPreCommUrl); } catch (e) {}
+        window.__glPreCommUrl = null;
+      }
     };
 
     // ---------- REGISTRIERUNGS-PFLICHT FÜR CHATROOMS ----------
@@ -4755,6 +4782,8 @@ Gruppen verwalten
         if (password.length < 6) { showFeedback('Das Passwort muss mindestens 6 Zeichen haben.', true); return; }
         if (password !== confirmPassword) { showFeedback('Die Passwörter stimmen nicht überein.', true); return; }
         if (username.toLowerCase() === ADMIN_USERNAME) { showFeedback('Dieser Benutzername ist reserviert.', true); return; }
+        // Kategorienamen sind als Adresse (gruppenlink.de/gaming) belegt und können kein Profilname sein
+        if (window.GL_CATEGORY_SLUGS && window.GL_CATEGORY_SLUGS[window.glCatSlug(username)]) { showFeedback('Dieser Benutzername ist reserviert.', true); return; }
 
         try {
           const userRef = doc(db, 'users', username.toLowerCase());
@@ -6561,17 +6590,46 @@ Gruppen verwalten
       });
     }
 
-    window.filterByCategory = function(category) {
-      currentCategoryFilter = (currentCategoryFilter === category) ? null : category;
+    // Adresse der Kategorie im Browser: gruppenlink.de/<kategorie> (ohne Kategorie: Startseite)
+    function setCategoryUrl(cat) {
+      try {
+        if (document.documentElement.classList.contains('group-view')) return;
+        const target = cat ? '/' + window.glCatSlug(cat) : '/';
+        if (window.location.pathname.replace(/\/+$/, '') === target.replace(/\/+$/, '')) return;
+        const onCategory = !!window.glCategoryFromPath();
+        if (cat && !onCategory) history.pushState({ glCategory: cat }, '', target);
+        else if (cat || onCategory) history.replaceState({ glCategory: cat || null }, '', target);
+        document.title = cat ? cat + ' – GruppenLink' : (window.GL_BASE_TITLE || document.title);
+      } catch (e) {}
+    }
+    window.glSetCategoryUrl = setCategoryUrl;
+
+    function applyCategory(next, updateUrl) {
+      currentCategoryFilter = next;
       if (currentTopVotedFilter) {
         currentTopVotedFilter = false;
         updateTopVotedButtonStyle();
       }
       updateCategoryActiveStyles();
       applyFilters();
+      if (updateUrl) setCategoryUrl(next);
       const barEl = document.getElementById('category-bar-row');
       if (barEl) barEl.closest('main') ? window.scrollTo({ top: 0, behavior: 'smooth' }) : null;
+    }
+
+    window.filterByCategory = function(category) {
+      applyCategory(currentCategoryFilter === category ? null : category, true);
     };
+
+    // Zurück/Vor im Browser: Kategorie-Filter an die Adresse anpassen
+    window.addEventListener('popstate', function(e) {
+      if (e.state && e.state.groupioModal === 'profile') return;
+      const pm = document.getElementById('profile-page-modal');
+      if (pm && !pm.classList.contains('hidden')) return;
+      const cat = window.glCategoryFromPath();
+      if (cat === 'Chatrooms') return;
+      if ((cat || null) !== currentCategoryFilter) applyCategory(cat || null, false);
+    });
 
     function updateCountryActiveStyles() {
       document.querySelectorAll('.country-filter-btn').forEach(function(btn) {
@@ -6623,6 +6681,7 @@ Gruppen verwalten
       if (currentTopVotedFilter && currentCategoryFilter) {
         currentCategoryFilter = null;
         updateCategoryActiveStyles();
+        setCategoryUrl(null);
       }
       if (currentTopVotedFilter && currentCountryFilter) {
         currentCountryFilter = null;
@@ -7085,6 +7144,7 @@ Gruppen verwalten
         if (mobileSearch) mobileSearch.value = '';
         currentCategoryFilter = null;
         updateCategoryActiveStyles();
+        setCategoryUrl(null);
         currentCountryFilter = null;
         updateCountryActiveStyles();
         currentTopVotedFilter = false;
@@ -7114,7 +7174,17 @@ Gruppen verwalten
       if (!cat) return;
       window.history.replaceState({}, '', window.GL_BASE_PATH + window.location.hash);
       if (cat === 'Chatrooms') { if (window.openCommunityModal) window.openCommunityModal(); return; }
-      window.filterByCategory(cat);
+      applyCategory(cat, false);
+      try { history.replaceState({ glCategory: cat }, '', '/' + window.glCatSlug(cat)); document.title = cat + ' – GruppenLink'; } catch (e) {}
+    })();
+
+    // gruppenlink.de/<kategorie>: Kategorie direkt öffnen (Domain + Kategoriename)
+    (function openCategoryFromPath() {
+      const cat = window.glCategoryFromPath();
+      if (!cat) return;
+      if (cat === 'Chatrooms') { if (window.openCommunityModal) window.openCommunityModal(); return; }
+      applyCategory(cat, false);
+      document.title = cat + ' – GruppenLink';
     })();
 
     // ---------- GETEILTEN GRUPPEN-LINK DIREKT ÖFFNEN ----------
