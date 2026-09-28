@@ -4249,6 +4249,11 @@ Gruppen verwalten
       const img = document.getElementById('eg-photo-img');
       const ph = document.getElementById('eg-photo-placeholder');
       const sp = document.getElementById('eg-photo-spinner');
+      img.onerror = function() {
+        // Foto-URL nicht mehr erreichbar (WhatsApp-Bild-Links laufen ab): Platzhalter statt kaputtem Bild
+        img.classList.add('hidden'); ph.classList.remove('hidden');
+        if (!egPreview.link) egPhotoStatus('Das bisherige Foto ist nicht mehr verfügbar. Gib den Link ein und drücke Enter, um es neu zu laden.', 'text-amber-600');
+      };
       if (url) { img.src = url; img.classList.remove('hidden'); ph.classList.add('hidden'); }
       else { img.classList.add('hidden'); img.removeAttribute('src'); ph.classList.remove('hidden'); }
       sp.classList.toggle('hidden', !spinning); sp.classList.toggle('flex', !!spinning);
@@ -4273,10 +4278,7 @@ Gruppen verwalten
         if (immediate && link) egPhotoStatus('Bitte gib einen gültigen WhatsApp-Gruppenlink ein (https://chat.whatsapp.com/...).', 'text-amber-600');
         return;
       }
-      if (window.normalizeWhatsappLink(link) === window.normalizeWhatsappLink(g.link || '')) {
-        egResetPreview('Das ist der bisherige Link – das Foto bleibt unverändert.');
-        return;
-      }
+      const sameLink = window.normalizeWhatsappLink(link) === window.normalizeWhatsappLink(g.link || '');
       if (egPreview.link === link) {
         // Für diesen Link läuft die Suche bereits oder ein neues Foto wurde schon gefunden
         if (egPreview.started || (egPreview.done && egPreview.url)) return;
@@ -4285,9 +4287,9 @@ Gruppen verwalten
       }
       clearTimeout(egPreview.timer);
       const token = egPreview.token + 1;
-      egPreview = { link: link, url: null, done: false, started: false, token: token, timer: null };
+      egPreview = { link: link, url: null, done: false, started: false, token: token, timer: null, same: sameLink };
       egShowPhoto(g.image || '', true);
-      egPhotoStatus('Neues Foto wird gesucht...', 'text-slate-500');
+      egPhotoStatus('Foto wird gesucht...', 'text-slate-500');
 
       const run = async function() {
         if (egPreview.token !== token) return;
@@ -4301,7 +4303,9 @@ Gruppen verwalten
         egPreview.url = newUrl; egPreview.done = true; egPreview.started = false;
         if (newUrl) {
           egShowPhoto(newUrl, false);
-          egPhotoStatus('✓ Neues Gruppenfoto gefunden.', 'text-emerald-600 font-medium');
+          egPhotoStatus(sameLink
+            ? '✓ Gruppenfoto gefunden – es wird beim Speichern aktualisiert.'
+            : '✓ Neues Gruppenfoto gefunden.', 'text-emerald-600 font-medium');
         } else {
           egShowPhoto(g.image || '', false);
           egPhotoStatus('Kein neues Foto gefunden – das bisherige Foto bleibt erhalten.', 'text-slate-500');
@@ -4337,10 +4341,11 @@ Gruppen verwalten
       }
       const isExp = editingExpiredIsExpired;
       const linkChanged = window.normalizeWhatsappLink(newLink) !== window.normalizeWhatsappLink(g.link || '');
-      if (!linkChanged) {
+      const photoOnly = !linkChanged && !isExp && egPreview.done && egPreview.link === newLink && !!egPreview.url;
+      if (!linkChanged && !photoOnly) {
         return showErr(isExp
           ? 'Das ist noch derselbe abgelaufene Link. Bitte gib einen neuen Link ein.'
-          : 'Der Link ist unverändert. Bitte gib einen neuen Link ein.');
+          : 'Der Link ist unverändert. Bitte gib einen neuen Link ein (oder drücke Enter, um das Foto neu zu laden).');
       }
 
       btn.disabled = true; btn.textContent = '...';
@@ -4360,7 +4365,7 @@ Gruppen verwalten
       } catch (e) { /* bei Lesefehler nicht blockieren */ }
 
       let fetchedImageUrl = null;
-      if (linkChanged) {
+      if (linkChanged || photoOnly) {
         if (egPreview.done && egPreview.link === newLink) {
           fetchedImageUrl = egPreview.url; // bereits in der Vorschau gefunden (oder null: bisheriges Foto bleibt)
         } else {
@@ -4371,7 +4376,7 @@ Gruppen verwalten
         }
       }
 
-      const payload = { link: newLink };
+      const payload = photoOnly ? {} : { link: newLink }; // nur Foto aktualisieren: Link unverändert lassen
       if (linkChanged) { payload.linkUpdatedAt = Date.now(); payload.previousLink = g.link || ''; }
       if (isExp) { payload.status = 'pending'; payload.renewalRequested = true; payload.renewalRequestedAt = serverTimestamp(); }
       if (fetchedImageUrl) payload.image = fetchedImageUrl;
@@ -4380,7 +4385,7 @@ Gruppen verwalten
         try {
           await updateDoc(doc(db, 'groups', g.id), payload);
         } catch (firstErr) {
-          if (firstErr && firstErr.code === 'permission-denied') {
+          if (firstErr && firstErr.code === 'permission-denied' && !photoOnly) {
             const minimal = { link: newLink, linkUpdatedAt: Date.now() };
             if (isExp) { minimal.status = 'pending'; minimal.renewalRequested = true; }
             await updateDoc(doc(db, 'groups', g.id), minimal);
