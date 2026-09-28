@@ -2359,6 +2359,87 @@ Gruppen verwalten
 </div>
 <!-- ===================== FIN "MEINE GRUPPEN" MODAL ===================== -->
 
+<!-- ===================== GRUPPE BEARBEITEN (abgelaufene Gruppe wiederherstellen) ===================== -->
+<div class="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center p-3 sm:p-4 overflow-y-auto" id="expired-group-edit-modal" onclick="if (event.target === this) window.closeExpiredGroupEditModal();">
+  <div class="bg-white rounded-2xl max-w-xl w-full p-5 sm:p-7 shadow-2xl flex flex-col gap-4 relative animate-in fade-in zoom-in-95 duration-150 my-auto max-h-[92vh] overflow-y-auto custom-scroll">
+    <button class="absolute top-4 right-4 p-1.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 transition-colors" onclick="window.closeExpiredGroupEditModal()" title="Schließen" type="button">
+      <span class="material-symbols-outlined text-[20px] block notranslate" translate="no">close</span>
+    </button>
+    <div class="flex items-center gap-3 pt-1 border-b border-slate-100 pb-3.5">
+      <div class="w-11 h-11 rounded-xl bg-red-50 text-red-600 flex items-center justify-center shrink-0 border border-red-200">
+        <span class="material-symbols-outlined text-[24px] notranslate" translate="no">edit</span>
+      </div>
+      <div class="flex flex-col pr-8">
+        <h2 class="font-bold text-slate-900 text-lg leading-tight font-display">Gruppe bearbeiten</h2>
+        <span class="text-xs text-slate-500">Der Link ist abgelaufen. Trage einen neuen WhatsApp-Link ein.</span>
+      </div>
+    </div>
+
+    <div class="hidden p-3.5 rounded-xl text-xs font-medium" id="eg-feedback"></div>
+
+    <!-- Erfolgsmeldung nach dem Speichern -->
+    <div class="hidden flex-col items-center text-center gap-3 py-8" id="eg-success">
+      <div class="w-16 h-16 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center">
+        <span class="material-symbols-outlined text-[36px] notranslate" translate="no">check_circle</span>
+      </div>
+      <h3 class="font-bold text-slate-900 text-lg font-display">Deine Gruppe wird bald wiederhergestellt!</h3>
+      <button type="button" class="mt-1 px-5 py-2 rounded-lg bg-[#00a884] hover:bg-[#008f70] text-white font-bold text-xs sm:text-sm transition-colors" onclick="window.closeExpiredGroupEditModal()">Schließen</button>
+    </div>
+
+    <form class="flex flex-col gap-4" id="eg-form" onsubmit="window.handleExpiredGroupEditSubmit(event)">
+      <div class="flex flex-col gap-1">
+        <label class="text-xs font-semibold text-slate-700" for="eg-name">Gruppenname</label>
+        <input class="w-full bg-slate-50 border border-slate-200 text-slate-800 placeholder-slate-400 px-3 py-2 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:bg-white transition-all" id="eg-name" maxlength="80" type="text">
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-xs font-semibold text-slate-700" for="eg-link">Neuer WhatsApp-Gruppenlink <span class="text-red-500">*</span></label>
+        <input class="w-full bg-slate-50 border border-slate-200 text-slate-800 placeholder-slate-400 px-3 py-2 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:bg-white transition-all" id="eg-link" placeholder="https://chat.whatsapp.com/..." type="url">
+        <span class="text-[11px] text-slate-400 truncate" id="eg-old-link"></span>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="flex flex-col gap-1">
+          <label class="text-xs font-semibold text-slate-700" for="eg-category">Kategorie</label>
+          <select class="w-full bg-slate-50 border border-slate-200 text-slate-800 px-3 py-2 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:bg-white transition-all" id="eg-category">
+            <option value="Adult">Adult (18+)</option>
+            <option value="Gaming">Gaming</option>
+            <option value="Fan Gruppen">Fan Gruppen</option>
+            <option value="Flohmarkt">Flohmarkt</option>
+            <option value="Musik">Musik</option>
+            <option value="Selbsthilfe">Selbsthilfe</option>
+            <option value="Serien &amp; Filme">Serien &amp; Filme</option>
+            <option value="Freundschaft">Freundschaft</option>
+            <option value="Finanzen">Finanzen</option>
+            <option value="Anime &amp; Manga">Anime &amp; Manga</option>
+            <option value="Allgemein">Allgemein</option>
+          </select>
+        </div>
+        <div class="flex flex-col gap-1">
+          <label class="text-xs font-semibold text-slate-700" for="eg-country">Land</label>
+          <select class="w-full bg-slate-50 border border-slate-200 text-slate-800 px-3 py-2 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:bg-white transition-all" id="eg-country">
+            <option value="de">🇩🇪 Deutschland</option>
+            <option value="ch">🇨🇭 Schweiz</option>
+            <option value="at">🇦🇹 Österreich</option>
+            <option value="us">🇺🇸 USA</option>
+          </select>
+        </div>
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-xs font-semibold text-slate-700" for="eg-desc">Beschreibung</label>
+        <textarea class="w-full bg-slate-50 border border-slate-200 text-slate-800 placeholder-slate-400 px-3 py-2 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:bg-white transition-all resize-none" id="eg-desc" maxlength="300" rows="3"></textarea>
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-xs font-semibold text-slate-700" for="eg-tags">Tags</label>
+        <input class="w-full bg-slate-50 border border-slate-200 text-slate-800 placeholder-slate-400 px-3 py-2 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:bg-white transition-all" id="eg-tags" type="text">
+      </div>
+      <div class="flex items-center gap-2.5 pt-2 border-t border-slate-100">
+        <button class="flex-1 py-2.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-600 font-bold text-xs sm:text-sm transition-colors" type="button" onclick="window.closeExpiredGroupEditModal()">Abbrechen</button>
+        <button class="flex-1 py-2.5 rounded-lg bg-[#00a884] hover:bg-[#008f70] text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-xs transition-colors" id="eg-submit-btn" type="submit">Änderungen speichern</button>
+      </div>
+    </form>
+  </div>
+</div>
+<!-- ===================== FIN GRUPPE BEARBEITEN ===================== -->
+
 <!-- ===================== HINWEIS: REGISTRIERUNG ERFORDERLICH (Chatrooms) ===================== -->
 <div class="fixed inset-0 z-[65] bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center p-3 sm:p-4" id="chat-register-notice-modal">
   <div class="bg-white rounded-2xl max-w-sm w-full shadow-2xl flex flex-col items-center text-center relative animate-in fade-in zoom-in-95 duration-150 p-6 sm:p-7 gap-4">
@@ -3406,6 +3487,7 @@ Gruppen verwalten
     // als "abgelaufen" auftaucht (z. B. bei einem kurzen Hänger des Proxys).
     const LINK_RECHECK_GRACE_MS = 30 * 60 * 1000; // 30 Minuten
     let expiredOwnGroups = [];
+    let adminRenewalRequests = []; // Admin: Gruppen, die ein Nutzer wiederhergestellt hat und die auf Freigabe warten
     // Welche Benachrichtigungen beim Öffnen der Glocke sichtbar waren: Sie bleiben sichtbar,
     // solange das Panel offen ist, und sind beim nächsten Öffnen weg (bis etwas Neues kommt).
     let notifPanelOpenSnapshot = null;
@@ -3559,13 +3641,8 @@ Gruppen verwalten
         + '<span class="text-slate-400">' + escapeHtml(dateStr) + '</span>'
         + (g.category === 'Adult' ? '<span class="px-1.5 py-0.5 bg-red-600 text-white font-bold rounded text-[10px] tracking-wide">Ab 18+</span>' : '')
         + '</div>'
-        + '<button type="button" class="w-full py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-semibold rounded-lg flex items-center justify-center gap-1 transition-colors" onclick="window.toggleMyGroupRenewForm(this)">'
-        + '<span class="material-symbols-outlined text-[14px] notranslate" translate="no">restart_alt</span>Wiederherstellen</button>'
-        + '<div class="renew-form hidden flex-col gap-1.5">'
-        + '<input type="url" placeholder="Neuer WhatsApp-Gruppenlink" class="link-notif-input w-full min-w-0 px-2 py-1.5 border border-slate-200 rounded-md text-[11px] text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400">'
-        + '<button type="button" class="link-notif-save-btn w-full px-2.5 py-1.5 bg-slate-800 hover:bg-slate-900 text-white text-[11px] font-semibold rounded-md transition-colors" onclick="window.saveNotifGroupLink(\'' + safeId + '\', this)">Speichern</button>'
-        + '<p class="link-notif-feedback text-[11px] hidden"></p>'
-        + '</div>'
+        + '<button type="button" class="w-full py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-semibold rounded-lg flex items-center justify-center gap-1 transition-colors" onclick="window.openExpiredGroupEditModal(\'' + safeId + '\')">'
+        + '<span class="material-symbols-outlined text-[14px] notranslate" translate="no">edit</span>Bearbeiten</button>'
         + '</div></div>';
     }
 
@@ -3640,12 +3717,41 @@ Gruppen verwalten
 
     // Glocken-Panel: zeigt nur NEUE (ungesehene) Benachrichtigungen. Was beim Öffnen des
     // Panels sichtbar war, bleibt bis zum Schließen sichtbar und ist danach weg.
+    // ---- Admin: Wiederherstellungs-Anfragen (Nutzer hat abgelaufene Gruppe bearbeitet) ----
+    function seenRenewalKey() {
+      const sess = getSession();
+      return 'groupio_seen_renewals_' + (sess && sess.username ? String(sess.username).toLowerCase() : '');
+    }
+    function getUnseenRenewalIds() {
+      let seen = [];
+      try { seen = JSON.parse(localStorage.getItem(seenRenewalKey())) || []; } catch (e) {}
+      return adminRenewalRequests.map(function(g) { return g.id; }).filter(function(id) { return seen.indexOf(id) === -1; });
+    }
+    function markRenewalsSeen() {
+      try { localStorage.setItem(seenRenewalKey(), JSON.stringify(adminRenewalRequests.map(function(g) { return g.id; }))); } catch (e) {}
+    }
+
     function renderNotifPanels() {
       const readIds = getReadBroadcastIds();
       const snap = notifPanelOpenSnapshot;
       const visibleBroadcasts = broadcastNotifs.filter(function(n) {
         return readIds.indexOf(n.id) === -1 || (snap && snap.broadcastIds.indexOf(n.id) !== -1);
       });
+      const renewalNotifHtml = adminRenewalRequests.length
+        ? '<div class="border border-amber-200 bg-amber-50 rounded-lg p-2.5 flex flex-col gap-2 text-left">'
+          + '<div class="flex items-start gap-2">'
+          + '<span class="material-symbols-outlined text-amber-500 text-[18px] shrink-0 notranslate" translate="no">restart_alt</span>'
+          + '<div class="min-w-0"><p class="text-xs font-semibold text-slate-800 leading-snug">'
+          + (adminRenewalRequests.length === 1 ? '1 Gruppe wurde wiederhergestellt und wartet auf Freigabe' : adminRenewalRequests.length + ' Gruppen wurden wiederhergestellt und warten auf Freigabe')
+          + '</p>'
+          + adminRenewalRequests.slice(0, 5).map(function(g) {
+              return '<p class="text-[11px] text-slate-600 truncate">• ' + escapeHtml(g.name || 'WhatsApp Gruppe') + ' — ' + escapeHtml(g.submittedBy || 'Gast') + '</p>';
+            }).join('')
+          + (adminRenewalRequests.length > 5 ? '<p class="text-[11px] text-slate-400">+ ' + (adminRenewalRequests.length - 5) + ' weitere</p>' : '')
+          + '</div></div>'
+          + '<button type="button" class="self-start px-2.5 py-1.5 bg-amber-500 hover:bg-amber-600 text-white text-[11px] font-semibold rounded-md transition-colors" onclick="window.openAdminPanel()">Admin-Panel öffnen</button>'
+          + '</div>'
+        : '';
       const showExpired = expiredOwnGroups.length > 0
         && (getUnseenExpiredIds().length > 0 || (snap && snap.expired));
       const expiredNotifHtml = showExpired
@@ -3657,7 +3763,7 @@ Gruppen verwalten
           + '</div>'
         : '';
       document.querySelectorAll('.link-notif-list').forEach(function(list) {
-        if (!expiredNotifHtml && !visibleBroadcasts.length) {
+        if (!expiredNotifHtml && !renewalNotifHtml && !visibleBroadcasts.length) {
           list.innerHTML = '<p class="text-xs text-slate-400 text-center py-6 px-3">Keine Benachrichtigungen.</p>';
           return;
         }
@@ -3670,7 +3776,7 @@ Gruppen verwalten
             + (safeDate ? '<p class="text-[10px] text-slate-400 mt-1">' + safeDate + '</p>' : '')
             + '</div></div>';
         }).join('');
-        list.innerHTML = expiredNotifHtml + broadcastHtml;
+        list.innerHTML = renewalNotifHtml + expiredNotifHtml + broadcastHtml;
       });
     }
 
@@ -3745,7 +3851,7 @@ Gruppen verwalten
       const readIds = getReadBroadcastIds();
       const unreadBroadcastCount = broadcastNotifs.filter(function(n) { return readIds.indexOf(n.id) === -1; }).length;
       const unseenExpiredCount = getUnseenExpiredIds().length;
-      const count = unreadBroadcastCount + (unseenExpiredCount ? 1 : 0);
+      const count = unreadBroadcastCount + (unseenExpiredCount ? 1 : 0) + getUnseenRenewalIds().length;
       updateAppBadge(count);
       document.querySelectorAll('.link-notif-badge').forEach(function(b) {
         if (count > 0) {
@@ -3832,6 +3938,7 @@ Gruppen verwalten
                   if (isRenewModalOpen()) markExpiredSeen();
                   updateNotifBadges();
                   renderMyGroupsRenewList();
+                  if (window.refreshProfileGroupsIfOpen) window.refreshProfileGroupsIfOpen();
                 }
               }
             }
@@ -3854,6 +3961,7 @@ Gruppen verwalten
         } finally {
           ownLinksCheckPromise = null;
           renderMyGroupsRenewList();
+          if (window.refreshProfileGroupsIfOpen) window.refreshProfileGroupsIfOpen();
         }
       })();
       return ownLinksCheckPromise;
@@ -3911,6 +4019,7 @@ Gruppen verwalten
           renderNotifPanels();
           markAllBroadcastsRead();
           markExpiredSeen();
+          markRenewalsSeen();
           updateNotifBadges();
         } else {
           notifPanelOpenSnapshot = null;
@@ -4018,6 +4127,134 @@ Gruppen verwalten
           ? 'Speichern nicht erlaubt (permission-denied). Die Firestore-Regeln erlauben diese Änderung nicht.'
           : 'Fehler beim Speichern' + (code ? ' (' + code + ')' : '') + '. Bitte versuche es erneut.', true);
       }
+    };
+    // ================== ABGELAUFENE GRUPPE BEARBEITEN (Stift-Symbol im Profil) ==================
+    // Der Nutzer ändert seine abgelaufene Gruppe (v. a. den Link) und speichert. Die Gruppe geht
+    // dann auf "pending" (mit renewalRequested=true) und der Admin bekommt eine Benachrichtigung,
+    // um sie manuell wieder anzunehmen.
+    let editingExpiredGroup = null;
+    let expiredEditCloseTimer = null;
+    const EXPIRED_EDIT_SUCCESS_TEXT = 'Deine Gruppe wird bald wiederhergestellt!';
+
+    window.openExpiredGroupEditModal = function(groupId) {
+      let g = expiredOwnGroups.find(function(e) { return e.id === groupId; });
+      if (!g && typeof profileGroupsAll !== 'undefined') g = profileGroupsAll.find(function(e) { return e.id === groupId; });
+      if (!g) return;
+      editingExpiredGroup = g;
+      clearTimeout(expiredEditCloseTimer);
+      document.getElementById('eg-name').value = g.name || '';
+      document.getElementById('eg-link').value = '';
+      document.getElementById('eg-old-link').textContent = g.link ? 'Abgelaufener Link: ' + g.link : '';
+      document.getElementById('eg-category').value = g.category || 'Allgemein';
+      document.getElementById('eg-country').value = (g.country || 'de').toLowerCase();
+      document.getElementById('eg-desc').value = g.description || '';
+      document.getElementById('eg-tags').value = g.tags || '';
+      const fb = document.getElementById('eg-feedback'); fb.classList.add('hidden'); fb.textContent = '';
+      const ok = document.getElementById('eg-success'); ok.classList.add('hidden'); ok.classList.remove('flex');
+      document.getElementById('eg-form').classList.remove('hidden');
+      const btn = document.getElementById('eg-submit-btn'); btn.disabled = false; btn.textContent = 'Änderungen speichern';
+      const modal = document.getElementById('expired-group-edit-modal');
+      modal.classList.remove('hidden'); modal.classList.add('flex');
+      document.body.style.overflow = 'hidden';
+    };
+
+    window.closeExpiredGroupEditModal = function() {
+      clearTimeout(expiredEditCloseTimer);
+      const modal = document.getElementById('expired-group-edit-modal');
+      modal.classList.add('hidden'); modal.classList.remove('flex');
+      editingExpiredGroup = null;
+      // Body-Scroll nur freigeben, wenn kein anderes Vollbild-Modal offen ist
+      const profileModal = document.getElementById('profile-page-modal');
+      if (!profileModal || profileModal.classList.contains('hidden')) document.body.style.overflow = '';
+    };
+
+    window.handleExpiredGroupEditSubmit = async function(event) {
+      event.preventDefault();
+      const g = editingExpiredGroup;
+      if (!g) return;
+      const fb = document.getElementById('eg-feedback');
+      const btn = document.getElementById('eg-submit-btn');
+      function showErr(msg) {
+        fb.className = 'p-3.5 rounded-xl text-xs font-medium bg-red-50 text-red-700 border border-red-200';
+        fb.textContent = msg;
+      }
+      const name = document.getElementById('eg-name').value.trim();
+      const newLink = document.getElementById('eg-link').value.trim();
+      const category = document.getElementById('eg-category').value || 'Allgemein';
+      const country = document.getElementById('eg-country').value || 'de';
+      const description = document.getElementById('eg-desc').value.trim();
+      const tags = document.getElementById('eg-tags').value.trim();
+
+      if (!name) return showErr('Bitte gib einen Gruppennamen ein.');
+      if (!newLink || !window.isValidWhatsappGroupLink || !window.isValidWhatsappGroupLink(newLink)) {
+        return showErr('Bitte gib einen gültigen WhatsApp-Gruppenlink ein (https://chat.whatsapp.com/...).');
+      }
+      if (window.normalizeWhatsappLink(newLink) === window.normalizeWhatsappLink(g.link || '')) {
+        return showErr('Das ist noch derselbe abgelaufene Link. Bitte gib einen neuen Link ein.');
+      }
+
+      btn.disabled = true; btn.textContent = '...';
+      fb.classList.add('hidden');
+
+      // Duplikat-Prüfung (andere Gruppen mit demselben Link)
+      try {
+        const normNew = window.normalizeWhatsappLink(newLink);
+        const [pSnap, aSnap] = await Promise.all([
+          getDocs(query(groupsCol, where('status', '==', 'pending'))),
+          getDocs(query(groupsCol, where('status', '==', 'approved')))
+        ]);
+        const dup = [...pSnap.docs, ...aSnap.docs].some(function(d) {
+          return d.id !== g.id && window.normalizeWhatsappLink(d.data().link) === normNew;
+        });
+        if (dup) { btn.disabled = false; btn.textContent = 'Änderungen speichern'; return showErr('Diese Gruppe wurde bereits eingetragen.'); }
+      } catch (e) { /* bei Lesefehler nicht blockieren */ }
+
+      let fetchedImageUrl = null;
+      try {
+        const response = await fetch(LINK_CHECK_PROXY_URL + encodeURIComponent(newLink));
+        if (response.ok) { const data = await response.json(); if (data && data.imageUrl) fetchedImageUrl = data.imageUrl; }
+      } catch (e) { /* Bild ist optional */ }
+
+      const payload = {
+        name: name, link: newLink, category: category, country: country, description: description, tags: tags,
+        linkUpdatedAt: Date.now(), previousLink: g.link || '',
+        status: 'pending', renewalRequested: true, renewalRequestedAt: serverTimestamp()
+      };
+      if (fetchedImageUrl) payload.image = fetchedImageUrl;
+
+      try {
+        try {
+          await updateDoc(doc(db, 'groups', g.id), payload);
+        } catch (firstErr) {
+          if (firstErr && firstErr.code === 'permission-denied') {
+            await updateDoc(doc(db, 'groups', g.id), { link: newLink, linkUpdatedAt: payload.linkUpdatedAt, status: 'pending', renewalRequested: true });
+          } else { throw firstErr; }
+        }
+      } catch (err) {
+        console.error('Fehler beim Speichern der Gruppe:', err);
+        btn.disabled = false; btn.textContent = 'Änderungen speichern';
+        const code = err && err.code ? err.code : '';
+        return showErr(code === 'permission-denied'
+          ? 'Speichern nicht erlaubt (permission-denied). Die Firestore-Regeln erlauben diese Änderung nicht.'
+          : 'Fehler beim Speichern' + (code ? ' (' + code + ')' : '') + '. Bitte versuche es erneut.');
+      }
+
+      // Erfolg: Meldung anzeigen, lokalen Zustand aktualisieren
+      document.getElementById('eg-form').classList.add('hidden');
+      const ok = document.getElementById('eg-success'); ok.classList.remove('hidden'); ok.classList.add('flex');
+      ok.querySelector('h3').textContent = EXPIRED_EDIT_SUCCESS_TEXT;
+      const updated = Object.assign({}, g, payload, { renewalRequestedAt: null });
+      expiredOwnGroups = expiredOwnGroups.filter(function(e) { return e.id !== g.id; });
+      pruneSeenExpired();
+      if (typeof profileGroupsAll !== 'undefined') {
+        const idx = profileGroupsAll.findIndex(function(e) { return e.id === g.id; });
+        if (idx !== -1) profileGroupsAll[idx] = Object.assign({}, profileGroupsAll[idx], updated);
+      }
+      updateNotifBadges();
+      renderMyGroupsRenewList();
+      if (window.refreshProfileGroupsIfOpen) window.refreshProfileGroupsIfOpen();
+      if (window.reloadApprovedGroups) window.reloadApprovedGroups();
+      expiredEditCloseTimer = setTimeout(window.closeExpiredGroupEditModal, 3500);
     };
     // ================== ENDE BENACHRICHTIGUNG ==================
 
@@ -4384,6 +4621,7 @@ Gruppen verwalten
         if (session.role === 'admin') {
           adminBtn.classList.remove('hidden');
           adminBtn.classList.add('flex');
+          if (window.startAdminPendingListener) window.startAdminPendingListener();
           let count = 0;
           try {
             const snap = await getDocs(query(groupsCol, where('status', '==', 'pending')));
@@ -4409,6 +4647,7 @@ Gruppen verwalten
             }
           }
         } else {
+          if (window.stopAdminPendingListener) window.stopAdminPendingListener();
           adminBtn.classList.add('hidden');
           adminBtn.classList.remove('flex');
           if (profileAdminBtn) { profileAdminBtn.classList.add('hidden'); profileAdminBtn.classList.remove('flex'); }
@@ -4426,6 +4665,7 @@ Gruppen verwalten
         ownLinksLastCheckAt = 0;
         ownLinksCheckedUser = '';
         if (window.stopOwnGroupApprovalListener) window.stopOwnGroupApprovalListener();
+        if (window.stopAdminPendingListener) window.stopAdminPendingListener();
         updateNotifBadges();
       }
     }
@@ -4622,14 +4862,18 @@ Gruppen verwalten
     // ---------- PROFILE PAGE (eigene Gruppen aus Firestore) ----------
     function profileGroupCardTemplate(item) {
       const isPending = item.status === 'pending';
+      const isRenewal = isPending && item.renewalRequested === true;
+      const isExpired = !window.viewingOtherProfile && item.status === 'approved' && expiredOwnGroups.some(function(e) { return e.id === item.id; });
       const groupTitle = item.name || (item.tags ? item.tags.split(' ')[0] : (item.category || 'WhatsApp Gruppe'));
       const desc = item.tags ? (item.tags + ' ' + (item.description || '')) : (item.description || '');
       const imgTag = item.image
-        ? '<img alt="Avatar" class="w-full h-full object-cover" src="' + escapeHtml(item.image) + '">'
+        ? '<img alt="Avatar" class="w-full h-full object-cover' + (isExpired ? ' grayscale opacity-70' : '') + '" src="' + escapeHtml(item.image) + '">'
         : '<span class="material-symbols-outlined text-slate-300 text-[40px] notranslate" translate="no">groups</span>';
       const dateStr = formatDate(item.approvedAt || item.submittedAt) || '';
-      const statusBadge = isPending
-        ? '<span class="inline-flex items-center gap-1 bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full text-[10px] font-semibold">In Prüfung</span>'
+      const statusBadge = isExpired
+        ? '<span class="inline-flex items-center gap-1 bg-red-100 text-red-700 px-2 py-0.5 rounded-full text-[10px] font-semibold"><span class="material-symbols-outlined text-[12px] notranslate" translate="no">link_off</span>Abgelaufen</span>'
+        : isPending
+        ? '<span class="inline-flex items-center gap-1 bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full text-[10px] font-semibold">' + (isRenewal ? 'Wird wiederhergestellt' : 'In Prüfung') + '</span>'
         : '<span class="text-sm font-bold text-slate-700 flex items-center gap-1">' + countryFlagHtml(item.country) + '<span class="text-amber-500 text-base">★</span> ' + (item.votes || 0) + '</span>';
       return '<div class="group-card bg-white rounded-xl border border-slate-200/90 shadow-2xs hover:shadow-md transition-all p-3.5 flex flex-col justify-between cursor-pointer relative"'
         + ' data-id="' + escapeHtml(item.id) + '" data-link="' + escapeHtml(item.link || '') + '" data-cat="' + escapeHtml(item.category || 'Allgemein') + '"'
@@ -4642,7 +4886,7 @@ Gruppen verwalten
         + '</div>'
         + '<div class="flex justify-center my-3"><div class="relative">'
         + '<div class="w-24 h-24 sm:w-28 sm:h-28 rounded-full overflow-hidden border border-slate-200 shadow-inner bg-slate-100 flex items-center justify-center">' + imgTag + '</div>'
-        + '<span class="absolute bottom-1 right-1.5 w-5 h-5 bg-emerald-500 border-2 border-white rounded-full"></span>'
+        + '<span class="absolute bottom-1 right-1.5 w-5 h-5 ' + (isExpired ? 'bg-red-500' : 'bg-emerald-500') + ' border-2 border-white rounded-full"></span>'
         + '</div></div>'
         + '<div class="text-center flex flex-col gap-1">'
         + '<h2 class="font-bold text-slate-900 text-sm sm:text-[15px] line-clamp-1 hover:text-emerald-700 transition-colors">' + escapeHtml(groupTitle) + '</h2>'
@@ -4652,6 +4896,7 @@ Gruppen verwalten
         + '<div class="flex items-center justify-between pt-3 mt-2 border-t border-slate-100 text-[11px]">'
         + '<span class="text-slate-400">' + escapeHtml(dateStr) + '</span>'
         + '<div class="flex items-center gap-1.5">'
+        + (isExpired ? '<button type="button" class="card-edit-btn w-6 h-6 rounded-full bg-red-50 hover:bg-red-100 text-red-600 flex items-center justify-center transition-colors" data-edit-id="' + escapeHtml(item.id) + '" title="Abgelaufene Gruppe bearbeiten"><span class="material-symbols-outlined text-[14px] notranslate" translate="no">edit</span></button>' : '')
         + '<button type="button" class="card-share-btn w-6 h-6 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition-colors" data-share-title="' + escapeHtml(groupTitle) + '" data-share-image="' + escapeHtml(item.image || '') + '" title="Gruppe teilen"><span class="material-symbols-outlined text-[14px] notranslate" translate="no">share</span></button>'
         + (item.category === 'Adult' ? '<span class="px-1.5 py-0.5 bg-red-600 text-white font-bold rounded text-[10px] tracking-wide">Ab 18+</span>' : '')
         + '</div>'
@@ -4755,6 +5000,14 @@ Gruppen verwalten
     const PROFILE_PAGE_SIZE = 12;
     let profileGroupsAll = [];
     let profileGroupsPage = 1;
+
+    // Zeichnet die Profil-Gruppen neu (z. B. wenn ein abgelaufener Link erkannt wurde)
+    window.refreshProfileGroupsIfOpen = function() {
+      const modal = document.getElementById('profile-page-modal');
+      if (!modal || modal.classList.contains('hidden') || window.viewingOtherProfile) return;
+      if (!profileGroupsAll.length) return;
+      renderProfileGroupsPage(profileGroupsPage);
+    };
 
     function renderProfileGroupsPage(page) {
       const grid = document.getElementById('profile-groups-grid');
@@ -5279,17 +5532,20 @@ Gruppen verwalten
 
     function pendingItemTemplate(item) {
       const dateStr = formatDate(item.submittedAt);
-      return '<div class="flex flex-col sm:flex-row sm:items-center gap-3 p-3.5 rounded-xl border border-slate-200 bg-slate-50" data-pending-id="' + escapeHtml(item.id) + '">'
+      return '<div class="flex flex-col sm:flex-row sm:items-center gap-3 p-3.5 rounded-xl border ' + (item.renewalRequested ? 'border-amber-200 bg-amber-50' : 'border-slate-200 bg-slate-50') + '" data-pending-id="' + escapeHtml(item.id) + '">'
         + '<div class="w-14 h-14 rounded-lg overflow-hidden bg-slate-100 border border-slate-200 shrink-0 flex items-center justify-center">'
         + (item.image ? '<img alt="Vorschau" class="w-full h-full object-cover" src="' + escapeHtml(item.image) + '">' : '<span class="material-symbols-outlined text-slate-300 text-[24px] notranslate" translate="no">groups</span>')
         + '</div>'
         + '<div class="flex-1 min-w-0 flex flex-col gap-1">'
         + '<div class="flex items-center gap-2 flex-wrap">'
         + '<span class="text-[10px] uppercase font-bold tracking-wide bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">' + escapeHtml(item.category) + '</span>'
-        + '<span class="text-[11px] text-slate-400">' + dateStr + '</span></div>'
+        + '<span class="text-[11px] text-slate-400">' + dateStr + '</span>'
+        + (item.renewalRequested ? '<span class="text-[10px] uppercase font-bold tracking-wide bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full inline-flex items-center gap-1"><span class="material-symbols-outlined text-[12px] notranslate" translate="no">restart_alt</span>Wiederherstellung</span>' : '')
+        + '</div>'
         + (item.name ? '<span class="text-sm font-bold text-slate-900 truncate">' + escapeHtml(item.name) + '</span>' : '')
         + '<a href="' + escapeHtml(item.link) + '" target="_blank" rel="noopener noreferrer" class="text-sm font-semibold text-slate-800 hover:underline truncate">' + escapeHtml(item.link) + '</a>'
         + '<p class="text-xs text-slate-500">' + escapeHtml(item.description || 'Keine Beschreibung angegeben.') + '</p>'
+        + (item.renewalRequested && item.previousLink ? '<span class="text-[11px] text-slate-400 truncate">Alter (abgelaufener) Link: ' + escapeHtml(item.previousLink) + '</span>' : '')
         + '<span class="text-[11px] text-slate-400">Eingereicht von: ' + escapeHtml(item.submittedBy || 'Gast') + (item.country ? ' · ' + escapeHtml(item.country.toUpperCase()) : '') + '</span>'
         + '</div>'
         + '<div class="flex sm:flex-col gap-2 shrink-0">'
@@ -5317,7 +5573,8 @@ Gruppen verwalten
       const container = document.getElementById('admin-pending-list');
       const empty = document.getElementById('admin-empty-state');
       const term = (document.getElementById('admin-search-input').value || '').trim().toLowerCase();
-      const list = adminPendingCache.filter(item => matchesAdminSearch(item, term));
+      const list = adminPendingCache.filter(item => matchesAdminSearch(item, term))
+        .sort((x, y) => (y.renewalRequested ? 1 : 0) - (x.renewalRequested ? 1 : 0));
 
       if (!list.length) {
         container.innerHTML = '';
@@ -5898,9 +6155,60 @@ Gruppen verwalten
       }
     };
 
+    // ---------- ADMIN: LIVE-BENACHRICHTIGUNG BEI WIEDERHERGESTELLTEN GRUPPEN ----------
+    // Beobachtet alle "pending"-Gruppen. Sobald ein Nutzer eine abgelaufene Gruppe wiederherstellt
+    // (renewalRequested = true), bekommt der Admin eine Geräte-Benachrichtigung + Eintrag in der Glocke
+    // und kann die Gruppe im Admin-Panel manuell annehmen.
+    let adminPendingUnsub = null;
+    function applyAdminPendingBadges(count) {
+      ['admin-pending-badge', 'profile-admin-pending-badge'].forEach(function(id) {
+        const b = document.getElementById(id);
+        if (!b) return;
+        b.textContent = count;
+        b.classList.toggle('hidden', !(count > 0));
+        b.classList.toggle('flex', count > 0);
+      });
+      const c = document.getElementById('profile-admin-pending-count');
+      if (c) c.textContent = count;
+    }
+    window.startAdminPendingListener = function() {
+      if (adminPendingUnsub) return;
+      let isFirst = true;
+      try {
+        adminPendingUnsub = onSnapshot(query(groupsCol, where('status', '==', 'pending')), function(snap) {
+          const docs = snap.docs.map(d => Object.assign({ id: d.id }, d.data()));
+          adminRenewalRequests = docs.filter(g => g.renewalRequested === true);
+          adminPendingCache = docs;
+          applyAdminPendingBadges(docs.length);
+          if (!isFirst) {
+            snap.docChanges().forEach(function(change) {
+              const d = change.doc.data();
+              if (change.type === 'added' && d.renewalRequested === true) {
+                showDeviceNotification('GruppenLink — Gruppe wiederhergestellt',
+                  '"' + (d.name || 'Eine Gruppe') + '" von ' + (d.submittedBy || 'Gast') + ' wartet auf deine Freigabe.',
+                  'renewal-' + change.doc.id);
+              }
+            });
+          }
+          isFirst = false;
+          const panel = document.getElementById('admin-panel-modal');
+          if (panel && !panel.classList.contains('hidden') && adminActiveTab === 'pending') renderPendingListFromCache();
+          updateNotifBadges();
+        }, function(err) { console.error('Fehler beim Beobachten ausstehender Gruppen:', err); });
+      } catch (e) { console.error('Admin-Listener konnte nicht gestartet werden:', e); }
+    };
+    window.stopAdminPendingListener = function() {
+      if (adminPendingUnsub) { adminPendingUnsub(); adminPendingUnsub = null; }
+      adminRenewalRequests = [];
+    };
+
     window.approvePendingGroup = async function(id) {
       try {
-        await updateDoc(doc(db, 'groups', id), { status: 'approved', approvedAt: serverTimestamp() });
+        const pendingItem = adminPendingCache.find(g => g.id === id);
+        const approvePayload = (pendingItem && pendingItem.renewalRequested)
+          ? { status: 'approved', renewalRequested: false, renewedAt: serverTimestamp() }
+          : { status: 'approved', approvedAt: serverTimestamp() };
+        await updateDoc(doc(db, 'groups', id), approvePayload);
         await renderPendingList();
         await updateHeaderForSession();
         showAdminFeedback('✓ Gruppe wurde angenommen und ist jetzt öffentlich sichtbar.', false);
@@ -6460,6 +6768,14 @@ Gruppen verwalten
           e.stopPropagation();
           const uname = creatorBtn.getAttribute('data-username');
           if (uname) window.openCreatorProfile(uname);
+          return;
+        }
+
+        // Klick auf den Stift einer abgelaufenen Gruppe: Bearbeiten-Dialog öffnen
+        const editBtn = e.target.closest('.card-edit-btn');
+        if (editBtn) {
+          e.stopPropagation();
+          window.openExpiredGroupEditModal(editBtn.getAttribute('data-edit-id'));
           return;
         }
 
