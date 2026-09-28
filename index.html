@@ -2437,7 +2437,7 @@ Gruppen verwalten
       </div>
       <div class="flex flex-col gap-1">
         <label class="text-xs font-semibold text-slate-700" for="eg-link">WhatsApp-Gruppenlink <span class="text-red-500">*</span></label>
-        <input class="w-full bg-slate-50 border border-slate-200 text-slate-800 placeholder-slate-400 px-3 py-2 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:bg-white transition-all" id="eg-link" oninput="window.egOnLinkInput()" placeholder="https://chat.whatsapp.com/..." type="url">
+        <input class="w-full bg-slate-50 border border-slate-200 text-slate-800 placeholder-slate-400 px-3 py-2 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:bg-white transition-all" id="eg-link" oninput="window.egOnLinkInput()" onchange="window.egOnLinkInput(true)" onkeydown="if (event.key === 'Enter') { event.preventDefault(); window.egOnLinkInput(true); }" placeholder="https://chat.whatsapp.com/..." type="url">
         <span class="text-[11px] text-slate-400 truncate" id="eg-old-link"></span>
       </div>
       <!-- Gruppenfoto: zeigt das aktuelle Foto; erscheint für den neuen Link ein neues Foto, wird es hier angezeigt -->
@@ -4238,7 +4238,7 @@ Gruppen verwalten
     // ---- Gruppenfoto-Vorschau im Bearbeiten-Dialog ----
     // Zeigt das bisherige Foto. Sobald ein gültiger neuer Link eingetragen ist, wird geprüft, ob die
     // Gruppe ein neues Foto hat: wenn ja, erscheint es sofort; wenn nicht, bleibt das bisherige Foto.
-    let egPreview = { link: '', url: null, done: false, token: 0, timer: null };
+    let egPreview = { link: '', url: null, done: false, started: false, token: 0, timer: null };
 
     function egPhotoStatus(text, cls) {
       const st = document.getElementById('eg-photo-status');
@@ -4256,34 +4256,49 @@ Gruppen verwalten
     function egResetPreview(msg) {
       const g = editingExpiredGroup;
       clearTimeout(egPreview.timer);
-      egPreview = { link: '', url: null, done: false, token: egPreview.token + 1, timer: null };
+      egPreview = { link: '', url: null, done: false, started: false, token: egPreview.token + 1, timer: null };
       egShowPhoto(g && g.image ? g.image : '', false);
       egPhotoStatus(msg || (g && g.image ? 'Aktuelles Foto. Trägst du einen neuen Link ein, wird ein neues Foto automatisch übernommen.' : 'Noch kein Foto vorhanden.'), 'text-slate-400');
     }
 
-    window.egOnLinkInput = function() {
+    // immediate=true (Enter / Feld verlassen): sofort suchen, ohne die kurze Tipp-Pause abzuwarten
+    window.egOnLinkInput = function(immediate) {
       const g = editingExpiredGroup;
       if (!g) return;
+      immediate = immediate === true;
       const link = document.getElementById('eg-link').value.trim();
       const valid = link && window.isValidWhatsappGroupLink && window.isValidWhatsappGroupLink(link);
-      if (!valid) { egResetPreview(); return; }
+      if (!valid) {
+        egResetPreview();
+        if (immediate && link) egPhotoStatus('Bitte gib einen gültigen WhatsApp-Gruppenlink ein (https://chat.whatsapp.com/...).', 'text-amber-600');
+        return;
+      }
       if (window.normalizeWhatsappLink(link) === window.normalizeWhatsappLink(g.link || '')) {
         egResetPreview('Das ist der bisherige Link – das Foto bleibt unverändert.');
         return;
       }
+      if (egPreview.link === link) {
+        // Für diesen Link läuft die Suche bereits oder ein neues Foto wurde schon gefunden
+        if (egPreview.started || (egPreview.done && egPreview.url)) return;
+        // Suche steht noch in der Tipp-Pause: bei Enter sofort starten; nach erfolgloser Suche erneut versuchen
+        if (!immediate && !egPreview.done) return;
+      }
       clearTimeout(egPreview.timer);
       const token = egPreview.token + 1;
-      egPreview = { link: link, url: null, done: false, token: token, timer: null };
+      egPreview = { link: link, url: null, done: false, started: false, token: token, timer: null };
       egShowPhoto(g.image || '', true);
       egPhotoStatus('Neues Foto wird gesucht...', 'text-slate-500');
-      egPreview.timer = setTimeout(async function() {
+
+      const run = async function() {
+        if (egPreview.token !== token) return;
+        egPreview.started = true;
         let newUrl = null;
         try {
           const response = await fetch(LINK_CHECK_PROXY_URL + encodeURIComponent(link));
           if (response.ok) { const data = await response.json(); if (data && data.imageUrl) newUrl = data.imageUrl; }
         } catch (e) { /* Foto ist optional */ }
         if (egPreview.token !== token || !editingExpiredGroup) return; // Eingabe hat sich inzwischen geändert
-        egPreview.url = newUrl; egPreview.done = true;
+        egPreview.url = newUrl; egPreview.done = true; egPreview.started = false;
         if (newUrl) {
           egShowPhoto(newUrl, false);
           egPhotoStatus('✓ Neues Gruppenfoto gefunden.', 'text-emerald-600 font-medium');
@@ -4291,7 +4306,8 @@ Gruppen verwalten
           egShowPhoto(g.image || '', false);
           egPhotoStatus('Kein neues Foto gefunden – das bisherige Foto bleibt erhalten.', 'text-slate-500');
         }
-      }, 500);
+      };
+      if (immediate) run(); else egPreview.timer = setTimeout(run, 500);
     };
 
     window.closeExpiredGroupEditModal = function() {
