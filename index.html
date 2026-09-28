@@ -5472,10 +5472,31 @@ Gruppen verwalten
       } catch (e) {}
     }
 
+    // Libera todo lo que el perfil pudo dejar abierto/bloqueado (diálogo de edición,
+    // menús del header, paneles de notificación y bloqueo de scroll del body).
+    // Sin esto, al volver al inicio la página podía quedar sin poder hacer scroll.
+    function glReleaseOverlays() {
+      if (window.__glEditSaveTimer) { clearTimeout(window.__glEditSaveTimer); window.__glEditSaveTimer = null; }
+      const em = document.getElementById('edit-profile-modal');
+      if (em) { em.classList.add('hidden'); em.classList.remove('flex'); }
+      if (typeof window.closeAllHeaderMenus === 'function') window.closeAllHeaderMenus();
+      document.querySelectorAll('.link-notif-panel').forEach(function(p) { p.classList.add('hidden'); });
+      // Scroll-Sperre nur lösen, wenn kein anderes Vollbild-Modal sichtbar ist
+      const anyOpen = Array.prototype.some.call(document.querySelectorAll('[id$="-modal"]'), function(el) {
+        return el.classList.contains('fixed') && getComputedStyle(el).display !== 'none';
+      });
+      if (!anyOpen) {
+        document.body.style.overflow = '';
+        document.documentElement.style.overflow = '';
+      }
+    }
+    window.glReleaseOverlays = glReleaseOverlays;
+
     function hideProfileModalOnly() {
       const modal = document.getElementById('profile-page-modal');
       if (modal) modal.classList.add('hidden');
       if (window.__glPrevTitle) { document.title = window.__glPrevTitle; window.__glPrevTitle = null; }
+      glReleaseOverlays();
     }
 
     window.addEventListener('popstate', function(e) {
@@ -5507,6 +5528,16 @@ Gruppen verwalten
           // Den zuvor angelegten History-Eintrag zurücknehmen;
           // der popstate-Listener oben blendet das Profil dann aus.
           history.back();
+          // Fallback: si el navegador no dispara popstate, el perfil se cierra igualmente
+          setTimeout(function() {
+            const m = document.getElementById('profile-page-modal');
+            if (m && !m.classList.contains('hidden')) {
+              try {
+                if (history.state && history.state.groupioModal === 'profile') history.replaceState({}, '', window.GL_BASE_PATH || '/');
+              } catch (e) {}
+              hideProfileModalOnly();
+            }
+          }, 350);
         }
       } else {
         hideProfileModalOnly();
@@ -5661,9 +5692,11 @@ Gruppen verwalten
         await updateHeaderForSession();
 
         showFeedback('✓ Profil erfolgreich aktualisiert!', false);
-        setTimeout(() => {
+        window.__glEditSaveTimer = setTimeout(() => {
+          window.__glEditSaveTimer = null;
           window.closeEditProfileModal();
-          window.openProfilePage();
+          const pm = document.getElementById('profile-page-modal');
+          if (pm && !pm.classList.contains('hidden')) window.openProfilePage();
         }, 900);
       } catch (err) {
         console.error('Fehler beim Speichern des Profils:', err);
@@ -5687,7 +5720,11 @@ Gruppen verwalten
     if (profileModalEl) profileModalEl.addEventListener('click', function(e) { if (e.target === this) window.closeProfilePage(); });
 
     const profileHeaderLogo = document.getElementById('profile-header-logo');
-    if (profileHeaderLogo) profileHeaderLogo.addEventListener('click', window.closeProfilePage);
+    if (profileHeaderLogo) profileHeaderLogo.addEventListener('click', function(e) {
+      e.preventDefault();
+      glReleaseOverlays();
+      window.closeProfilePage();
+    });
 
     const profileMobileToggle = document.getElementById('profile-mobile-search-toggle');
     if (profileMobileToggle) profileMobileToggle.addEventListener('click', function() {
@@ -7245,6 +7282,7 @@ Gruppen verwalten
     if (mainLogoLink) {
       mainLogoLink.addEventListener('click', function(e) {
         e.preventDefault();
+        if (window.glReleaseOverlays) window.glReleaseOverlays();
         if (desktopSearch) desktopSearch.value = '';
         if (mobileSearch) mobileSearch.value = '';
         currentCategoryFilter = null;
