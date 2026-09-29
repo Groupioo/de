@@ -1682,17 +1682,13 @@ Gruppen verwalten
 </div>
 </div>
 
-<!-- Tabs: Ausstehend / Akzeptiert / Abgelaufen / Mitteilung -->
+<!-- Tabs: Ausstehend / Akzeptiert / Mitteilung -->
 <div class="flex items-center p-1 bg-slate-100 rounded-xl">
   <button type="button" class="flex-1 py-1.5 px-2 text-[11px] sm:text-xs font-semibold rounded-lg transition-all bg-white text-[#006b53] shadow-xs" id="admin-tab-pending-btn" onclick="switchAdminTab('pending')">
     Ausstehend
   </button>
   <button type="button" class="flex-1 py-1.5 px-2 text-[11px] sm:text-xs font-semibold rounded-lg transition-all text-slate-500 hover:text-slate-800" id="admin-tab-approved-btn" onclick="switchAdminTab('approved')">
     Akzeptiert
-  </button>
-  <button type="button" class="flex-1 py-1.5 px-2 text-[11px] sm:text-xs font-semibold rounded-lg transition-all text-slate-500 hover:text-slate-800 relative" id="admin-tab-expired-btn" onclick="switchAdminTab('expired')">
-    Abgelaufen
-    <span class="admin-expired-badge hidden absolute -top-1.5 -right-1 min-w-[16px] h-4 px-1 rounded-full bg-red-500 text-white text-[10px] font-bold items-center justify-center">0</span>
   </button>
   <button type="button" class="flex-1 py-1.5 px-2 text-[11px] sm:text-xs font-semibold rounded-lg transition-all text-slate-500 hover:text-slate-800" id="admin-tab-broadcast-btn" onclick="switchAdminTab('broadcast')">
     Mitteilung
@@ -1729,26 +1725,6 @@ Gruppen verwalten
 </div>
 <div class="hidden items-center justify-center gap-1.5 pt-1 flex-wrap" id="admin-approved-pagination">
 <!-- wird dynamisch befüllt -->
-</div>
-
-<!-- ABGELAUFENE LINKS: prüft ALLE akzeptierten Gruppen site-weit, unabhängig davon,
-     wer sie eingetragen hat (im Unterschied zur Glocke/„Meine Gruppen“, die nur die
-     eigenen Gruppen des jeweils eingeloggten Nutzers prüfen). -->
-<div class="hidden flex-col gap-3" id="admin-expired-panel">
-  <div class="flex items-center justify-between gap-2 flex-wrap">
-    <p class="text-[11px] text-slate-400 flex-1 min-w-[180px]">Prüft alle akzeptierten Gruppen site-weit auf abgelaufene/ungültige Einladungslinks — unabhängig vom Ersteller.</p>
-    <button type="button" class="shrink-0 px-3 py-1.5 rounded-lg bg-red-50 border border-red-200 hover:bg-red-100 text-red-700 text-[11px] font-semibold flex items-center gap-1.5" onclick="window.scanExpiredApprovedGroups()">
-      <span class="material-symbols-outlined text-[15px] notranslate" translate="no">sync</span> Jetzt prüfen
-    </button>
-  </div>
-  <p class="text-[11px] text-slate-400 hidden" id="admin-expired-scan-status"></p>
-  <div class="flex flex-col gap-3" id="admin-expired-list">
-  <!-- wird dynamisch befüllt -->
-  </div>
-  <div class="hidden flex-col items-center justify-center gap-2 py-10 text-slate-400" id="admin-expired-empty-state">
-    <span class="material-symbols-outlined text-[40px] notranslate" translate="no">link_off</span>
-    <span class="text-sm font-medium">Keine abgelaufenen Links gefunden</span>
-  </div>
 </div>
 
 <!-- BENACHRICHTIGUNG AN ALLE NUTZER -->
@@ -6102,11 +6078,6 @@ Gruppen verwalten
         approvedList.classList.add('flex');
         tabApprovedBtn.className = activeCls;
         renderApprovedList();
-      } else if (adminActiveTab === 'expired') {
-        if (expiredPanel) { expiredPanel.classList.remove('hidden'); expiredPanel.classList.add('flex'); }
-        if (tabExpiredBtn) tabExpiredBtn.className = activeCls + ' relative';
-        renderAdminExpiredList();
-        if (window.scanExpiredApprovedGroups) window.scanExpiredApprovedGroups();
       } else if (adminActiveTab === 'broadcast') {
         broadcastPanel.classList.remove('hidden');
         broadcastPanel.classList.add('flex');
