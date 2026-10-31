@@ -6587,6 +6587,7 @@ Gruppen verwalten
       updateCategoryActiveStyles();
       applyFilters();
       if (updateUrl) setCategoryUrl(next);
+      if (window.glSeoUpdate) window.glSeoUpdate();
       const barEl = document.getElementById('category-bar-row');
       if (barEl) barEl.closest('main') ? window.scrollTo({ top: 0, behavior: 'smooth' }) : null;
     }
@@ -7082,6 +7083,184 @@ Gruppen verwalten
     });
 
     // ---------- GRUPPEN AUS FIRESTORE LADEN (status === approved) ----------
+    // ---- Selbstheilende Gruppenbilder: WhatsApp-CDN-URLs laufen nach einigen Tagen ab ----
+    (function setupSelfHealingGroupImages() {
+      const PROXY = 'https://groupio-whatsapp.cristhianzh1994.workers.dev?url=';
+      const tried = {};
+      function placeholder(img) {
+        const span = document.createElement('span');
+        span.className = 'material-symbols-outlined text-slate-300 text-[40px] notranslate';
+        span.setAttribute('translate', 'no');
+        span.textContent = 'groups';
+        if (img.parentNode) img.parentNode.replaceChild(span, img);
+      }
+      async function fetchFresh(link) {
+        try {
+          const cacheKey = 'gl_img_' + link;
+          let cached = null;
+          try { cached = sessionStorage.getItem(cacheKey); } catch (e) {}
+          if (cached) return cached;
+          const r = await fetch(PROXY + encodeURIComponent(link));
+          if (!r.ok) return null;
+          const d = await r.json();
+          const url = d && d.imageUrl ? d.imageUrl : null;
+          if (url) { try { sessionStorage.setItem(cacheKey, url); } catch (e) {} }
+          return url;
+        } catch (e) { return null; }
+      }
+      document.addEventListener('error', async function(ev) {
+        const img = ev.target;
+        if (!img || img.tagName !== 'IMG') return;
+        const card = img.closest && img.closest('.group-card');
+        if (!card) return;
+        const id = card.getAttribute('data-id');
+        const link = card.getAttribute('data-link');
+        if (!id || !link || tried[id]) { if (id && tried[id]) placeholder(img); return; }
+        tried[id] = true;
+        const fresh = await fetchFresh(link);
+        if (!fresh) { placeholder(img); return; }
+        document.querySelectorAll('.group-card[data-id="' + id + '"]').forEach(function(c) {
+          c.setAttribute('data-image', fresh);
+          const i = c.querySelector('img[alt="Avatar"]');
+          if (i) i.src = fresh;
+        });
+        try {
+          [allApprovedGroups, (typeof profileGroupsAll !== 'undefined' ? profileGroupsAll : null)].forEach(function(arr) {
+            if (Array.isArray(arr)) arr.forEach(function(g) { if (g && g.id === id) g.image = fresh; });
+          });
+        } catch (e) {}
+        // Dauerhaft speichern (schlägt still fehl, falls keine Berechtigung)
+        try { await updateDoc(doc(db, 'groups', id), { image: fresh }); } catch (e) {}
+      }, true);
+    })();
+
+    // ---------- DYNAMISCHES SEO: Canonical, Meta, Open Graph & JSON-LD je Kategorie / Gruppe ----------
+    // Google rendert JavaScript, daher werden Titel, Beschreibung, Canonical und strukturierte Daten
+    // passend zur aktuell angezeigten Seite (Startseite, /<kategorie>, ?grupo=<id>) gesetzt.
+    // Ergänzt wird das durch die dynamische sitemap.xml (siehe seo/worker-sitemap.js).
+    (function setupDynamicSeo() {
+      const SITE = 'https://gruppenlink.de';
+      const NOINDEX_CATS = ['Adult'];
+      const grpTitle = function(g) { return g.name || (g.tags ? g.tags.split(' ')[0] : (g.category || 'WhatsApp Gruppe')); };
+      const clip = function(s, n) { s = String(s || '').replace(/\s+/g, ' ').trim(); return s.length > n ? s.slice(0, n - 1).trimEnd() + '…' : s; };
+      function head(sel, create) {
+        let el = document.head.querySelector(sel);
+        if (!el && create) { el = create(); document.head.appendChild(el); }
+        return el;
+      }
+      function setMeta(attr, key, content) {
+        const el = head('meta[' + attr + '="' + key + '"]', function() { const m = document.createElement('meta'); m.setAttribute(attr, key); return m; });
+        el.setAttribute('content', content);
+      }
+      function setRobots(noindex) {
+        const el = document.head.querySelector('meta[name="robots"]');
+        if (noindex) setMeta('name', 'robots', 'noindex, follow');
+        else if (el) el.remove();
+      }
+      function setCanonical(url) {
+        const el = head('link[rel="canonical"]', function() { const l = document.createElement('link'); l.rel = 'canonical'; return l; });
+        el.setAttribute('href', url);
+      }
+      function setLd(obj) {
+        let el = document.getElementById('gl-dynamic-ld');
+        if (!obj) { if (el) el.remove(); return; }
+        if (!el) { el = document.createElement('script'); el.type = 'application/ld+json'; el.id = 'gl-dynamic-ld'; document.head.appendChild(el); }
+        el.textContent = JSON.stringify(obj).replace(/</g, '\\u003c');
+      }
+      function apply(o) {
+        document.title = o.title;
+        setMeta('name', 'description', o.desc);
+        setMeta('property', 'og:title', o.title);
+        setMeta('property', 'og:description', o.desc);
+        setMeta('property', 'og:url', o.url);
+        setMeta('name', 'twitter:title', o.title);
+        setMeta('name', 'twitter:description', o.desc);
+        setCanonical(o.url);
+        setRobots(o.noindex);
+        setLd(o.ld);
+      }
+      function breadcrumb(items) {
+        return { '@type': 'BreadcrumbList', itemListElement: items.map(function(it, i) {
+          return { '@type': 'ListItem', position: i + 1, name: it[0], item: it[1] };
+        }) };
+      }
+      function itemList(list) {
+        return { '@type': 'ItemList', numberOfItems: list.length, itemListElement: list.slice(0, 50).map(function(g, i) {
+          return { '@type': 'ListItem', position: i + 1, name: grpTitle(g), url: SITE + '/?grupo=' + encodeURIComponent(g.id) };
+        }) };
+      }
+
+      window.glSeoUpdate = function() {
+        try {
+          const qp = new URLSearchParams(window.location.search);
+          const gid = qp.get('grupo');
+          const groups = Array.isArray(allApprovedGroups) ? allApprovedGroups : [];
+          const indexable = groups.filter(function(g) { return NOINDEX_CATS.indexOf(g.category) === -1; });
+
+          // 1) Einzelne Gruppe
+          if (gid) {
+            const g = groups.find(function(x) { return x.id === gid; });
+            const url = SITE + '/?grupo=' + encodeURIComponent(gid);
+            if (!g) { return; }
+            const t = grpTitle(g);
+            const cat = g.category || 'Allgemein';
+            const title = t + ' – WhatsApp-Gruppe (' + cat + ') | GruppenLink';
+            const desc = clip(t + ' – WhatsApp-Gruppe in der Kategorie ' + cat + '. ' + (g.description || g.tags || '') + ' Jetzt kostenlos beitreten auf GruppenLink.', 158);
+            apply({ title: title, desc: desc, url: url, noindex: NOINDEX_CATS.indexOf(cat) !== -1, ld: {
+              '@context': 'https://schema.org',
+              '@graph': [
+                { '@type': 'WebPage', '@id': url, url: url, name: title, description: desc, inLanguage: 'de', isPartOf: { '@id': SITE + '/#website' },
+                  breadcrumb: { '@id': url + '#breadcrumb' } },
+                Object.assign({ '@id': url + '#breadcrumb' }, breadcrumb([['GruppenLink', SITE + '/'], [cat, SITE + '/' + window.glCatSlug(cat)], [t, url]]))
+              ]
+            } });
+            return;
+          }
+          // Profil-/Ersteller-Ansichten: nicht separat indexieren
+          if (qp.get('ersteller') || window.GL_PROFILE_PATH) { setCanonical(SITE + '/'); return; }
+
+          // 2) Kategorie
+          const cat = currentCategoryFilter || window.glCategoryFromPath();
+          if (cat) {
+            const url = SITE + '/' + window.glCatSlug(cat);
+            const inCat = indexable.filter(function(g) { return (g.category || 'Allgemein') === cat; });
+            const n = inCat.length;
+            const title = cat + ' WhatsApp-Gruppen' + (n ? ' (' + n + ')' : '') + ' – kostenlos beitreten | GruppenLink';
+            const desc = cat + ' WhatsApp-Gruppen: ' + (n ? n + ' aktive Gruppen' : 'Gruppen') + ' entdecken und per Link kostenlos beitreten. Gruppen aus DE, AT & CH – täglich aktualisiert auf GruppenLink.';
+            apply({ title: title, desc: desc, url: url, noindex: NOINDEX_CATS.indexOf(cat) !== -1, ld: {
+              '@context': 'https://schema.org',
+              '@graph': [
+                { '@type': 'CollectionPage', '@id': url, url: url, name: title, description: desc, inLanguage: 'de',
+                  isPartOf: { '@id': SITE + '/#website' }, breadcrumb: { '@id': url + '#breadcrumb' }, mainEntity: { '@id': url + '#list' } },
+                Object.assign({ '@id': url + '#breadcrumb' }, breadcrumb([['GruppenLink', SITE + '/'], [cat, url]])),
+                Object.assign({ '@id': url + '#list' }, itemList(inCat))
+              ]
+            } });
+            return;
+          }
+
+          // 3) Startseite
+          const url = SITE + '/';
+          const title = 'GruppenLink – WhatsApp-Gruppen finden, hinzufügen & Chatrooms';
+          const desc = 'GruppenLink: WhatsApp-Gruppen kostenlos finden und hinzufügen, plus Chatrooms für deutsche Städte. Gaming, Musik, Freundschaft, Flohmarkt & mehr – DE, AT, CH.';
+          apply({ title: title, desc: desc, url: url, noindex: false, ld: {
+            '@context': 'https://schema.org',
+            '@graph': [
+              { '@type': 'CollectionPage', '@id': url + '#groups', url: url, name: title, description: desc, inLanguage: 'de',
+                isPartOf: { '@id': SITE + '/#website' }, mainEntity: { '@id': url + '#list' } },
+              Object.assign({ '@id': url + '#list' }, itemList(indexable))
+            ]
+          } });
+        } catch (e) { /* SEO darf die Seite nie stören */ }
+      };
+
+      // Echte, crawlbare Links in der Kategorieleiste (statt href="#")
+      document.querySelectorAll('#category-bar-row .category-filter-btn').forEach(function(a) {
+        const c = a.getAttribute('data-category');
+        if (c) a.setAttribute('href', '/' + window.glCatSlug(c));
+      });
+    })();
+
     window.reloadApprovedGroups = async function() {
       const loadingState = document.getElementById('groups-loading-state');
       try {
@@ -7099,6 +7278,7 @@ Gruppen verwalten
       }
       if (loadingState) loadingState.remove();
       applySearch(currentQuery);
+      if (window.glSeoUpdate) window.glSeoUpdate();
     };
 
     // Suche
@@ -7121,6 +7301,7 @@ Gruppen verwalten
         currentCategoryFilter = null;
         updateCategoryActiveStyles();
         setCategoryUrl(null);
+        if (window.glSeoUpdate) window.glSeoUpdate();
         currentCountryFilter = null;
         updateCountryActiveStyles();
         currentTopVotedFilter = false;
