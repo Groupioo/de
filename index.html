@@ -7140,7 +7140,8 @@ Gruppen verwalten
     // Ergänzt wird das durch die dynamische sitemap.xml (siehe seo/worker-sitemap.js).
     (function setupDynamicSeo() {
       const SITE = 'https://gruppenlink.de';
-      const NOINDEX_CATS = ['Adult'];
+      const NOINDEX_CATS = []; // Adult wird jetzt indexiert
+      const ADULT_CATS = ['Adult']; // bekommt rating=adult (SafeSearch pro Seite) und bleibt aus der Startseiten-ItemList raus
       const grpTitle = function(g) { return g.name || (g.tags ? g.tags.split(' ')[0] : (g.category || 'WhatsApp Gruppe')); };
       const clip = function(s, n) { s = String(s || '').replace(/\s+/g, ' ').trim(); return s.length > n ? s.slice(0, n - 1).trimEnd() + '…' : s; };
       function head(sel, create) {
@@ -7177,6 +7178,9 @@ Gruppen verwalten
         setMeta('name', 'twitter:description', o.desc);
         setCanonical(o.url);
         setRobots(o.noindex);
+        // Adult-Seiten einzeln als "adult" markieren, damit Google nur diese Seiten (nicht die ganze Domain) per SafeSearch filtert
+        const adultEl = document.head.querySelector('meta[name="rating"]');
+        if (o.adult) setMeta('name', 'rating', 'adult'); else if (adultEl) adultEl.remove();
         setLd(o.ld);
       }
       function breadcrumb(items) {
@@ -7195,7 +7199,7 @@ Gruppen verwalten
           const qp = new URLSearchParams(window.location.search);
           const gid = qp.get('grupo');
           const groups = Array.isArray(allApprovedGroups) ? allApprovedGroups : [];
-          const indexable = groups.filter(function(g) { return NOINDEX_CATS.indexOf(g.category) === -1; });
+          const indexable = groups.filter(function(g) { return ADULT_CATS.indexOf(g.category) === -1; });
 
           // 1) Einzelne Gruppe
           if (gid) {
@@ -7206,7 +7210,7 @@ Gruppen verwalten
             const cat = g.category || 'Allgemein';
             const title = t + ' – WhatsApp-Gruppe (' + cat + ') | GruppenLink';
             const desc = clip(t + ' – WhatsApp-Gruppe in der Kategorie ' + cat + '. ' + (g.description || g.tags || '') + ' Jetzt kostenlos beitreten auf GruppenLink.', 158);
-            apply({ title: title, desc: desc, url: url, noindex: NOINDEX_CATS.indexOf(cat) !== -1, ld: {
+            apply({ title: title, desc: desc, url: url, noindex: NOINDEX_CATS.indexOf(cat) !== -1, adult: ADULT_CATS.indexOf(cat) !== -1, ld: {
               '@context': 'https://schema.org',
               '@graph': [
                 { '@type': 'WebPage', '@id': url, url: url, name: title, description: desc, inLanguage: 'de', isPartOf: { '@id': SITE + '/#website' },
@@ -7223,11 +7227,11 @@ Gruppen verwalten
           const cat = currentCategoryFilter || window.glCategoryFromPath();
           if (cat) {
             const url = SITE + '/' + window.glCatSlug(cat);
-            const inCat = indexable.filter(function(g) { return (g.category || 'Allgemein') === cat; });
+            const inCat = groups.filter(function(g) { return (g.category || 'Allgemein') === cat; });
             const n = inCat.length;
             const title = cat + ' WhatsApp-Gruppen' + (n ? ' (' + n + ')' : '') + ' – kostenlos beitreten | GruppenLink';
             const desc = cat + ' WhatsApp-Gruppen: ' + (n ? n + ' aktive Gruppen' : 'Gruppen') + ' entdecken und per Link kostenlos beitreten. Gruppen aus DE, AT & CH – täglich aktualisiert auf GruppenLink.';
-            apply({ title: title, desc: desc, url: url, noindex: NOINDEX_CATS.indexOf(cat) !== -1, ld: {
+            apply({ title: title, desc: desc, url: url, noindex: NOINDEX_CATS.indexOf(cat) !== -1, adult: ADULT_CATS.indexOf(cat) !== -1, ld: {
               '@context': 'https://schema.org',
               '@graph': [
                 { '@type': 'CollectionPage', '@id': url, url: url, name: title, description: desc, inLanguage: 'de',
