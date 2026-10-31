@@ -169,6 +169,12 @@
     .group-card:hover span:not(.card-share-btn *):not([class*="bg-"]):not(.material-symbols-outlined):not(.text-amber-500) { color: #065f46 !important; }
     .group-card:hover .card-share-btn { background-color: rgba(0,0,0,0.08); }
     .group-card:hover .card-share-btn .material-symbols-outlined { color: #065f46; }
+    /* Gruppen mit abgelaufenem Link: Schwarz-Weiß, nicht beitretbar, bis der Link wiederhergestellt wird */
+    .group-card.gl-link-expired { filter: grayscale(1); opacity: 0.65; cursor: default; }
+    .group-card.gl-link-expired:hover { background-color: #fff; border-color: rgba(226,232,240,0.9); }
+    .group-card.gl-link-expired:hover h2,
+    .group-card.gl-link-expired:hover p { color: inherit !important; }
+    #modal-whatsapp-link.gl-join-disabled { filter: grayscale(1); opacity: 0.5; pointer-events: none; }
 
     /* ============ HAMBURGER-MENÜ: ELEGANTE ANIMATION ============ */
     /* Icon: drei Balken, die zu einem X morphen */
@@ -3837,8 +3843,12 @@ Gruppen verwalten
               if (alive === true) {
                 aliveCache[aliveCacheKey(g)] = Date.now();
                 cacheChanged = true;
+                // Link funktioniert wieder -> Schwarz-Weiß-Markierung für alle Besucher aufheben
+                if (g.linkExpired === true) { try { await updateDoc(doc(db, 'groups', g.id), { linkExpired: false }); } catch (e) {} }
               } else if (alive === false && await confirmWhatsappLinkExpired(g.link)) {
                 confirmed.push(g);
+                // Für alle Besucher sichtbar machen (Startseite + Profil in Schwarz-Weiß)
+                if (g.linkExpired !== true) { try { await updateDoc(doc(db, 'groups', g.id), { linkExpired: true, linkExpiredAt: serverTimestamp() }); } catch (e) { console.warn('linkExpired konnte nicht gespeichert werden:', e && e.code); } }
                 // Sofort anzeigen, ohne auf die übrigen Gruppen zu warten.
                 if (!expiredOwnGroups.some(function(e) { return e.id === g.id; })) {
                   expiredOwnGroups = expiredOwnGroups.concat([g]);
@@ -4046,7 +4056,7 @@ Gruppen verwalten
       if (!g) return;
       editingExpiredGroup = g;
       clearTimeout(expiredEditCloseTimer);
-      const isExp = expiredOwnGroups.some(function(e) { return e.id === g.id; });
+      const isExp = g.linkExpired === true || expiredOwnGroups.some(function(e) { return e.id === g.id; });
       editingExpiredIsExpired = isExp;
       document.getElementById('eg-subtitle').textContent = isExp
         ? 'Der Link ist abgelaufen. Trage einen neuen WhatsApp-Link ein.'
@@ -4211,7 +4221,7 @@ Gruppen verwalten
 
       const payload = photoOnly ? {} : { link: newLink }; // nur Foto aktualisieren: Link unverändert lassen
       if (linkChanged) { payload.linkUpdatedAt = Date.now(); payload.previousLink = g.link || ''; }
-      if (isExp) { payload.status = 'pending'; payload.renewalRequested = true; payload.renewalRequestedAt = serverTimestamp(); }
+      if (isExp) { payload.status = 'pending'; payload.renewalRequested = true; payload.renewalRequestedAt = serverTimestamp(); payload.linkExpired = false; }
       if (fetchedImageUrl) payload.image = fetchedImageUrl;
 
       try {
@@ -4861,19 +4871,22 @@ Gruppen verwalten
       const isPending = item.status === 'pending';
       const isRenewal = isPending && item.renewalRequested === true;
       const canEdit = !window.viewingOtherProfile && item.status === 'approved';
-      const isExpired = canEdit && expiredOwnGroups.some(function(e) { return e.id === item.id; });
+      const flaggedExpired = item.linkExpired === true && !isPending;
+      const isExpired = canEdit && (flaggedExpired || expiredOwnGroups.some(function(e) { return e.id === item.id; }));
+      const showGray = isExpired || flaggedExpired;
       const groupTitle = item.name || (item.tags ? item.tags.split(' ')[0] : (item.category || 'WhatsApp Gruppe'));
       const desc = item.tags ? (item.tags + ' ' + (item.description || '')) : (item.description || '');
       const imgTag = item.image
-        ? '<img alt="Avatar" class="w-full h-full object-cover' + (isExpired ? ' grayscale opacity-70' : '') + '" src="' + escapeHtml(item.image) + '">'
+        ? '<img alt="Avatar" class="w-full h-full object-cover' + (showGray ? ' grayscale opacity-70' : '') + '" src="' + escapeHtml(item.image) + '">'
         : '<span class="material-symbols-outlined text-slate-300 text-[40px] notranslate" translate="no">groups</span>';
       const dateStr = formatDate(item.approvedAt || item.submittedAt) || '';
-      const statusBadge = isExpired
+      const statusBadge = (isExpired || flaggedExpired)
         ? '<span class="inline-flex items-center gap-1 bg-red-100 text-red-700 px-2 py-0.5 rounded-full text-[10px] font-semibold"><span class="material-symbols-outlined text-[12px] notranslate" translate="no">link_off</span>Abgelaufen</span>'
         : isPending
         ? '<span class="inline-flex items-center gap-1 bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full text-[10px] font-semibold">' + (isRenewal ? 'Wird wiederhergestellt' : 'In Prüfung') + '</span>'
         : '<span class="text-sm font-bold text-slate-700 flex items-center gap-1">' + countryFlagHtml(item.country) + '<span class="text-amber-500 text-base">★</span> ' + (item.votes || 0) + '</span>';
-      return '<div class="group-card bg-white rounded-xl border border-slate-200/90 shadow-2xs hover:shadow-md transition-all p-3.5 flex flex-col justify-between cursor-pointer relative"'
+      return '<div class="group-card' + (showGray ? ' gl-link-expired' : '') + ' bg-white rounded-xl border border-slate-200/90 shadow-2xs hover:shadow-md transition-all p-3.5 flex flex-col justify-between cursor-pointer relative"'
+        + (showGray ? ' data-expired="1"' : '')
         + ' data-id="' + escapeHtml(item.id) + '" data-link="' + escapeHtml(item.link || '') + '" data-cat="' + escapeHtml(item.category || 'Allgemein') + '"'
         + ' data-date="' + escapeHtml(dateStr) + '" data-desc="' + escapeHtml(desc) + '" data-group="' + escapeHtml(groupTitle) + '"'
         + ' data-title="' + escapeHtml(groupTitle) + '" data-votes="' + (item.votes || 0) + '" data-submitted-by="' + escapeHtml(item.submittedBy || '') + '"'
@@ -6273,7 +6286,7 @@ Gruppen verwalten
       try {
         const pendingItem = adminPendingCache.find(g => g.id === id);
         const approvePayload = (pendingItem && pendingItem.renewalRequested)
-          ? { status: 'approved', renewalRequested: false, renewedAt: serverTimestamp() }
+          ? { status: 'approved', renewalRequested: false, renewedAt: serverTimestamp(), linkExpired: false }
           : { status: 'approved', approvedAt: serverTimestamp() };
         await updateDoc(doc(db, 'groups', id), approvePayload);
         await renderPendingList();
@@ -6351,7 +6364,9 @@ Gruppen verwalten
         ? '<img alt="Avatar" class="w-full h-full object-cover" src="' + escapeHtml(item.image) + '">'
         : '<span class="material-symbols-outlined text-slate-300 text-[40px] notranslate" translate="no">groups</span>';
       const dateStr = formatDate(item.approvedAt || item.submittedAt) || '';
-      return '<div class="group-card bg-white rounded-xl border border-slate-200/90 shadow-2xs hover:shadow-md transition-all p-3.5 flex flex-col justify-between cursor-pointer relative"'
+      const linkExpired = item.linkExpired === true;
+      return '<div class="group-card' + (linkExpired ? ' gl-link-expired' : '') + ' bg-white rounded-xl border border-slate-200/90 shadow-2xs hover:shadow-md transition-all p-3.5 flex flex-col justify-between cursor-pointer relative"'
+        + (linkExpired ? ' data-expired="1" title="Link abgelaufen"' : '')
         + ' data-id="' + escapeHtml(item.id) + '" data-link="' + escapeHtml(item.link || '') + '" data-cat="' + escapeHtml(item.category || 'Allgemein') + '"'
         + ' data-date="' + escapeHtml(dateStr) + '" data-desc="' + escapeHtml(desc) + '" data-group="' + escapeHtml(groupTitle) + '"'
         + ' data-title="' + escapeHtml(groupTitle) + '" data-votes="' + (item.votes || 0) + '" data-submitted-by="' + escapeHtml(item.submittedBy || '') + '"'
@@ -6359,6 +6374,7 @@ Gruppen verwalten
         + '<div class="flex flex-col">'
         + '<div class="flex items-center justify-between min-h-[22px]">'
         + submitterAvatarHtml(item)
+        + (linkExpired ? '<span class="inline-flex items-center gap-1 bg-slate-200 text-slate-700 px-2 py-0.5 rounded-full text-[10px] font-semibold"><span class="material-symbols-outlined text-[12px] notranslate" translate="no">link_off</span>Abgelaufen</span>' : '')
         + '<span class="text-sm font-bold text-slate-700 flex items-center gap-1">' + countryFlagHtml(item.country) + '<span class="card-star text-amber-500 text-base">★</span> ' + (item.votes || 0) + '</span>'
         + '</div>'
         + '<div class="flex justify-center my-3"><div class="relative">'
@@ -6892,6 +6908,8 @@ Gruppen verwalten
 
         const card = e.target.closest('.group-card');
         if (!card) return;
+        // Abgelaufene Gruppe (Schwarz-Weiß): kein Beitritt, solange der Link nicht wiederhergestellt ist
+        if (card.getAttribute('data-expired') === '1') return;
         // Klick auf eine Gruppe: ZUERST erscheint die Benachrichtigung (Foto, Name, Button).
         // Erst beim Klick auf "Jetzt dem Chat beitreten" öffnet sich die neue Registerkarte mit dem Modal.
         const cardId = card.getAttribute('data-id') || '';
@@ -6952,7 +6970,9 @@ Gruppen verwalten
         mCat.textContent = cat;
         mDesc.textContent = desc;
         mVotes.textContent = votes + ' Stimmen';
-        mJoinLink.href = link;
+        const modalExpired = card.getAttribute('data-expired') === '1';
+        mJoinLink.href = modalExpired ? '#' : link;
+        mJoinLink.classList.toggle('gl-join-disabled', modalExpired);
 
         if (mGroupPhoto && mGroupPhotoFallback) {
           if (image) {
