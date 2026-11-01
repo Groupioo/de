@@ -528,7 +528,7 @@
 <header class="w-full bg-[#0d5c46] text-white shadow-md sticky top-0 z-40">
 <div class="max-w-[1240px] mx-auto px-3 sm:px-6 h-16 flex items-center justify-between gap-2 sm:gap-3">
 <!-- Logo -->
-<a class="flex items-center gap-2 text-white font-bold text-xl sm:text-2xl tracking-tight shrink-0 font-display" href="#" id="main-logo-link">
+<a class="flex items-center gap-2 text-white font-bold text-xl sm:text-2xl tracking-tight shrink-0 font-display" href="/" id="main-logo-link">
 <img alt="GruppenLink" class="w-11 h-11 shrink-0 object-contain" src="/logo_groupchat.png"/>
 <span class="max-[380px]:hidden">GruppenLink</span>
 </a>
@@ -3032,7 +3032,7 @@ Gruppen verwalten
       if (!link) return;
       e.preventDefault();
       e.stopPropagation();
-      window.location.href = window.GL_BASE_PATH;
+      window.location.href = '/';
     }, true);
   }
 })();
@@ -5594,7 +5594,11 @@ Gruppen verwalten
     if (profileHeaderLogo) profileHeaderLogo.addEventListener('click', function(e) {
       e.preventDefault();
       glReleaseOverlays();
-      window.closeProfilePage();
+      // Immer zur Startseite (nicht nur "zurück"): URL auf "/" setzen, Profil ausblenden, Startseite zurücksetzen
+      try { history.replaceState({}, '', '/'); } catch (err) {}
+      hideProfileModalOnly();
+      const homeLogo = document.getElementById('main-logo-link');
+      if (homeLogo) homeLogo.click(); else window.scrollTo({ top: 0 });
     });
 
     const profileMobileToggle = document.getElementById('profile-mobile-search-toggle');
@@ -7357,6 +7361,11 @@ Gruppen verwalten
         currentTopVotedFilter = false;
         updateTopVotedButtonStyle();
         window.applyGroupSearch('');
+        // Immer zur Startseite: URL ("/", ohne Profil/Kategorie/Suchparameter) und Titel zurücksetzen
+        try {
+          if (window.location.pathname !== '/' || window.location.search) history.replaceState({}, '', '/');
+          if (window.GL_BASE_TITLE) document.title = window.GL_BASE_TITLE;
+        } catch (err) {}
         window.scrollTo({ top: 0, behavior: 'smooth' });
       });
     }
