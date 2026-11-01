@@ -4007,30 +4007,50 @@ Gruppen verwalten
       btn.disabled = true;
       btn.textContent = '...';
 
+      // Die Gruppe gehört zu den abgelaufenen Gruppen des Nutzers -> alten Link merken (für den Admin)
+      let gObj = expiredOwnGroups.find(function(e) { return e.id === groupId; });
+      if (!gObj && typeof profileGroupsAll !== 'undefined') gObj = profileGroupsAll.find(function(e) { return e.id === groupId; });
+      const oldLink = (gObj && gObj.link) || '';
+      if (oldLink && window.normalizeWhatsappLink(newLink) === window.normalizeWhatsappLink(oldLink)) {
+        btn.disabled = false; btn.textContent = originalText;
+        showFeedback('Das ist noch derselbe abgelaufene Link. Bitte gib einen neuen Link ein.', true);
+        return;
+      }
+
       let fetchedImageUrl = null;
       try {
         const response = await fetch(LINK_CHECK_PROXY_URL + encodeURIComponent(newLink));
         if (response.ok) {
           const data = await response.json();
-          if (data && data.imageUrl) fetchedImageUrl = data.imageUrl;
+          if (data && data.imageUrl && !isGenericWhatsappImage(data.imageUrl)) fetchedImageUrl = data.imageUrl;
         }
       } catch (e) { /* Bild ist optional, Link wird trotzdem gespeichert */ }
 
-      const updatePayload = { link: newLink, linkUpdatedAt: Date.now() };
+      // Wie beim Stift-Dialog im Profil: Gruppe geht auf "pending" (renewalRequested), damit der Admin sie
+      // sieht, benachrichtigt wird und manuell wieder annehmen kann.
+      const updatePayload = {
+        link: newLink, linkUpdatedAt: Date.now(), previousLink: oldLink,
+        status: 'pending', renewalRequested: true, renewalRequestedAt: serverTimestamp(), linkExpired: false
+      };
       if (fetchedImageUrl) updatePayload.image = fetchedImageUrl;
 
       try {
         try {
           await updateDoc(doc(db, 'groups', groupId), updatePayload);
         } catch (firstErr) {
-          // Manche Firestore-Regeln erlauben nur das Feld "link". Dann mit dem Minimum erneut versuchen.
-          if (firstErr && firstErr.code === 'permission-denied' && Object.keys(updatePayload).length > 1) {
-            await updateDoc(doc(db, 'groups', groupId), { link: newLink });
+          // Falls die Regeln einzelne Felder ablehnen: Minimum erneut versuchen (Link + Freigabe-Anfrage)
+          if (firstErr && firstErr.code === 'permission-denied') {
+            await updateDoc(doc(db, 'groups', groupId), { link: newLink, linkUpdatedAt: Date.now(), status: 'pending', renewalRequested: true });
           } else {
             throw firstErr;
           }
         }
-        showFeedback('✓ Link wurde erfolgreich aktualisiert.', false);
+        showFeedback('✓ Deine Gruppe wird bald wiederhergestellt!', false);
+        if (typeof profileGroupsAll !== 'undefined') {
+          const idx = profileGroupsAll.findIndex(function(e) { return e.id === groupId; });
+          if (idx !== -1) profileGroupsAll[idx] = Object.assign({}, profileGroupsAll[idx], { link: newLink, status: 'pending', renewalRequested: true, linkExpired: false });
+        }
+        if (window.refreshProfileGroupsIfOpen) window.refreshProfileGroupsIfOpen();
         expiredOwnGroups = expiredOwnGroups.filter(function(g) { return g.id !== groupId; });
         pruneSeenExpired();
         // Kurz warten, damit der Nutzer die Erfolgsmeldung noch sieht, bevor die Karte
