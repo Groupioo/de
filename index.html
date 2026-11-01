@@ -3569,7 +3569,13 @@ Gruppen verwalten
     function isGenericWhatsappName(name) {
       const n = String(name == null ? '' : name).trim().toLowerCase();
       if (!n || n === 'whatsapp') return true;
+      if (/(page not found|not found|nicht gefunden|access to this page|has been blocked|blocked|error|fehler)/.test(n)) return true;
       return n.indexOf('whatsapp') !== -1 && /(invite|einladung|invitation|invitaci)/.test(n);
+    }
+    // Das WhatsApp-Standardbild (static.whatsapp.net / rsrc.php) ist KEIN Lebenszeichen einer Gruppe.
+    function isGenericWhatsappImage(url) {
+      try { const u = new URL(String(url)); return u.hostname === 'static.whatsapp.net' || /rsrc\.php/i.test(u.pathname); }
+      catch (e) { return false; }
     }
 
     function sleepMs(ms) { return new Promise(function(res) { setTimeout(res, ms); }); }
@@ -3584,7 +3590,7 @@ Gruppen verwalten
         if (!response.ok) return null;
         const data = await response.json();
         if (!data) return null;
-        if (data.imageUrl) return true;
+        if (data.imageUrl && !isGenericWhatsappImage(data.imageUrl)) return true;
         const name = data.name || data.groupName || data.subject || data.title;
         if (name && !isGenericWhatsappName(name)) return true;
         return false;
@@ -3848,7 +3854,7 @@ Gruppen verwalten
               } else if (alive === false && await confirmWhatsappLinkExpired(g.link)) {
                 confirmed.push(g);
                 // Für alle Besucher sichtbar machen (Startseite + Profil in Schwarz-Weiß)
-                if (g.linkExpired !== true) { try { await updateDoc(doc(db, 'groups', g.id), { linkExpired: true, linkExpiredAt: serverTimestamp() }); } catch (e) { console.warn('linkExpired konnte nicht gespeichert werden:', e && e.code); } }
+                // Die Schwarz-Weiß-Markierung für alle Besucher setzt NUR noch der Cloudflare-Worker (mit Schutz gegen WhatsApp-Blockaden).
                 // Sofort anzeigen, ohne auf die übrigen Gruppen zu warten.
                 if (!expiredOwnGroups.some(function(e) { return e.id === g.id; })) {
                   expiredOwnGroups = expiredOwnGroups.concat([g]);
