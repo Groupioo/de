@@ -169,6 +169,12 @@
     .group-card:hover span:not(.card-share-btn *):not([class*="bg-"]):not(.material-symbols-outlined):not(.text-amber-500) { color: #065f46 !important; }
     .group-card:hover .card-share-btn { background-color: rgba(0,0,0,0.08); }
     .group-card:hover .card-share-btn .material-symbols-outlined { color: #065f46; }
+    /* Gruppen mit abgelaufenem Link: Schwarz-Weiß, nicht beitretbar, bis der Link wiederhergestellt wird */
+    .group-card.gl-link-expired { filter: grayscale(1); opacity: 0.65; cursor: default; }
+    .group-card.gl-link-expired:hover { background-color: #fff; border-color: rgba(226,232,240,0.9); }
+    .group-card.gl-link-expired:hover h2,
+    .group-card.gl-link-expired:hover p { color: inherit !important; }
+    #modal-whatsapp-link.gl-join-disabled { filter: grayscale(1); opacity: 0.5; pointer-events: none; }
 
     /* ============ HAMBURGER-MENÜ: ELEGANTE ANIMATION ============ */
     /* Icon: drei Balken, die zu einem X morphen */
@@ -522,7 +528,7 @@
 <header class="w-full bg-[#0d5c46] text-white shadow-md sticky top-0 z-40">
 <div class="max-w-[1240px] mx-auto px-3 sm:px-6 h-16 flex items-center justify-between gap-2 sm:gap-3">
 <!-- Logo -->
-<a class="flex items-center gap-2 text-white font-bold text-xl sm:text-2xl tracking-tight shrink-0 font-display" href="#" id="main-logo-link">
+<a class="flex items-center gap-2 text-white font-bold text-xl sm:text-2xl tracking-tight shrink-0 font-display" href="/" id="main-logo-link">
 <img alt="GruppenLink" class="w-11 h-11 shrink-0 object-contain" src="/logo_groupchat.png"/>
 <span class="max-[380px]:hidden">GruppenLink</span>
 </a>
@@ -3026,7 +3032,7 @@ Gruppen verwalten
       if (!link) return;
       e.preventDefault();
       e.stopPropagation();
-      window.location.href = window.GL_BASE_PATH;
+      window.location.href = '/';
     }, true);
   }
 })();
@@ -3563,7 +3569,13 @@ Gruppen verwalten
     function isGenericWhatsappName(name) {
       const n = String(name == null ? '' : name).trim().toLowerCase();
       if (!n || n === 'whatsapp') return true;
+      if (/(page not found|not found|nicht gefunden|access to this page|has been blocked|blocked|error|fehler)/.test(n)) return true;
       return n.indexOf('whatsapp') !== -1 && /(invite|einladung|invitation|invitaci)/.test(n);
+    }
+    // Das WhatsApp-Standardbild (static.whatsapp.net / rsrc.php) ist KEIN Lebenszeichen einer Gruppe.
+    function isGenericWhatsappImage(url) {
+      try { const u = new URL(String(url)); return u.hostname === 'static.whatsapp.net' || /rsrc\.php/i.test(u.pathname); }
+      catch (e) { return false; }
     }
 
     function sleepMs(ms) { return new Promise(function(res) { setTimeout(res, ms); }); }
@@ -3578,7 +3590,7 @@ Gruppen verwalten
         if (!response.ok) return null;
         const data = await response.json();
         if (!data) return null;
-        if (data.imageUrl) return true;
+        if (data.imageUrl && !isGenericWhatsappImage(data.imageUrl)) return true;
         const name = data.name || data.groupName || data.subject || data.title;
         if (name && !isGenericWhatsappName(name)) return true;
         return false;
@@ -3837,8 +3849,12 @@ Gruppen verwalten
               if (alive === true) {
                 aliveCache[aliveCacheKey(g)] = Date.now();
                 cacheChanged = true;
+                // Link funktioniert wieder -> Schwarz-Weiß-Markierung für alle Besucher aufheben
+                if (g.linkExpired === true) { try { await updateDoc(doc(db, 'groups', g.id), { linkExpired: false }); } catch (e) {} }
               } else if (alive === false && await confirmWhatsappLinkExpired(g.link)) {
                 confirmed.push(g);
+                // Für alle Besucher sichtbar machen (Startseite + Profil in Schwarz-Weiß)
+                // Die Schwarz-Weiß-Markierung für alle Besucher setzt NUR noch der Cloudflare-Worker (mit Schutz gegen WhatsApp-Blockaden).
                 // Sofort anzeigen, ohne auf die übrigen Gruppen zu warten.
                 if (!expiredOwnGroups.some(function(e) { return e.id === g.id; })) {
                   expiredOwnGroups = expiredOwnGroups.concat([g]);
@@ -3991,30 +4007,50 @@ Gruppen verwalten
       btn.disabled = true;
       btn.textContent = '...';
 
+      // Die Gruppe gehört zu den abgelaufenen Gruppen des Nutzers -> alten Link merken (für den Admin)
+      let gObj = expiredOwnGroups.find(function(e) { return e.id === groupId; });
+      if (!gObj && typeof profileGroupsAll !== 'undefined') gObj = profileGroupsAll.find(function(e) { return e.id === groupId; });
+      const oldLink = (gObj && gObj.link) || '';
+      if (oldLink && window.normalizeWhatsappLink(newLink) === window.normalizeWhatsappLink(oldLink)) {
+        btn.disabled = false; btn.textContent = originalText;
+        showFeedback('Das ist noch derselbe abgelaufene Link. Bitte gib einen neuen Link ein.', true);
+        return;
+      }
+
       let fetchedImageUrl = null;
       try {
         const response = await fetch(LINK_CHECK_PROXY_URL + encodeURIComponent(newLink));
         if (response.ok) {
           const data = await response.json();
-          if (data && data.imageUrl) fetchedImageUrl = data.imageUrl;
+          if (data && data.imageUrl && !isGenericWhatsappImage(data.imageUrl)) fetchedImageUrl = data.imageUrl;
         }
       } catch (e) { /* Bild ist optional, Link wird trotzdem gespeichert */ }
 
-      const updatePayload = { link: newLink, linkUpdatedAt: Date.now() };
+      // Wie beim Stift-Dialog im Profil: Gruppe geht auf "pending" (renewalRequested), damit der Admin sie
+      // sieht, benachrichtigt wird und manuell wieder annehmen kann.
+      const updatePayload = {
+        link: newLink, linkUpdatedAt: Date.now(), previousLink: oldLink,
+        status: 'pending', renewalRequested: true, renewalRequestedAt: serverTimestamp(), linkExpired: false
+      };
       if (fetchedImageUrl) updatePayload.image = fetchedImageUrl;
 
       try {
         try {
           await updateDoc(doc(db, 'groups', groupId), updatePayload);
         } catch (firstErr) {
-          // Manche Firestore-Regeln erlauben nur das Feld "link". Dann mit dem Minimum erneut versuchen.
-          if (firstErr && firstErr.code === 'permission-denied' && Object.keys(updatePayload).length > 1) {
-            await updateDoc(doc(db, 'groups', groupId), { link: newLink });
+          // Falls die Regeln einzelne Felder ablehnen: Minimum erneut versuchen (Link + Freigabe-Anfrage)
+          if (firstErr && firstErr.code === 'permission-denied') {
+            await updateDoc(doc(db, 'groups', groupId), { link: newLink, linkUpdatedAt: Date.now(), status: 'pending', renewalRequested: true });
           } else {
             throw firstErr;
           }
         }
-        showFeedback('✓ Link wurde erfolgreich aktualisiert.', false);
+        showFeedback('✓ Deine Gruppe wird bald wiederhergestellt!', false);
+        if (typeof profileGroupsAll !== 'undefined') {
+          const idx = profileGroupsAll.findIndex(function(e) { return e.id === groupId; });
+          if (idx !== -1) profileGroupsAll[idx] = Object.assign({}, profileGroupsAll[idx], { link: newLink, status: 'pending', renewalRequested: true, linkExpired: false });
+        }
+        if (window.refreshProfileGroupsIfOpen) window.refreshProfileGroupsIfOpen();
         expiredOwnGroups = expiredOwnGroups.filter(function(g) { return g.id !== groupId; });
         pruneSeenExpired();
         // Kurz warten, damit der Nutzer die Erfolgsmeldung noch sieht, bevor die Karte
@@ -4046,7 +4082,7 @@ Gruppen verwalten
       if (!g) return;
       editingExpiredGroup = g;
       clearTimeout(expiredEditCloseTimer);
-      const isExp = expiredOwnGroups.some(function(e) { return e.id === g.id; });
+      const isExp = g.linkExpired === true || expiredOwnGroups.some(function(e) { return e.id === g.id; });
       editingExpiredIsExpired = isExp;
       document.getElementById('eg-subtitle').textContent = isExp
         ? 'Der Link ist abgelaufen. Trage einen neuen WhatsApp-Link ein.'
@@ -4211,7 +4247,7 @@ Gruppen verwalten
 
       const payload = photoOnly ? {} : { link: newLink }; // nur Foto aktualisieren: Link unverändert lassen
       if (linkChanged) { payload.linkUpdatedAt = Date.now(); payload.previousLink = g.link || ''; }
-      if (isExp) { payload.status = 'pending'; payload.renewalRequested = true; payload.renewalRequestedAt = serverTimestamp(); }
+      if (isExp) { payload.status = 'pending'; payload.renewalRequested = true; payload.renewalRequestedAt = serverTimestamp(); payload.linkExpired = false; }
       if (fetchedImageUrl) payload.image = fetchedImageUrl;
 
       try {
@@ -4861,19 +4897,22 @@ Gruppen verwalten
       const isPending = item.status === 'pending';
       const isRenewal = isPending && item.renewalRequested === true;
       const canEdit = !window.viewingOtherProfile && item.status === 'approved';
-      const isExpired = canEdit && expiredOwnGroups.some(function(e) { return e.id === item.id; });
+      const flaggedExpired = item.linkExpired === true && !isPending;
+      const isExpired = canEdit && (flaggedExpired || expiredOwnGroups.some(function(e) { return e.id === item.id; }));
+      const showGray = isExpired || flaggedExpired;
       const groupTitle = item.name || (item.tags ? item.tags.split(' ')[0] : (item.category || 'WhatsApp Gruppe'));
       const desc = item.tags ? (item.tags + ' ' + (item.description || '')) : (item.description || '');
       const imgTag = item.image
-        ? '<img alt="Avatar" class="w-full h-full object-cover' + (isExpired ? ' grayscale opacity-70' : '') + '" src="' + escapeHtml(item.image) + '">'
+        ? '<img alt="Avatar" class="w-full h-full object-cover' + (showGray ? ' grayscale opacity-70' : '') + '" src="' + escapeHtml(item.image) + '">'
         : '<span class="material-symbols-outlined text-slate-300 text-[40px] notranslate" translate="no">groups</span>';
       const dateStr = formatDate(item.approvedAt || item.submittedAt) || '';
-      const statusBadge = isExpired
+      const statusBadge = (isExpired || flaggedExpired)
         ? '<span class="inline-flex items-center gap-1 bg-red-100 text-red-700 px-2 py-0.5 rounded-full text-[10px] font-semibold"><span class="material-symbols-outlined text-[12px] notranslate" translate="no">link_off</span>Abgelaufen</span>'
         : isPending
         ? '<span class="inline-flex items-center gap-1 bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full text-[10px] font-semibold">' + (isRenewal ? 'Wird wiederhergestellt' : 'In Prüfung') + '</span>'
         : '<span class="text-sm font-bold text-slate-700 flex items-center gap-1">' + countryFlagHtml(item.country) + '<span class="text-amber-500 text-base">★</span> ' + (item.votes || 0) + '</span>';
-      return '<div class="group-card bg-white rounded-xl border border-slate-200/90 shadow-2xs hover:shadow-md transition-all p-3.5 flex flex-col justify-between cursor-pointer relative"'
+      return '<div class="group-card' + (showGray ? ' gl-link-expired' : '') + ' bg-white rounded-xl border border-slate-200/90 shadow-2xs hover:shadow-md transition-all p-3.5 flex flex-col justify-between cursor-pointer relative"'
+        + (showGray ? ' data-expired="1"' : '')
         + ' data-id="' + escapeHtml(item.id) + '" data-link="' + escapeHtml(item.link || '') + '" data-cat="' + escapeHtml(item.category || 'Allgemein') + '"'
         + ' data-date="' + escapeHtml(dateStr) + '" data-desc="' + escapeHtml(desc) + '" data-group="' + escapeHtml(groupTitle) + '"'
         + ' data-title="' + escapeHtml(groupTitle) + '" data-votes="' + (item.votes || 0) + '" data-submitted-by="' + escapeHtml(item.submittedBy || '') + '"'
@@ -5555,7 +5594,11 @@ Gruppen verwalten
     if (profileHeaderLogo) profileHeaderLogo.addEventListener('click', function(e) {
       e.preventDefault();
       glReleaseOverlays();
-      window.closeProfilePage();
+      // Immer zur Startseite (nicht nur "zurück"): URL auf "/" setzen, Profil ausblenden, Startseite zurücksetzen
+      try { history.replaceState({}, '', '/'); } catch (err) {}
+      hideProfileModalOnly();
+      const homeLogo = document.getElementById('main-logo-link');
+      if (homeLogo) homeLogo.click(); else window.scrollTo({ top: 0 });
     });
 
     const profileMobileToggle = document.getElementById('profile-mobile-search-toggle');
@@ -6273,7 +6316,7 @@ Gruppen verwalten
       try {
         const pendingItem = adminPendingCache.find(g => g.id === id);
         const approvePayload = (pendingItem && pendingItem.renewalRequested)
-          ? { status: 'approved', renewalRequested: false, renewedAt: serverTimestamp() }
+          ? { status: 'approved', renewalRequested: false, renewedAt: serverTimestamp(), linkExpired: false }
           : { status: 'approved', approvedAt: serverTimestamp() };
         await updateDoc(doc(db, 'groups', id), approvePayload);
         await renderPendingList();
@@ -6351,7 +6394,9 @@ Gruppen verwalten
         ? '<img alt="Avatar" class="w-full h-full object-cover" src="' + escapeHtml(item.image) + '">'
         : '<span class="material-symbols-outlined text-slate-300 text-[40px] notranslate" translate="no">groups</span>';
       const dateStr = formatDate(item.approvedAt || item.submittedAt) || '';
-      return '<div class="group-card bg-white rounded-xl border border-slate-200/90 shadow-2xs hover:shadow-md transition-all p-3.5 flex flex-col justify-between cursor-pointer relative"'
+      const linkExpired = item.linkExpired === true;
+      return '<div class="group-card' + (linkExpired ? ' gl-link-expired' : '') + ' bg-white rounded-xl border border-slate-200/90 shadow-2xs hover:shadow-md transition-all p-3.5 flex flex-col justify-between cursor-pointer relative"'
+        + (linkExpired ? ' data-expired="1" title="Link abgelaufen"' : '')
         + ' data-id="' + escapeHtml(item.id) + '" data-link="' + escapeHtml(item.link || '') + '" data-cat="' + escapeHtml(item.category || 'Allgemein') + '"'
         + ' data-date="' + escapeHtml(dateStr) + '" data-desc="' + escapeHtml(desc) + '" data-group="' + escapeHtml(groupTitle) + '"'
         + ' data-title="' + escapeHtml(groupTitle) + '" data-votes="' + (item.votes || 0) + '" data-submitted-by="' + escapeHtml(item.submittedBy || '') + '"'
@@ -6359,6 +6404,7 @@ Gruppen verwalten
         + '<div class="flex flex-col">'
         + '<div class="flex items-center justify-between min-h-[22px]">'
         + submitterAvatarHtml(item)
+        + (linkExpired ? '<span class="inline-flex items-center gap-1 bg-slate-200 text-slate-700 px-2 py-0.5 rounded-full text-[10px] font-semibold"><span class="material-symbols-outlined text-[12px] notranslate" translate="no">link_off</span>Abgelaufen</span>' : '')
         + '<span class="text-sm font-bold text-slate-700 flex items-center gap-1">' + countryFlagHtml(item.country) + '<span class="card-star text-amber-500 text-base">★</span> ' + (item.votes || 0) + '</span>'
         + '</div>'
         + '<div class="flex justify-center my-3"><div class="relative">'
@@ -6587,6 +6633,7 @@ Gruppen verwalten
       updateCategoryActiveStyles();
       applyFilters();
       if (updateUrl) setCategoryUrl(next);
+      if (window.glSeoUpdate) window.glSeoUpdate();
       const barEl = document.getElementById('category-bar-row');
       if (barEl) barEl.closest('main') ? window.scrollTo({ top: 0, behavior: 'smooth' }) : null;
     }
@@ -6891,6 +6938,8 @@ Gruppen verwalten
 
         const card = e.target.closest('.group-card');
         if (!card) return;
+        // Abgelaufene Gruppe (Schwarz-Weiß): kein Beitritt, solange der Link nicht wiederhergestellt ist
+        if (card.getAttribute('data-expired') === '1') return;
         // Klick auf eine Gruppe: ZUERST erscheint die Benachrichtigung (Foto, Name, Button).
         // Erst beim Klick auf "Jetzt dem Chat beitreten" öffnet sich die neue Registerkarte mit dem Modal.
         const cardId = card.getAttribute('data-id') || '';
@@ -6951,7 +7000,9 @@ Gruppen verwalten
         mCat.textContent = cat;
         mDesc.textContent = desc;
         mVotes.textContent = votes + ' Stimmen';
-        mJoinLink.href = link;
+        const modalExpired = card.getAttribute('data-expired') === '1';
+        mJoinLink.href = modalExpired ? '#' : link;
+        mJoinLink.classList.toggle('gl-join-disabled', modalExpired);
 
         if (mGroupPhoto && mGroupPhotoFallback) {
           if (image) {
@@ -7082,6 +7133,188 @@ Gruppen verwalten
     });
 
     // ---------- GRUPPEN AUS FIRESTORE LADEN (status === approved) ----------
+    // ---- Selbstheilende Gruppenbilder: WhatsApp-CDN-URLs laufen nach einigen Tagen ab ----
+    (function setupSelfHealingGroupImages() {
+      const PROXY = 'https://groupio-whatsapp.cristhianzh1994.workers.dev?url=';
+      const tried = {};
+      function placeholder(img) {
+        const span = document.createElement('span');
+        span.className = 'material-symbols-outlined text-slate-300 text-[40px] notranslate';
+        span.setAttribute('translate', 'no');
+        span.textContent = 'groups';
+        if (img.parentNode) img.parentNode.replaceChild(span, img);
+      }
+      async function fetchFresh(link) {
+        try {
+          const cacheKey = 'gl_img_' + link;
+          let cached = null;
+          try { cached = sessionStorage.getItem(cacheKey); } catch (e) {}
+          if (cached) return cached;
+          const r = await fetch(PROXY + encodeURIComponent(link));
+          if (!r.ok) return null;
+          const d = await r.json();
+          const url = d && d.imageUrl ? d.imageUrl : null;
+          if (url) { try { sessionStorage.setItem(cacheKey, url); } catch (e) {} }
+          return url;
+        } catch (e) { return null; }
+      }
+      document.addEventListener('error', async function(ev) {
+        const img = ev.target;
+        if (!img || img.tagName !== 'IMG') return;
+        const card = img.closest && img.closest('.group-card');
+        if (!card) return;
+        const id = card.getAttribute('data-id');
+        const link = card.getAttribute('data-link');
+        if (!id || !link || tried[id]) { if (id && tried[id]) placeholder(img); return; }
+        tried[id] = true;
+        const fresh = await fetchFresh(link);
+        if (!fresh) { placeholder(img); return; }
+        document.querySelectorAll('.group-card[data-id="' + id + '"]').forEach(function(c) {
+          c.setAttribute('data-image', fresh);
+          const i = c.querySelector('img[alt="Avatar"]');
+          if (i) i.src = fresh;
+        });
+        try {
+          [allApprovedGroups, (typeof profileGroupsAll !== 'undefined' ? profileGroupsAll : null)].forEach(function(arr) {
+            if (Array.isArray(arr)) arr.forEach(function(g) { if (g && g.id === id) g.image = fresh; });
+          });
+        } catch (e) {}
+        // Dauerhaft speichern (schlägt still fehl, falls keine Berechtigung)
+        try { await updateDoc(doc(db, 'groups', id), { image: fresh }); } catch (e) {}
+      }, true);
+    })();
+
+    // ---------- DYNAMISCHES SEO: Canonical, Meta, Open Graph & JSON-LD je Kategorie / Gruppe ----------
+    // Google rendert JavaScript, daher werden Titel, Beschreibung, Canonical und strukturierte Daten
+    // passend zur aktuell angezeigten Seite (Startseite, /<kategorie>, ?grupo=<id>) gesetzt.
+    // Ergänzt wird das durch die dynamische sitemap.xml (siehe seo/worker-sitemap.js).
+    (function setupDynamicSeo() {
+      const SITE = 'https://gruppenlink.de';
+      const NOINDEX_CATS = []; // Adult wird jetzt indexiert
+      const ADULT_CATS = ['Adult']; // bekommt rating=adult (SafeSearch pro Seite) und bleibt aus der Startseiten-ItemList raus
+      const grpTitle = function(g) { return g.name || (g.tags ? g.tags.split(' ')[0] : (g.category || 'WhatsApp Gruppe')); };
+      const clip = function(s, n) { s = String(s || '').replace(/\s+/g, ' ').trim(); return s.length > n ? s.slice(0, n - 1).trimEnd() + '…' : s; };
+      function head(sel, create) {
+        let el = document.head.querySelector(sel);
+        if (!el && create) { el = create(); document.head.appendChild(el); }
+        return el;
+      }
+      function setMeta(attr, key, content) {
+        const el = head('meta[' + attr + '="' + key + '"]', function() { const m = document.createElement('meta'); m.setAttribute(attr, key); return m; });
+        el.setAttribute('content', content);
+      }
+      function setRobots(noindex) {
+        const el = document.head.querySelector('meta[name="robots"]');
+        if (noindex) setMeta('name', 'robots', 'noindex, follow');
+        else if (el) el.remove();
+      }
+      function setCanonical(url) {
+        const el = head('link[rel="canonical"]', function() { const l = document.createElement('link'); l.rel = 'canonical'; return l; });
+        el.setAttribute('href', url);
+      }
+      function setLd(obj) {
+        let el = document.getElementById('gl-dynamic-ld');
+        if (!obj) { if (el) el.remove(); return; }
+        if (!el) { el = document.createElement('script'); el.type = 'application/ld+json'; el.id = 'gl-dynamic-ld'; document.head.appendChild(el); }
+        el.textContent = JSON.stringify(obj).replace(/</g, '\\u003c');
+      }
+      function apply(o) {
+        document.title = o.title;
+        setMeta('name', 'description', o.desc);
+        setMeta('property', 'og:title', o.title);
+        setMeta('property', 'og:description', o.desc);
+        setMeta('property', 'og:url', o.url);
+        setMeta('name', 'twitter:title', o.title);
+        setMeta('name', 'twitter:description', o.desc);
+        setCanonical(o.url);
+        setRobots(o.noindex);
+        // Adult-Seiten einzeln als "adult" markieren, damit Google nur diese Seiten (nicht die ganze Domain) per SafeSearch filtert
+        const adultEl = document.head.querySelector('meta[name="rating"]');
+        if (o.adult) setMeta('name', 'rating', 'adult'); else if (adultEl) adultEl.remove();
+        setLd(o.ld);
+      }
+      function breadcrumb(items) {
+        return { '@type': 'BreadcrumbList', itemListElement: items.map(function(it, i) {
+          return { '@type': 'ListItem', position: i + 1, name: it[0], item: it[1] };
+        }) };
+      }
+      function itemList(list) {
+        return { '@type': 'ItemList', numberOfItems: list.length, itemListElement: list.slice(0, 50).map(function(g, i) {
+          return { '@type': 'ListItem', position: i + 1, name: grpTitle(g), url: SITE + '/?grupo=' + encodeURIComponent(g.id) };
+        }) };
+      }
+
+      window.glSeoUpdate = function() {
+        try {
+          const qp = new URLSearchParams(window.location.search);
+          const gid = qp.get('grupo');
+          const groups = Array.isArray(allApprovedGroups) ? allApprovedGroups : [];
+          const indexable = groups.filter(function(g) { return ADULT_CATS.indexOf(g.category) === -1; });
+
+          // 1) Einzelne Gruppe
+          if (gid) {
+            const g = groups.find(function(x) { return x.id === gid; });
+            const url = SITE + '/?grupo=' + encodeURIComponent(gid);
+            if (!g) { return; }
+            const t = grpTitle(g);
+            const cat = g.category || 'Allgemein';
+            const title = t + ' – WhatsApp-Gruppe (' + cat + ') | GruppenLink';
+            const desc = clip(t + ' – WhatsApp-Gruppe in der Kategorie ' + cat + '. ' + (g.description || g.tags || '') + ' Jetzt kostenlos beitreten auf GruppenLink.', 158);
+            apply({ title: title, desc: desc, url: url, noindex: NOINDEX_CATS.indexOf(cat) !== -1, adult: ADULT_CATS.indexOf(cat) !== -1, ld: {
+              '@context': 'https://schema.org',
+              '@graph': [
+                { '@type': 'WebPage', '@id': url, url: url, name: title, description: desc, inLanguage: 'de', isPartOf: { '@id': SITE + '/#website' },
+                  breadcrumb: { '@id': url + '#breadcrumb' } },
+                Object.assign({ '@id': url + '#breadcrumb' }, breadcrumb([['GruppenLink', SITE + '/'], [cat, SITE + '/' + window.glCatSlug(cat)], [t, url]]))
+              ]
+            } });
+            return;
+          }
+          // Profil-/Ersteller-Ansichten: nicht separat indexieren
+          if (qp.get('ersteller') || window.GL_PROFILE_PATH) { setCanonical(SITE + '/'); return; }
+
+          // 2) Kategorie
+          const cat = currentCategoryFilter || window.glCategoryFromPath();
+          if (cat) {
+            const url = SITE + '/' + window.glCatSlug(cat);
+            const inCat = groups.filter(function(g) { return (g.category || 'Allgemein') === cat; });
+            const n = inCat.length;
+            const title = cat + ' WhatsApp-Gruppen' + (n ? ' (' + n + ')' : '') + ' – kostenlos beitreten | GruppenLink';
+            const desc = cat + ' WhatsApp-Gruppen: ' + (n ? n + ' aktive Gruppen' : 'Gruppen') + ' entdecken und per Link kostenlos beitreten. Gruppen aus DE, AT & CH – täglich aktualisiert auf GruppenLink.';
+            apply({ title: title, desc: desc, url: url, noindex: NOINDEX_CATS.indexOf(cat) !== -1, adult: ADULT_CATS.indexOf(cat) !== -1, ld: {
+              '@context': 'https://schema.org',
+              '@graph': [
+                { '@type': 'CollectionPage', '@id': url, url: url, name: title, description: desc, inLanguage: 'de',
+                  isPartOf: { '@id': SITE + '/#website' }, breadcrumb: { '@id': url + '#breadcrumb' }, mainEntity: { '@id': url + '#list' } },
+                Object.assign({ '@id': url + '#breadcrumb' }, breadcrumb([['GruppenLink', SITE + '/'], [cat, url]])),
+                Object.assign({ '@id': url + '#list' }, itemList(inCat))
+              ]
+            } });
+            return;
+          }
+
+          // 3) Startseite
+          const url = SITE + '/';
+          const title = 'GruppenLink – WhatsApp-Gruppen finden, hinzufügen & Chatrooms';
+          const desc = 'GruppenLink: WhatsApp-Gruppen kostenlos finden und hinzufügen, plus Chatrooms für deutsche Städte. Gaming, Musik, Freundschaft, Flohmarkt & mehr – DE, AT, CH.';
+          apply({ title: title, desc: desc, url: url, noindex: false, ld: {
+            '@context': 'https://schema.org',
+            '@graph': [
+              { '@type': 'CollectionPage', '@id': url + '#groups', url: url, name: title, description: desc, inLanguage: 'de',
+                isPartOf: { '@id': SITE + '/#website' }, mainEntity: { '@id': url + '#list' } },
+              Object.assign({ '@id': url + '#list' }, itemList(indexable))
+            ]
+          } });
+        } catch (e) { /* SEO darf die Seite nie stören */ }
+      };
+
+      // Echte, crawlbare Links in der Kategorieleiste (statt href="#")
+      document.querySelectorAll('#category-bar-row .category-filter-btn').forEach(function(a) {
+        const c = a.getAttribute('data-category');
+        if (c) a.setAttribute('href', '/' + window.glCatSlug(c));
+      });
+    })();
+
     window.reloadApprovedGroups = async function() {
       const loadingState = document.getElementById('groups-loading-state');
       try {
@@ -7099,6 +7332,7 @@ Gruppen verwalten
       }
       if (loadingState) loadingState.remove();
       applySearch(currentQuery);
+      if (window.glSeoUpdate) window.glSeoUpdate();
     };
 
     // Suche
@@ -7121,11 +7355,17 @@ Gruppen verwalten
         currentCategoryFilter = null;
         updateCategoryActiveStyles();
         setCategoryUrl(null);
+        if (window.glSeoUpdate) window.glSeoUpdate();
         currentCountryFilter = null;
         updateCountryActiveStyles();
         currentTopVotedFilter = false;
         updateTopVotedButtonStyle();
         window.applyGroupSearch('');
+        // Immer zur Startseite: URL ("/", ohne Profil/Kategorie/Suchparameter) und Titel zurücksetzen
+        try {
+          if (window.location.pathname !== '/' || window.location.search) history.replaceState({}, '', '/');
+          if (window.GL_BASE_TITLE) document.title = window.GL_BASE_TITLE;
+        } catch (err) {}
         window.scrollTo({ top: 0, behavior: 'smooth' });
       });
     }
