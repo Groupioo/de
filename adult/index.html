@@ -43,7 +43,7 @@
 <meta name="twitter:description" content="GruppenLink: WhatsApp-Gruppen kostenlos finden und hinzufügen, plus Chatrooms für deutsche Städte. Gaming, Musik, Freundschaft, Flohmarkt &amp; mehr – DE, AT, CH.">
 <meta name="twitter:image" content="https://gruppenlink.de/apple-touch-icon.png">
 <link rel="icon" type="image/png" href="/favicon-16.png">
-<link rel="manifest" href="manifest.json?v=2">
+<link rel="manifest" href="/manifest.json?v=2">
 <meta name="theme-color" content="#0d5c46">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -243,6 +243,24 @@
       }
     }
   </style>
+<script>
+  // ===== SPA-Routing: ursprüngliche URL wiederherstellen =====
+  // 1) 404.html leitet unbekannte Pfade (/adult, /gaming, /grupo/123, /<profil>) nach /?__gl=<pfad> um.
+  //    Hier wird die echte URL per replaceState zurückgesetzt, bevor irgendein anderes Skript sie liest.
+  // 2) /grupo/<id> ist ein Alias für die bestehende Gruppen-Adresse /?grupo=<id> (kanonisch bleibt /?grupo=<id>).
+  (function () {
+    try {
+      var q = new URLSearchParams(window.location.search);
+      var raw = q.get('__gl');
+      var fromFallback = raw !== null;
+      var path = fromFallback ? raw : window.location.pathname + window.location.search;
+      if (path.charAt(0) !== '/' || path.charAt(1) === '/' || path.charAt(1) === '\\') { path = '/'; }
+      var m = path.match(/^\/grupo\/([^\/?#]+)\/?(?:\?(.*))?$/i);
+      if (m) path = '/?grupo=' + m[1] + (m[2] ? '&' + m[2] : '');
+      if (fromFallback || m) window.history.replaceState(window.history.state, '', path + window.location.hash);
+    } catch (e) {}
+  })();
+</script>
 <script>
   // Gruppen-Ansicht (neuer Tab): Header + nur das Beitreten-Modal, eingebettet in die Seite
   (function () {
@@ -7255,7 +7273,7 @@ Gruppen verwalten
           if (gid) {
             const g = groups.find(function(x) { return x.id === gid; });
             const url = SITE + '/?grupo=' + encodeURIComponent(gid);
-            if (!g) { return; }
+            if (!g) { if (groups.length) { setRobots(true); } return; }
             const t = grpTitle(g);
             const cat = g.category || 'Allgemein';
             const title = t + ' – WhatsApp-Gruppe (' + cat + ') | GruppenLink';
@@ -7541,7 +7559,7 @@ Gruppen verwalten
       // Service Worker registrieren (Voraussetzung für Installierbarkeit auf Chrome/Android)
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', function() {
-          navigator.serviceWorker.register('sw.js').catch(function(err) {
+          navigator.serviceWorker.register('/sw.js').catch(function(err) {
             console.error('Service-Worker-Registrierung fehlgeschlagen:', err);
           });
         });
