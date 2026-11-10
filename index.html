@@ -256,7 +256,7 @@
       var path = fromFallback ? raw : window.location.pathname + window.location.search;
       if (path.charAt(0) !== '/' || path.charAt(1) === '/' || path.charAt(1) === '\\') { path = '/'; }
       var m = path.match(/^\/grupo\/([^\/?#]+)\/?(?:\?(.*))?$/i);
-      if (m) path = '/?grupo=' + m[1] + (m[2] ? '&' + m[2] : '');
+      if (m) { var gm = m[1].match(/([A-Za-z0-9]{20})$/); path = '/?grupo=' + (gm ? gm[1] : m[1]) + (m[2] ? '&' + m[2] : ''); }
       if (fromFallback || m) window.history.replaceState(window.history.state, '', path + window.location.hash);
     } catch (e) {}
   })();
@@ -7210,6 +7210,8 @@ Gruppen verwalten
       const SITE = 'https://gruppenlink.de';
       const NOINDEX_CATS = []; // Adult wird jetzt indexiert
       const ADULT_CATS = ['Adult']; // bekommt rating=adult (SafeSearch pro Seite) und bleibt aus der Startseiten-ItemList raus
+      const glSlug = function(x) { return String(x || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9\s-]/g, '').trim().replace(/\s+/g, '-').replace(/-+/g, '-').slice(0, 60).replace(/-$/, ''); };
+      window.glGroupUrl = function(g) { return SITE + '/grupo/' + (glSlug(g.name || (g.tags ? g.tags.split(' ')[0] : (g.category || 'gruppe'))) || 'gruppe') + '-' + g.id + '/'; };
       const grpTitle = function(g) { return g.name || (g.tags ? g.tags.split(' ')[0] : (g.category || 'WhatsApp Gruppe')); };
       const clip = function(s, n) { s = String(s || '').replace(/\s+/g, ' ').trim(); return s.length > n ? s.slice(0, n - 1).trimEnd() + '…' : s; };
       function head(sel, create) {
@@ -7258,21 +7260,26 @@ Gruppen verwalten
       }
       function itemList(list) {
         return { '@type': 'ItemList', numberOfItems: list.length, itemListElement: list.slice(0, 50).map(function(g, i) {
-          return { '@type': 'ListItem', position: i + 1, name: grpTitle(g), url: SITE + '/?grupo=' + encodeURIComponent(g.id) };
+          return { '@type': 'ListItem', position: i + 1, name: grpTitle(g), url: window.glGroupUrl(g) };
         }) };
       }
 
       window.glSeoUpdate = function() {
         try {
           const qp = new URLSearchParams(window.location.search);
-          const gid = qp.get('grupo');
+          let gid = qp.get('grupo');
           const groups = Array.isArray(allApprovedGroups) ? allApprovedGroups : [];
           const indexable = groups.filter(function(g) { return ADULT_CATS.indexOf(g.category) === -1; });
+          if (!gid && qp.get('ersteller') && qp.get('gruppe')) {
+            const cr = qp.get('ersteller').toLowerCase(), gs = glSlug(qp.get('gruppe'));
+            const hit = groups.find(function(x) { return String(x.submittedBy || '').toLowerCase() === cr && glSlug(grpTitle(x)) === gs; });
+            if (hit) gid = hit.id;
+          }
 
           // 1) Einzelne Gruppe
           if (gid) {
             const g = groups.find(function(x) { return x.id === gid; });
-            const url = SITE + '/?grupo=' + encodeURIComponent(gid);
+            const url = g ? window.glGroupUrl(g) : SITE + '/?grupo=' + encodeURIComponent(gid);
             if (!g) { if (groups.length) { setRobots(true); } return; }
             const t = grpTitle(g);
             const cat = g.category || 'Allgemein';
@@ -7283,7 +7290,7 @@ Gruppen verwalten
               '@graph': [
                 { '@type': 'WebPage', '@id': url, url: url, name: title, description: desc, inLanguage: 'de', isPartOf: { '@id': SITE + '/#website' },
                   breadcrumb: { '@id': url + '#breadcrumb' } },
-                Object.assign({ '@id': url + '#breadcrumb' }, breadcrumb([['GruppenLink', SITE + '/'], [cat, SITE + '/' + window.glCatSlug(cat)], [t, url]]))
+                Object.assign({ '@id': url + '#breadcrumb' }, breadcrumb([['GruppenLink', SITE + '/'], [cat, SITE + '/' + window.glCatSlug(cat) + '/'], [t, url]]))
               ]
             } });
             return;
@@ -7294,7 +7301,7 @@ Gruppen verwalten
           // 2) Kategorie
           const cat = currentCategoryFilter || window.glCategoryFromPath();
           if (cat) {
-            const url = SITE + '/' + window.glCatSlug(cat);
+            const url = SITE + '/' + window.glCatSlug(cat) + '/';
             const inCat = groups.filter(function(g) { return (g.category || 'Allgemein') === cat; });
             const n = inCat.length;
             const title = cat + ' WhatsApp-Gruppen' + (n ? ' (' + n + ')' : '') + ' – kostenlos beitreten | GruppenLink';
@@ -7329,7 +7336,7 @@ Gruppen verwalten
       // Echte, crawlbare Links in der Kategorieleiste (statt href="#")
       document.querySelectorAll('#category-bar-row .category-filter-btn').forEach(function(a) {
         const c = a.getAttribute('data-category');
-        if (c) a.setAttribute('href', '/' + window.glCatSlug(c));
+        if (c) a.setAttribute('href', '/' + window.glCatSlug(c) + '/');
       });
     })();
 
@@ -7682,5 +7689,6 @@ Gruppen verwalten
     })();
   </script>
   <!-- ===================== FIN PWA ===================== -->
+<!--GL-SEO-START--><!--GL-SEO-END-->
 </body>
 </html>
