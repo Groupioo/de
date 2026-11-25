@@ -100,7 +100,8 @@ for (const c of CATEGORIES) {
     .replace(/(<link rel="canonical" href=")[^"]*(")/, (_, a, b) => a + url + b)
     .replace(/(<meta property="og:url" content=")[^"]*(")/, (_, a, b) => a + url + b)
     .replace(/(<meta property="og:title" content=")[^"]*(")/, (_, a, b) => a + esc(ttl) + b)
-    .replace(/(<meta property="og:description" content=")[^"]*(")/, (_, a, b) => a + esc(desc) + b);
+    .replace(/(<meta property="og:description" content=")[^"]*(")/, (_, a, b) => a + esc(desc) + b)
+    .replace(/(id="category-heading">)[^<]*(<)/, (_, a, b) => a + esc(`Deutsche ${c} WhatsApp Gruppen 2026`) + b);
   if (ADULT.includes(c)) h = h.replace('</head>', '<meta name="rating" content="adult"></head>');
   write(`${catSlug(c)}/index.html`, h);
 }
