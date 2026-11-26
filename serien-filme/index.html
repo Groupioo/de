@@ -3272,6 +3272,10 @@ Gruppen verwalten
           status.textContent = 'Kein Gruppenbild gefunden. Es wird ein Platzhalter verwendet.';
           status.className = 'text-[11px] text-red-500 font-medium leading-snug';
           clearAutoGroupName();
+        } else if (state === 'busy') {
+          placeholder.classList.remove('hidden');
+          status.textContent = 'WhatsApp antwortet gerade nicht (zu viele Anfragen). Dein Link ist nicht falsch – bitte versuche es in 1–2 Minuten noch einmal.';
+          status.className = 'text-[11px] text-amber-600 font-medium leading-snug';
         } else if (state === 'invalid') {
           placeholder.classList.remove('hidden');
           status.textContent = 'Bitte gib einen gültigen WhatsApp-Gruppenlink ein (https://chat.whatsapp.com/...).';
@@ -3296,11 +3300,14 @@ Gruppen verwalten
           const cleanLink = normalizeWhatsappLink(link);
           // Bis zu 3 Versuche: WhatsApp antwortet gelegentlich ohne Daten (Rate-Limit), beim 2. Mal klappt es meist.
           let data = null;
+          let blocked = false;
           for (let attempt = 0; attempt < 3; attempt++) {
             try {
               const response = await fetch(WHATSAPP_PROXY_URL + encodeURIComponent(cleanLink));
               if (token !== fetchToken) return; // ein neuerer Aufruf läuft bereits
+              if (response.status === 503 || response.status === 429) blocked = true;
               if (response.ok) {
+                blocked = false;
                 data = await response.json();
                 if (token !== fetchToken) return;
                 if (data && data.imageUrl) break;
@@ -3313,6 +3320,7 @@ Gruppen verwalten
               if (token !== fetchToken) return;
             }
           }
+          if (!data && blocked) { setPreviewState('busy'); return; }
           if (!data) throw new Error('Keine Antwort vom Worker');
           // Der Worker kann den Gruppennamen unter verschiedenen Feldnamen liefern,
           // je nachdem wie die WhatsApp-Metadaten intern benannt sind.
