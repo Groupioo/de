@@ -769,6 +769,9 @@
         <div class="relative">
           <textarea class="w-full bg-slate-50 border border-slate-200 text-slate-800 placeholder-slate-400 pl-3 pr-10 py-2.5 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:bg-white transition-all resize-none" id="group-desc-input" name="description" placeholder="Beschreibung zur Gruppe" required="" rows="3"></textarea>
           <button type="button" class="absolute right-2.5 top-2.5 text-lg leading-none hover:scale-110 transition-transform" onclick="insertDescEmoji('😊')" title="Emoji einfügen">😊</button>
+          <div id="desc-hint-toast" role="status" aria-live="polite" class="pointer-events-none absolute left-0 bottom-full mb-2 z-10 opacity-0 translate-y-1 transition-all duration-200">
+            <div class="relative bg-slate-800 text-white text-[11px] sm:text-xs font-medium px-3 py-1.5 rounded-lg shadow-lg whitespace-nowrap">Empfohlen: ein Absatz mit 150 bis 300 Zeichen.<span class="absolute left-4 top-full w-0 h-0 border-x-[6px] border-x-transparent border-t-[6px] border-t-slate-800"></span></div>
+          </div>
         </div>
         <p class="text-[11px] text-slate-400 leading-snug mt-0.5">Empfohlen: ein Absatz mit 150 bis 300 Zeichen.</p>
       </div>
@@ -3367,6 +3370,26 @@ Gruppen verwalten
       const cursor = start + emoji.length;
       textarea.setSelectionRange(cursor, cursor);
     };
+
+    // ====== BESCHREIBUNG: kleine Hinweis-Benachrichtigung beim Anklicken ======
+    (function() {
+      const ta = document.getElementById('group-desc-input');
+      const toast = document.getElementById('desc-hint-toast');
+      if (!ta || !toast) return;
+      let timer = null;
+      function show() {
+        toast.classList.remove('opacity-0', 'translate-y-1');
+        clearTimeout(timer);
+        timer = setTimeout(hide, 3500);
+      }
+      function hide() {
+        clearTimeout(timer);
+        toast.classList.add('opacity-0', 'translate-y-1');
+      }
+      ta.addEventListener('focus', show);
+      ta.addEventListener('click', show);
+      ta.addEventListener('blur', hide);
+    })();
 
     // ====== HASHTAGS: automatisch mit "#" versehen, falls vergessen ======
     (function() {
