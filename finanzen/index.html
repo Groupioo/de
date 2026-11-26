@@ -3291,11 +3291,29 @@ Gruppen verwalten
         window.currentGroupImageUrl = null;
         setPreviewState('loading');
         try {
-          const response = await fetch(WHATSAPP_PROXY_URL + encodeURIComponent(link));
-          if (token !== fetchToken) return; // ein neuerer Aufruf läuft bereits
-          if (!response.ok) throw new Error('Worker antwortete mit Status ' + response.status);
-          const data = await response.json();
-          if (token !== fetchToken) return;
+          // Nur der reine Einladungslink wird abgefragt: Zusätze wie ?s=cl&p=a&ilr=... (aus "Link teilen")
+          // führen dazu, dass WhatsApp keine Gruppendaten liefert.
+          const cleanLink = normalizeWhatsappLink(link);
+          // Bis zu 3 Versuche: WhatsApp antwortet gelegentlich ohne Daten (Rate-Limit), beim 2. Mal klappt es meist.
+          let data = null;
+          for (let attempt = 0; attempt < 3; attempt++) {
+            try {
+              const response = await fetch(WHATSAPP_PROXY_URL + encodeURIComponent(cleanLink));
+              if (token !== fetchToken) return; // ein neuerer Aufruf läuft bereits
+              if (response.ok) {
+                data = await response.json();
+                if (token !== fetchToken) return;
+                if (data && data.imageUrl) break;
+              }
+            } catch (e) {
+              if (token !== fetchToken) return;
+            }
+            if (attempt < 2) {
+              await new Promise(function(res) { setTimeout(res, 900); });
+              if (token !== fetchToken) return;
+            }
+          }
+          if (!data) throw new Error('Keine Antwort vom Worker');
           // Der Worker kann den Gruppennamen unter verschiedenen Feldnamen liefern,
           // je nachdem wie die WhatsApp-Metadaten intern benannt sind.
           const groupName = data && (data.name || data.groupName || data.subject || data.title);
@@ -3661,7 +3679,7 @@ Gruppen verwalten
     // echten Gruppennamen -> gilt als aktiv. Früher wurde sie fälschlich als abgelaufen gemeldet.
     async function checkWhatsappLinkAlive(link) {
       try {
-        const response = await fetch(LINK_CHECK_PROXY_URL + encodeURIComponent(String(link || '').trim()));
+        const response = await fetch(LINK_CHECK_PROXY_URL + encodeURIComponent((window.normalizeWhatsappLink ? window.normalizeWhatsappLink(String(link || '').trim()) : String(link || '').trim())));
         if (!response.ok) return null;
         const data = await response.json();
         if (!data) return null;
@@ -4094,7 +4112,7 @@ Gruppen verwalten
 
       let fetchedImageUrl = null;
       try {
-        const response = await fetch(LINK_CHECK_PROXY_URL + encodeURIComponent(newLink));
+        const response = await fetch(LINK_CHECK_PROXY_URL + encodeURIComponent((window.normalizeWhatsappLink ? window.normalizeWhatsappLink(newLink) : newLink)));
         if (response.ok) {
           const data = await response.json();
           if (data && data.imageUrl && !isGenericWhatsappImage(data.imageUrl)) fetchedImageUrl = data.imageUrl;
@@ -4274,7 +4292,7 @@ Gruppen verwalten
         egPreview.started = true;
         let newUrl = null;
         try {
-          const response = await fetch(LINK_CHECK_PROXY_URL + encodeURIComponent(link));
+          const response = await fetch(LINK_CHECK_PROXY_URL + encodeURIComponent((window.normalizeWhatsappLink ? window.normalizeWhatsappLink(link) : link)));
           if (response.ok) { const data = await response.json(); if (data && data.imageUrl) newUrl = data.imageUrl; }
         } catch (e) { /* Foto ist optional */ }
         if (egPreview.token !== token || !editingExpiredGroup) return; // Eingabe hat sich inzwischen geändert
@@ -4360,7 +4378,7 @@ Gruppen verwalten
           fetchedImageUrl = egPreview.url; // bereits in der Vorschau gefunden (oder null: bisheriges Foto bleibt)
         } else {
           try {
-            const response = await fetch(LINK_CHECK_PROXY_URL + encodeURIComponent(newLink));
+            const response = await fetch(LINK_CHECK_PROXY_URL + encodeURIComponent((window.normalizeWhatsappLink ? window.normalizeWhatsappLink(newLink) : newLink)));
             if (response.ok) { const data = await response.json(); if (data && data.imageUrl) fetchedImageUrl = data.imageUrl; }
           } catch (e) { /* Bild ist optional */ }
         }
