@@ -724,7 +724,16 @@
               <span class="w-4 h-4 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin block"></span>
             </div>
           </div>
-          <p class="text-[11px] text-slate-400 leading-snug" id="group-image-preview-status">Gib einen WhatsApp-Gruppenlink ein, um die Vorschau zu laden.</p>
+          <div class="min-w-0 flex-1">
+            <p class="text-[11px] text-slate-400 leading-snug" id="group-image-preview-status">Gib einen WhatsApp-Gruppenlink ein, um die Vorschau zu laden.</p>
+            <div class="hidden mt-1.5" id="group-image-upload-row">
+              <button type="button" id="group-image-upload-btn" class="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-white border border-emerald-300 hover:bg-emerald-50 px-2.5 py-1 rounded-lg transition-colors">
+                <span class="material-symbols-outlined text-[14px] notranslate" translate="no">add_photo_alternate</span>
+                <span id="group-image-upload-label">Eigenes Gruppenbild hochladen</span>
+              </button>
+              <input type="file" accept="image/*" class="hidden" id="group-image-upload-input">
+            </div>
+          </div>
         </div>
       </div>
 
@@ -3257,7 +3266,18 @@ Gruppen verwalten
         spinner.classList.add('hidden');
         spinner.classList.remove('flex');
 
-        if (state === 'loading') {
+        // Eigenes Bild hochladen: nur anbieten, wenn WhatsApp kein Bild liefert (Fehler/überlastet) oder schon eines gewählt wurde
+        const uploadRow = document.getElementById('group-image-upload-row');
+        const uploadLabel = document.getElementById('group-image-upload-label');
+        if (uploadRow) uploadRow.classList.toggle('hidden', !(state === 'error' || state === 'busy' || state === 'manual'));
+        if (uploadLabel) uploadLabel.textContent = state === 'manual' ? 'Anderes Bild wählen' : 'Eigenes Gruppenbild hochladen';
+
+        if (state === 'manual') {
+          img.src = imageUrl;
+          img.classList.remove('hidden');
+          status.textContent = '✓ Eigenes Gruppenbild ausgewählt.';
+          status.className = 'text-[11px] text-emerald-600 font-medium leading-snug';
+        } else if (state === 'loading') {
           spinner.classList.remove('hidden');
           spinner.classList.add('flex');
           status.textContent = 'Gruppendaten werden geladen...';
@@ -3269,12 +3289,12 @@ Gruppen verwalten
           status.className = 'text-[11px] text-emerald-600 font-medium leading-snug';
         } else if (state === 'error') {
           placeholder.classList.remove('hidden');
-          status.textContent = 'Kein Gruppenbild gefunden. Es wird ein Platzhalter verwendet.';
+          status.textContent = 'Kein Gruppenbild gefunden. Du kannst unten ein eigenes Bild hochladen.';
           status.className = 'text-[11px] text-red-500 font-medium leading-snug';
           clearAutoGroupName();
         } else if (state === 'busy') {
           placeholder.classList.remove('hidden');
-          status.textContent = 'WhatsApp antwortet gerade nicht (zu viele Anfragen). Dein Link ist nicht falsch – bitte versuche es in 1–2 Minuten noch einmal.';
+          status.textContent = 'WhatsApp antwortet gerade nicht (zu viele Anfragen). Dein Link ist nicht falsch – lade unten dein Gruppenbild hoch oder versuche es später noch einmal.';
           status.className = 'text-[11px] text-amber-600 font-medium leading-snug';
         } else if (state === 'invalid') {
           placeholder.classList.remove('hidden');
@@ -3338,6 +3358,59 @@ Gruppen verwalten
           setPreviewState('error');
         }
       }
+
+      // Eigenes Bild: wird mittig quadratisch zugeschnitten und auf 256x256 verkleinert (ca. 10–25 KB), damit es direkt
+      // in der Datenbank gespeichert werden kann – unabhängig davon, ob WhatsApp erreichbar ist.
+      function fileToSmallDataUrl(file) {
+        return new Promise(function(resolve, reject) {
+          const reader = new FileReader();
+          reader.onerror = function() { reject(new Error('read')); };
+          reader.onload = function() {
+            const im = new Image();
+            im.onerror = function() { reject(new Error('decode')); };
+            im.onload = function() {
+              const SIZE = 256;
+              const side = Math.min(im.naturalWidth, im.naturalHeight);
+              const sx = (im.naturalWidth - side) / 2;
+              const sy = (im.naturalHeight - side) / 2;
+              const canvas = document.createElement('canvas');
+              canvas.width = SIZE; canvas.height = SIZE;
+              const ctx = canvas.getContext('2d');
+              ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, SIZE, SIZE);
+              ctx.drawImage(im, sx, sy, side, side, 0, 0, SIZE, SIZE);
+              let q = 0.82, out = canvas.toDataURL('image/jpeg', q);
+              while (out.length > 60000 && q > 0.4) { q -= 0.1; out = canvas.toDataURL('image/jpeg', q); }
+              resolve(out);
+            };
+            im.src = reader.result;
+          };
+          reader.readAsDataURL(file);
+        });
+      }
+      (function() {
+        const btn = document.getElementById('group-image-upload-btn');
+        const input = document.getElementById('group-image-upload-input');
+        if (!btn || !input) return;
+        btn.addEventListener('click', function() { input.click(); });
+        input.addEventListener('change', async function() {
+          const file = input.files && input.files[0];
+          input.value = '';
+          if (!file) return;
+          const status = document.getElementById('group-image-preview-status');
+          if (!/^image\//.test(file.type) || file.size > 15 * 1024 * 1024) {
+            if (status) { status.textContent = 'Bitte wähle ein Bild (JPG, PNG, WebP) bis maximal 15 MB.'; status.className = 'text-[11px] text-red-500 font-medium leading-snug'; }
+            return;
+          }
+          try {
+            const dataUrl = await fileToSmallDataUrl(file);
+            fetchToken++; // laufende WhatsApp-Abfragen verwerfen, damit sie das eigene Bild nicht überschreiben
+            window.currentGroupImageUrl = dataUrl;
+            setPreviewState('manual', dataUrl);
+          } catch (e) {
+            if (status) { status.textContent = 'Das Bild konnte nicht gelesen werden. Bitte versuche ein anderes.'; status.className = 'text-[11px] text-red-500 font-medium leading-snug'; }
+          }
+        });
+      })();
 
       window.resetGroupImagePreview = function() {
         fetchToken++; // laufende Anfragen verwerfen
