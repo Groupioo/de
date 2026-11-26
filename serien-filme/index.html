@@ -7090,24 +7090,13 @@ Gruppen verwalten
           + '&redirect=' + encodeURIComponent(realUrl)
         : realUrl;
 
-      const shareData = { title: title, text: title, url: shareUrl };
+      // WICHTIG: Nur den Link teilen (KEINE Bilddatei anhängen). Mit angehängter Datei
+      // sendet WhatsApp nur das Foto und die Linkvorschau (Titel + Beschreibung + Gruppenbild)
+      // wird nicht erzeugt. Die Vorschau liefert der Cloudflare-Worker (worker-share-preview.js)
+      // über die og:-Metatags von /group/join/<name>-<id>.
+      const shareData = { title: title, url: shareUrl };
 
       if (navigator.share) {
-        // Versuchen, das Gruppenbild als Datei anzuhängen (Web Share API Level 2).
-        if (imageUrl) {
-          try {
-            const response = await fetch(imageUrl);
-            const blob = await response.blob();
-            const ext = (blob.type && blob.type.split('/')[1]) || 'jpg';
-            const file = new File([blob], 'gruppenbild.' + ext, { type: blob.type || 'image/jpeg' });
-            if (navigator.canShare && navigator.canShare({ files: [file] })) {
-              shareData.files = [file];
-            }
-          } catch (e) {
-            // Bild konnte nicht geladen werden (z. B. CORS) — einfach ohne Datei weiterteilen
-          }
-        }
-
         try {
           await navigator.share(shareData);
         } catch (e) {
