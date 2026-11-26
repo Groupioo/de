@@ -255,7 +255,7 @@
       var fromFallback = raw !== null;
       var path = fromFallback ? raw : window.location.pathname + window.location.search;
       if (path.charAt(0) !== '/' || path.charAt(1) === '/' || path.charAt(1) === '\\') { path = '/'; }
-      var m = path.match(/^\/grupo\/([^\/?#]+)\/?(?:\?(.*))?$/i);
+      var m = path.match(/^\/(?:grupo|group\/join)\/([^\/?#]+)\/?(?:\?(.*))?$/i);
       if (m) { var gm = m[1].match(/([A-Za-z0-9]{20})$/); path = '/?grupo=' + (gm ? gm[1] : m[1]) + (m[2] ? '&' + m[2] : ''); }
       if (fromFallback || m) window.history.replaceState(window.history.state, '', path + window.location.hash);
     } catch (e) {}
@@ -282,6 +282,17 @@
   window.glGroupCatParam = function (cat) {
     var slug = window.glCatSlug(cat);
     return slug ? '&kategorie=' + encodeURIComponent(slug) : '';
+  };
+  // Gruppen-Link: gruppenlink.de/group/join/<name>-<id>  (ohne Ersteller-Name)
+  window.glJoinSlug = function (t) {
+    return String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9\s-]/g, '').trim().replace(/\s+/g, '-').replace(/-+/g, '-').slice(0, 60).replace(/-$/, '') || 'gruppe';
+  };
+  window.glJoinPath = function (title, id) { return '/group/join/' + window.glJoinSlug(title) + '-' + id; };
+  window.glGidFromPath = function () {
+    try {
+      var m = window.location.pathname.match(/^\/group\/join\/[^\/]*?([A-Za-z0-9]{20})\/?$/);
+      return m ? m[1] : '';
+    } catch (e) { return ''; }
   };
   window.glCategoryFromPath = function () {
     try {
@@ -1241,10 +1252,9 @@
     m.classList.add('gv-ready');
     document.title = d.title + ' – GruppenLink';
     // URL sofort mit Namen des Erstellers und der Gruppe anzeigen
-    if (!guest) {
-      var slug = (d.title || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9\s-]/g, '').trim().replace(/\s+/g, '-');
+    if (gid) {
       try {
-        window.history.replaceState({ groupId: gid, data: d }, '', window.GL_BASE_PATH + '?ersteller=' + encodeURIComponent(d.creator) + window.glGroupCatParam(d.cat) + (slug ? '&gruppe=' + encodeURIComponent(slug) : ''));
+        window.history.replaceState({ groupId: gid, data: d }, '', window.glJoinPath(d.title, gid));
       } catch (e) {}
     }
   } catch (e) { /* Fallback: normale Anzeige nach dem Laden der Gruppenliste */ }
@@ -6866,8 +6876,10 @@ Gruppen verwalten
     // imageUrl (optional): Foto der Gruppe. Wird nach Möglichkeit als Datei mitgeteilt,
     // damit im System-Teilen-Dialog das echte Gruppenbild statt des App-Icons erscheint.
     // descText (optional): kurze Beschreibung für die Linkvorschau-Karte (Telegram/WhatsApp).
-    async function shareGroupByTitle(title, iconEl, imageUrl, descText) {
-      const realUrl = SHARE_BASE_URL + '?gruppe=' + encodeURIComponent(slugify(title));
+    async function shareGroupByTitle(title, iconEl, imageUrl, descText, groupId) {
+      const realUrl = groupId
+        ? SHARE_BASE_URL.replace(/\/$/, '') + window.glJoinPath(title, groupId)
+        : SHARE_BASE_URL + '?gruppe=' + encodeURIComponent(slugify(title));
 
       // Wenn eine Gruppenbild-URL vorhanden ist UND der Vorschau-Worker konfiguriert wurde,
       // wird über ihn geteilt: er liefert og:image = echtes Gruppenbild und leitet dann zur
@@ -6928,7 +6940,7 @@ Gruppen verwalten
 
     if (mShareBtn) {
       mShareBtn.addEventListener('click', function() {
-        shareGroupByTitle(currentGroupTitle, mShareIcon, currentGroupImage, currentGroupDesc);
+        shareGroupByTitle(currentGroupTitle, mShareIcon, currentGroupImage, currentGroupDesc, currentCardId);
       });
     }
 
@@ -6960,7 +6972,7 @@ Gruppen verwalten
           const shareCard = shareBtn.closest('.group-card');
           const shareDesc = shareCard ? (shareCard.getAttribute('data-desc') || '') : '';
           const shareIconEl = shareBtn.querySelector('.material-symbols-outlined');
-          window.shareGroupByTitle(shareTitle, shareIconEl, shareImage, shareDesc);
+          window.shareGroupByTitle(shareTitle, shareIconEl, shareImage, shareDesc, shareCard ? shareCard.getAttribute('data-id') : '');
           return;
         }
 
@@ -6991,12 +7003,8 @@ Gruppen verwalten
             localStorage.setItem('gl_pending_group', JSON.stringify({ id: cardId, creator: cardCreator, t: Date.now(), data: cardData }));
             stored = true;
           } catch (err) {}
-          if (!cardIsGuest && stored) {
-            const cardSlug = slugify(cardData.title);
-            newTabUrl = window.GL_BASE_PATH + '?ersteller=' + encodeURIComponent(cardCreator)
-              + window.glGroupCatParam(cardData.cat)
-              + (cardSlug ? '&gruppe=' + encodeURIComponent(cardSlug) : '');
-          }
+          // Schöne Adresse ohne Ersteller-Name: /group/join/<name>-<id>
+          newTabUrl = window.glJoinPath(cardData.title, cardId);
           const newTab = window.open(newTabUrl, '_blank');
           // Fallback: falls der Browser das Pop-up blockiert, Modal im selben Tab öffnen
           if (!newTab) window.openGroupModalFromCard(card);
@@ -7277,7 +7285,7 @@ Gruppen verwalten
       window.glSeoUpdate = function() {
         try {
           const qp = new URLSearchParams(window.location.search);
-          let gid = qp.get('grupo');
+          let gid = qp.get('grupo') || window.glGidFromPath();
           const groups = Array.isArray(allApprovedGroups) ? allApprovedGroups : [];
           const indexable = groups.filter(function(g) { return ADULT_CATS.indexOf(g.category) === -1; });
           if (!gid && qp.get('ersteller') && qp.get('gruppe')) {
@@ -7506,14 +7514,9 @@ Gruppen verwalten
         try { document.title = (fakeCard.getAttribute('data-title') || 'Gruppe') + ' – GruppenLink'; } catch (e) {}
         // URL im Browser: Name des Erstellers statt Gruppen-ID (gruppenlink.de/?ersteller=Name)
         const mCreator = match.submittedBy || '';
-        if (mCreator && !mCreator.toLowerCase().startsWith('gast-')) {
-          try {
-            const mSlug = slugify(fakeCard.getAttribute('data-title') || '');
-            window.history.replaceState({ groupId: match.id, data: { title: fakeCard.getAttribute('data-title') || '', cat: fakeCard.getAttribute('data-cat') || 'Allgemein', desc: fakeCard.getAttribute('data-desc') || '', link: fakeCard.getAttribute('data-link') || '', votes: parseInt(fakeCard.getAttribute('data-votes'), 10) || 0, image: fakeCard.getAttribute('data-image') || '', creator: mCreator } }, '', window.GL_BASE_PATH + '?ersteller=' + encodeURIComponent(mCreator)
-              + window.glGroupCatParam(fakeCard.getAttribute('data-cat'))
-              + (mSlug ? '&gruppe=' + encodeURIComponent(mSlug) : ''));
-          } catch (e) {}
-        }
+        try {
+          window.history.replaceState({ groupId: match.id, data: { title: fakeCard.getAttribute('data-title') || '', cat: fakeCard.getAttribute('data-cat') || 'Allgemein', desc: fakeCard.getAttribute('data-desc') || '', link: fakeCard.getAttribute('data-link') || '', votes: parseInt(fakeCard.getAttribute('data-votes'), 10) || 0, image: fakeCard.getAttribute('data-image') || '', creator: mCreator } }, '', window.glJoinPath(fakeCard.getAttribute('data-title') || '', match.id));
+        } catch (e) {}
         return;
       }
 
