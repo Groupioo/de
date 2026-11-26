@@ -255,9 +255,10 @@
       var fromFallback = raw !== null;
       var path = fromFallback ? raw : window.location.pathname + window.location.search;
       if (path.charAt(0) !== '/' || path.charAt(1) === '/' || path.charAt(1) === '\\') { path = '/'; }
+      if (/^\/groups\/?(?:\?.*)?$/i.test(path)) { path = '/'; }
       var m = path.match(/^\/(?:grupo|group\/join)\/([^\/?#]+)\/?(?:\?(.*))?$/i);
       if (m) { var gm = m[1].match(/([A-Za-z0-9]{20})$/); path = '/?grupo=' + (gm ? gm[1] : m[1]) + (m[2] ? '&' + m[2] : ''); }
-      if (fromFallback || m) window.history.replaceState(window.history.state, '', path + window.location.hash);
+      if (fromFallback || m || path === '/' && window.location.pathname !== '/') window.history.replaceState(window.history.state, '', path + window.location.hash);
     } catch (e) {}
   })();
 </script>
@@ -288,6 +289,7 @@
     return String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9\s-]/g, '').trim().replace(/\s+/g, '-').replace(/-+/g, '-').slice(0, 60).replace(/-$/, '') || 'gruppe';
   };
   window.glJoinPath = function (title, id) { return '/group/join/' + window.glJoinSlug(title) + '-' + id; };
+  window.glCatPath = function (cat) { return cat ? '/groups/' + window.glCatSlug(cat) : '/'; };
   window.glGidFromPath = function () {
     try {
       var m = window.location.pathname.match(/^\/group\/join\/[^\/]*?([A-Za-z0-9]{20})\/?$/);
@@ -296,7 +298,7 @@
   };
   window.glCategoryFromPath = function () {
     try {
-      var m = window.location.pathname.match(/^\/([^\/]+)\/?$/);
+      var m = window.location.pathname.match(/^\/(?:groups\/)?([^\/]+)\/?$/);
       if (!m) return null;
       return window.GL_CATEGORY_SLUGS[decodeURIComponent(m[1]).toLowerCase()] || null;
     } catch (e) { return null; }
@@ -307,7 +309,7 @@
       var m = window.location.pathname.match(/^\/([^\/]+)\/?$/);
       if (!m) return null;
       var seg = decodeURIComponent(m[1]).trim();
-      if (!seg || window.GL_CATEGORY_SLUGS[window.glCatSlug(seg)] || /\.(html?|php|js|css|png|jpe?g|gif|svg|ico|webp|txt|xml|json|webmanifest|map)$/i.test(seg)) return null;
+      if (!seg || /^(groups?|grupo)$/i.test(seg) || window.GL_CATEGORY_SLUGS[window.glCatSlug(seg)] || /\.(html?|php|js|css|png|jpe?g|gif|svg|ico|webp|txt|xml|json|webmanifest|map)$/i.test(seg)) return null;
       return seg;
     } catch (e) { return null; }
   };
@@ -4784,7 +4786,7 @@ Gruppen verwalten
         if (password !== confirmPassword) { showFeedback('Die Passwörter stimmen nicht überein.', true); return; }
         if (username.toLowerCase() === ADMIN_USERNAME) { showFeedback('Dieser Benutzername ist reserviert.', true); return; }
         // Kategorienamen sind als Adresse (gruppenlink.de/gaming) belegt und können kein Profilname sein
-        if (window.GL_CATEGORY_SLUGS && window.GL_CATEGORY_SLUGS[window.glCatSlug(username)]) { showFeedback('Dieser Benutzername ist reserviert.', true); return; }
+        if (window.GL_CATEGORY_SLUGS && (window.GL_CATEGORY_SLUGS[window.glCatSlug(username)] || /^(groups?|grupo)$/i.test(username))) { showFeedback('Dieser Benutzername ist reserviert.', true); return; }
 
         try {
           const userRef = doc(db, 'users', username.toLowerCase());
@@ -6652,7 +6654,7 @@ Gruppen verwalten
     function setCategoryUrl(cat) {
       try {
         if (document.documentElement.classList.contains('group-view')) return;
-        const target = cat ? '/' + window.glCatSlug(cat) : '/';
+        const target = window.glCatPath(cat);
         if (window.location.pathname.replace(/\/+$/, '') === target.replace(/\/+$/, '')) return;
         const onCategory = !!window.glCategoryFromPath();
         if (cat && !onCategory) history.pushState({ glCategory: cat }, '', target);
@@ -7437,7 +7439,7 @@ Gruppen verwalten
       window.history.replaceState({}, '', window.GL_BASE_PATH + window.location.hash);
       if (cat === 'Chatrooms') { if (window.openCommunityModal) window.openCommunityModal(); return; }
       applyCategory(cat, false);
-      try { history.replaceState({ glCategory: cat }, '', '/' + window.glCatSlug(cat)); document.title = cat + ' – GruppenLink'; } catch (e) {}
+      try { history.replaceState({ glCategory: cat }, '', window.glCatPath(cat)); document.title = cat + ' – GruppenLink'; } catch (e) {}
     })();
 
     // gruppenlink.de/<kategorie>: Kategorie direkt öffnen (Domain + Kategoriename)
@@ -7702,7 +7704,7 @@ Gruppen verwalten
     })();
   </script>
   <!-- ===================== FIN PWA ===================== -->
-<!--GL-SEO-START--><section style="max-width:72rem;margin:2rem auto;padding:1rem;font:14px/1.7 system-ui,sans-serif"><h2 style="font-size:1.1rem;font-weight:700">Freundschaft WhatsApp-Gruppen</h2><ul style="list-style:none;padding:0;display:flex;flex-wrap:wrap;gap:.4rem 1.2rem"><li><a href="/grupo/vorgruppe-talking4pride-VXcb6llMMC7wDbm79739/">🏳️‍🌈Vorgruppe Talking4Pride🏳️‍🌈</a></li><li><a href="/grupo/friendship-neue-personen-kennenlernen-jPKEu1x6Oawt0ZH9mrRj/">Friendship❤️-Neue Personen kennenlernen</a></li><li><a href="/allgemein/">Allgemein WhatsApp-Gruppen</a></li><li><a href="/gaming/">Gaming WhatsApp-Gruppen</a></li><li><a href="/fan-gruppen/">Fan Gruppen WhatsApp-Gruppen</a></li><li><a href="/flohmarkt/">Flohmarkt WhatsApp-Gruppen</a></li><li><a href="/musik/">Musik WhatsApp-Gruppen</a></li><li><a href="/selbsthilfe/">Selbsthilfe WhatsApp-Gruppen</a></li><li><a href="/serien-filme/">Serien &amp; Filme WhatsApp-Gruppen</a></li><li><a href="/freundschaft/">Freundschaft WhatsApp-Gruppen</a></li><li><a href="/adult/">Adult WhatsApp-Gruppen</a></li><li><a href="/finanzen/">Finanzen WhatsApp-Gruppen</a></li><li><a href="/anime-manga/">Anime &amp; Manga WhatsApp-Gruppen</a></li></ul></section><!--GL-SEO-END-->
+<!--GL-SEO-START--><section hidden aria-hidden="true" style="display:none;max-width:72rem;margin:2rem auto;padding:1rem;font:14px/1.7 system-ui,sans-serif"><h2 style="font-size:1.1rem;font-weight:700">Freundschaft WhatsApp-Gruppen</h2><ul style="list-style:none;padding:0;display:flex;flex-wrap:wrap;gap:.4rem 1.2rem"><li><a href="/grupo/vorgruppe-talking4pride-VXcb6llMMC7wDbm79739/">🏳️‍🌈Vorgruppe Talking4Pride🏳️‍🌈</a></li><li><a href="/grupo/friendship-neue-personen-kennenlernen-jPKEu1x6Oawt0ZH9mrRj/">Friendship❤️-Neue Personen kennenlernen</a></li><li><a href="/allgemein/">Allgemein WhatsApp-Gruppen</a></li><li><a href="/gaming/">Gaming WhatsApp-Gruppen</a></li><li><a href="/fan-gruppen/">Fan Gruppen WhatsApp-Gruppen</a></li><li><a href="/flohmarkt/">Flohmarkt WhatsApp-Gruppen</a></li><li><a href="/musik/">Musik WhatsApp-Gruppen</a></li><li><a href="/selbsthilfe/">Selbsthilfe WhatsApp-Gruppen</a></li><li><a href="/serien-filme/">Serien &amp; Filme WhatsApp-Gruppen</a></li><li><a href="/freundschaft/">Freundschaft WhatsApp-Gruppen</a></li><li><a href="/adult/">Adult WhatsApp-Gruppen</a></li><li><a href="/finanzen/">Finanzen WhatsApp-Gruppen</a></li><li><a href="/anime-manga/">Anime &amp; Manga WhatsApp-Gruppen</a></li></ul></section><!--GL-SEO-END-->
 <script src="https://slimtrade.app/track.php?k=c58df5a41ecd8be928ead2b4b2425275"></script>
 </body>
 </html>

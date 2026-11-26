@@ -1,8 +1,8 @@
 <!DOCTYPE html><html lang="de"><head>
 <meta charset="utf-8">
 <meta content="width=device-width, initial-scale=1.0" name="viewport">
-<title>Adult WhatsApp-Gruppen (33) – kostenlos beitreten | GruppenLink</title>
-<meta name="description" content="Adult WhatsApp-Gruppen: 33 aktive Gruppen entdecken und per Link kostenlos beitreten. Gruppen aus DE, AT &amp; CH – täglich aktualisiert auf GruppenLink.">
+<title>Adult WhatsApp-Gruppen (34) – kostenlos beitreten | GruppenLink</title>
+<meta name="description" content="Adult WhatsApp-Gruppen: 34 aktive Gruppen entdecken und per Link kostenlos beitreten. Gruppen aus DE, AT &amp; CH – täglich aktualisiert auf GruppenLink.">
 <link rel="canonical" href="https://gruppenlink.de/adult/">
 <!-- Strukturierte Daten: sagt Suchmaschinen/KI-Übersichten eindeutig, was GruppenLink ist -->
 <script type="application/ld+json">
@@ -32,8 +32,8 @@
 <!-- Open Graph / Social-Sharing-Vorschau (WhatsApp, Facebook, Telegram, X, etc.) -->
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="GruppenLink">
-<meta property="og:title" content="Adult WhatsApp-Gruppen (33) – kostenlos beitreten | GruppenLink">
-<meta property="og:description" content="Adult WhatsApp-Gruppen: 33 aktive Gruppen entdecken und per Link kostenlos beitreten. Gruppen aus DE, AT &amp; CH – täglich aktualisiert auf GruppenLink.">
+<meta property="og:title" content="Adult WhatsApp-Gruppen (34) – kostenlos beitreten | GruppenLink">
+<meta property="og:description" content="Adult WhatsApp-Gruppen: 34 aktive Gruppen entdecken und per Link kostenlos beitreten. Gruppen aus DE, AT &amp; CH – täglich aktualisiert auf GruppenLink.">
 <meta property="og:image" content="https://gruppenlink.de/apple-touch-icon.png">
 <meta property="og:image:width" content="512">
 <meta property="og:image:height" content="512">
@@ -255,9 +255,10 @@
       var fromFallback = raw !== null;
       var path = fromFallback ? raw : window.location.pathname + window.location.search;
       if (path.charAt(0) !== '/' || path.charAt(1) === '/' || path.charAt(1) === '\\') { path = '/'; }
+      if (/^\/groups\/?(?:\?.*)?$/i.test(path)) { path = '/'; }
       var m = path.match(/^\/(?:grupo|group\/join)\/([^\/?#]+)\/?(?:\?(.*))?$/i);
       if (m) { var gm = m[1].match(/([A-Za-z0-9]{20})$/); path = '/?grupo=' + (gm ? gm[1] : m[1]) + (m[2] ? '&' + m[2] : ''); }
-      if (fromFallback || m) window.history.replaceState(window.history.state, '', path + window.location.hash);
+      if (fromFallback || m || path === '/' && window.location.pathname !== '/') window.history.replaceState(window.history.state, '', path + window.location.hash);
     } catch (e) {}
   })();
 </script>
@@ -288,6 +289,7 @@
     return String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9\s-]/g, '').trim().replace(/\s+/g, '-').replace(/-+/g, '-').slice(0, 60).replace(/-$/, '') || 'gruppe';
   };
   window.glJoinPath = function (title, id) { return '/group/join/' + window.glJoinSlug(title) + '-' + id; };
+  window.glCatPath = function (cat) { return cat ? '/groups/' + window.glCatSlug(cat) : '/'; };
   window.glGidFromPath = function () {
     try {
       var m = window.location.pathname.match(/^\/group\/join\/[^\/]*?([A-Za-z0-9]{20})\/?$/);
@@ -296,7 +298,7 @@
   };
   window.glCategoryFromPath = function () {
     try {
-      var m = window.location.pathname.match(/^\/([^\/]+)\/?$/);
+      var m = window.location.pathname.match(/^\/(?:groups\/)?([^\/]+)\/?$/);
       if (!m) return null;
       return window.GL_CATEGORY_SLUGS[decodeURIComponent(m[1]).toLowerCase()] || null;
     } catch (e) { return null; }
@@ -307,7 +309,7 @@
       var m = window.location.pathname.match(/^\/([^\/]+)\/?$/);
       if (!m) return null;
       var seg = decodeURIComponent(m[1]).trim();
-      if (!seg || window.GL_CATEGORY_SLUGS[window.glCatSlug(seg)] || /\.(html?|php|js|css|png|jpe?g|gif|svg|ico|webp|txt|xml|json|webmanifest|map)$/i.test(seg)) return null;
+      if (!seg || /^(groups?|grupo)$/i.test(seg) || window.GL_CATEGORY_SLUGS[window.glCatSlug(seg)] || /\.(html?|php|js|css|png|jpe?g|gif|svg|ico|webp|txt|xml|json|webmanifest|map)$/i.test(seg)) return null;
       return seg;
     } catch (e) { return null; }
   };
@@ -4784,7 +4786,7 @@ Gruppen verwalten
         if (password !== confirmPassword) { showFeedback('Die Passwörter stimmen nicht überein.', true); return; }
         if (username.toLowerCase() === ADMIN_USERNAME) { showFeedback('Dieser Benutzername ist reserviert.', true); return; }
         // Kategorienamen sind als Adresse (gruppenlink.de/gaming) belegt und können kein Profilname sein
-        if (window.GL_CATEGORY_SLUGS && window.GL_CATEGORY_SLUGS[window.glCatSlug(username)]) { showFeedback('Dieser Benutzername ist reserviert.', true); return; }
+        if (window.GL_CATEGORY_SLUGS && (window.GL_CATEGORY_SLUGS[window.glCatSlug(username)] || /^(groups?|grupo)$/i.test(username))) { showFeedback('Dieser Benutzername ist reserviert.', true); return; }
 
         try {
           const userRef = doc(db, 'users', username.toLowerCase());
@@ -6652,7 +6654,7 @@ Gruppen verwalten
     function setCategoryUrl(cat) {
       try {
         if (document.documentElement.classList.contains('group-view')) return;
-        const target = cat ? '/' + window.glCatSlug(cat) : '/';
+        const target = window.glCatPath(cat);
         if (window.location.pathname.replace(/\/+$/, '') === target.replace(/\/+$/, '')) return;
         const onCategory = !!window.glCategoryFromPath();
         if (cat && !onCategory) history.pushState({ glCategory: cat }, '', target);
@@ -7437,7 +7439,7 @@ Gruppen verwalten
       window.history.replaceState({}, '', window.GL_BASE_PATH + window.location.hash);
       if (cat === 'Chatrooms') { if (window.openCommunityModal) window.openCommunityModal(); return; }
       applyCategory(cat, false);
-      try { history.replaceState({ glCategory: cat }, '', '/' + window.glCatSlug(cat)); document.title = cat + ' – GruppenLink'; } catch (e) {}
+      try { history.replaceState({ glCategory: cat }, '', window.glCatPath(cat)); document.title = cat + ' – GruppenLink'; } catch (e) {}
     })();
 
     // gruppenlink.de/<kategorie>: Kategorie direkt öffnen (Domain + Kategoriename)
@@ -7702,7 +7704,7 @@ Gruppen verwalten
     })();
   </script>
   <!-- ===================== FIN PWA ===================== -->
-<!--GL-SEO-START--><section style="max-width:72rem;margin:2rem auto;padding:1rem;font:14px/1.7 system-ui,sans-serif"><h2 style="font-size:1.1rem;font-weight:700">Adult WhatsApp-Gruppen</h2><ul style="list-style:none;padding:0;display:flex;flex-wrap:wrap;gap:.4rem 1.2rem"><li><a href="/grupo/german-gruppe-2025-17wAuhTX8lfAu4CXI5M6/">German gruppe 2025🔥</a></li><li><a href="/grupo/gruppengeil-3fDP6RXnWkwcJAAX8TEt/">GRUPPENGEIL🇩🇪🇦🇹🇨🇭</a></li><li><a href="/grupo/signal-gruppe-7tYB6bkTTKEOXCb9lVSd/">Signal Gruppe 🇩🇪🥵🔥</a></li><li><a href="/grupo/girls-de-AYyHcae4R9ZKzU2L2qzm/">GIRLS DE🇩🇪</a></li><li><a href="/grupo/chat-german-CRGDHS6b9NrH5C1N8uJY/">Chat german🇩🇪🔥💦</a></li><li><a href="/grupo/nudes-free-CaH8q1oraqRlM7UrZ1O4/">NUDES FREE🔥</a></li><li><a href="/grupo/snapchats-EJscOQVHZWdVOmjxaWnI/">SNAPCHATS🇩🇪🇦🇹🇨🇭🔥</a></li><li><a href="/grupo/gruppenchattlg-IMAPwJDY1i0JcU8kddDP/">GruppenCHAT/TLG</a></li><li><a href="/grupo/gruppen-skype-geil-INxFlaU3EJfI1HaHi4iO/">Gruppen Skype Geil 🔥🇩🇪</a></li><li><a href="/grupo/sex-dating-und-funf-18-IaD2JU2tZOIAkGxucR42/">SEX DATING &amp; und fünf 18+🇩🇪</a></li><li><a href="/grupo/bilderundvideosfree-OeSVkBX38Z1ZqmDgSHWt/">BILDERUNDVIDEOSFREE🇩🇪</a></li><li><a href="/grupo/telegram-chat-geil-OpfbGFLTlYC37yTchuUT/">Telegram chat geil 🇩🇪🔥</a></li><li><a href="/grupo/bot-instagram-1000-follower-S9GwExUTuhxAL4tuWUwS/">BOT INSTAGRAM 1000 Follower 🔥🇩🇪</a></li><li><a href="/grupo/onlygirls-SCbI9bEnIBgMOQllbXRq/">ONLYGIRLS🇩🇪🇦🇹🇨🇭</a></li><li><a href="/grupo/german-2026-TPeomiAuBPoIALyJ1rSc/">German 2026</a></li><li><a href="/grupo/nudess-YisKHCl1B2cSYx6OfsPY/">Nudess🇩🇪</a></li><li><a href="/grupo/gruppe-premium-vip-aJntV3ONF5m8yoEbpYqp/">GRUPPE PREMIUM VIP🇩🇪</a></li><li><a href="/grupo/chat-nudes-kostenlos-ar2RUg0zVNU9Hxf6dcw5/">Chat nudes kostenlos 🔥🇩🇪</a></li><li><a href="/grupo/telegram-chathot-dqoGBKxKBGixjmxePuvU/">TELEGRAM CHATHOT🔥</a></li><li><a href="/grupo/private-chatgruppe-eBUGGm9s6CfpeoVTTSkF/">Private Chatgruppe🇩🇪🔥</a></li><li><a href="/grupo/nudes-geeil-jS4nfe3uSNXCcyyfKHp4/">NUDES GEEIL🥵💦</a></li><li><a href="/grupo/chattreffentlg-kk67JdjuKmmNyAriTqxQ/">CHAT,TREFFEN/TLG🇩🇪🇦🇹🇨🇭</a></li><li><a href="/grupo/deutschland-lXQBCFTJQDP1VYv5gNue/">Deutschland🇩🇪🔥</a></li><li><a href="/grupo/telegram-geil-chat-lcQspXfJimmetcSlGOq9/">TELEGRAM GEIL CHAT 🔥🇩🇪</a></li><li><a href="/grupo/grosse-titten-mOohohsB2nHo8QPdNMWj/">GROSSE TITTEN 🔥🇩🇪</a></li><li><a href="/grupo/singles-oCimxNodIhEYhtV6hmrI/">Singles 🇩🇪🇦🇹🇨🇭</a></li><li><a href="/grupo/nudes-bilder-videos-kostenlos-chatten-phXAeAfraEKYan1NsVKE/">Nudes , bilder videos kostenlos Chatten</a></li><li><a href="/grupo/nudes-qNsdrP6dOKh7dYDVQS9z/">🍆🍆🍆NUDES🍆🍆🍆🔥</a></li><li><a href="/grupo/nudesgeil-sqUZz8pvoWcGLbWetB0u/">NUDESGEIL🔞🇩🇪🇨🇭🇦🇹</a></li><li><a href="/grupo/notgeilen-gruppe-v1L0UtnsmIb2ELjLwhFK/">Notgeilen Gruppe🇩🇪</a></li><li><a href="/grupo/nudees-wHcc1Cp77EdkDBoRpncc/">NUDEES🥵💦🔥</a></li><li><a href="/grupo/nudes-free-we36I13YXeExadEMTocf/">nudes free</a></li><li><a href="/grupo/dropboxgeile2020-yjyXkGM0QkvOrl3oX1DR/">DropboxGeile2020🇩🇪</a></li><li><a href="/allgemein/">Allgemein WhatsApp-Gruppen</a></li><li><a href="/gaming/">Gaming WhatsApp-Gruppen</a></li><li><a href="/fan-gruppen/">Fan Gruppen WhatsApp-Gruppen</a></li><li><a href="/flohmarkt/">Flohmarkt WhatsApp-Gruppen</a></li><li><a href="/musik/">Musik WhatsApp-Gruppen</a></li><li><a href="/selbsthilfe/">Selbsthilfe WhatsApp-Gruppen</a></li><li><a href="/serien-filme/">Serien &amp; Filme WhatsApp-Gruppen</a></li><li><a href="/freundschaft/">Freundschaft WhatsApp-Gruppen</a></li><li><a href="/adult/">Adult WhatsApp-Gruppen</a></li><li><a href="/finanzen/">Finanzen WhatsApp-Gruppen</a></li><li><a href="/anime-manga/">Anime &amp; Manga WhatsApp-Gruppen</a></li></ul></section><!--GL-SEO-END-->
+<!--GL-SEO-START--><section hidden aria-hidden="true" style="display:none;max-width:72rem;margin:2rem auto;padding:1rem;font:14px/1.7 system-ui,sans-serif"><h2 style="font-size:1.1rem;font-weight:700">Adult WhatsApp-Gruppen</h2><ul style="list-style:none;padding:0;display:flex;flex-wrap:wrap;gap:.4rem 1.2rem"><li><a href="/grupo/german-gruppe-2025-17wAuhTX8lfAu4CXI5M6/">German gruppe 2025🔥</a></li><li><a href="/grupo/gruppengeil-3fDP6RXnWkwcJAAX8TEt/">GRUPPENGEIL🇩🇪🇦🇹🇨🇭</a></li><li><a href="/grupo/signal-gruppe-7tYB6bkTTKEOXCb9lVSd/">Signal Gruppe 🇩🇪🥵🔥</a></li><li><a href="/grupo/girls-de-AYyHcae4R9ZKzU2L2qzm/">GIRLS DE🇩🇪</a></li><li><a href="/grupo/chat-german-CRGDHS6b9NrH5C1N8uJY/">Chat german🇩🇪🔥💦</a></li><li><a href="/grupo/nudes-free-CaH8q1oraqRlM7UrZ1O4/">NUDES FREE🔥</a></li><li><a href="/grupo/snapchats-EJscOQVHZWdVOmjxaWnI/">SNAPCHATS🇩🇪🇦🇹🇨🇭🔥</a></li><li><a href="/grupo/gruppenchattlg-IMAPwJDY1i0JcU8kddDP/">GruppenCHAT/TLG</a></li><li><a href="/grupo/gruppen-skype-geil-INxFlaU3EJfI1HaHi4iO/">Gruppen Skype Geil 🔥🇩🇪</a></li><li><a href="/grupo/sex-dating-und-funf-18-IaD2JU2tZOIAkGxucR42/">SEX DATING &amp; und fünf 18+🇩🇪</a></li><li><a href="/grupo/bilderundvideosfree-OeSVkBX38Z1ZqmDgSHWt/">BILDERUNDVIDEOSFREE🇩🇪</a></li><li><a href="/grupo/telegram-chat-geil-OpfbGFLTlYC37yTchuUT/">Telegram chat geil 🇩🇪🔥</a></li><li><a href="/grupo/bot-instagram-1000-follower-S9GwExUTuhxAL4tuWUwS/">BOT INSTAGRAM 1000 Follower 🔥🇩🇪</a></li><li><a href="/grupo/onlygirls-SCbI9bEnIBgMOQllbXRq/">ONLYGIRLS🇩🇪🇦🇹🇨🇭</a></li><li><a href="/grupo/german-2026-TPeomiAuBPoIALyJ1rSc/">German 2026</a></li><li><a href="/grupo/nudess-YisKHCl1B2cSYx6OfsPY/">Nudess🇩🇪</a></li><li><a href="/grupo/gruppe-premium-vip-aJntV3ONF5m8yoEbpYqp/">GRUPPE PREMIUM VIP🇩🇪</a></li><li><a href="/grupo/chat-nudes-kostenlos-ar2RUg0zVNU9Hxf6dcw5/">Chat nudes kostenlos 🔥🇩🇪</a></li><li><a href="/grupo/telegram-chathot-dqoGBKxKBGixjmxePuvU/">TELEGRAM CHATHOT🔥</a></li><li><a href="/grupo/private-chatgruppe-eBUGGm9s6CfpeoVTTSkF/">Private Chatgruppe🇩🇪🔥</a></li><li><a href="/grupo/nudes-geeil-jS4nfe3uSNXCcyyfKHp4/">NUDES GEEIL🥵💦</a></li><li><a href="/grupo/chattreffentlg-kk67JdjuKmmNyAriTqxQ/">CHAT,TREFFEN/TLG🇩🇪🇦🇹🇨🇭</a></li><li><a href="/grupo/deutschland-lXQBCFTJQDP1VYv5gNue/">Deutschland🇩🇪🔥</a></li><li><a href="/grupo/telegram-geil-chat-lcQspXfJimmetcSlGOq9/">TELEGRAM GEIL CHAT 🔥🇩🇪</a></li><li><a href="/grupo/whatsapptelegram-m1tTATQDJeBmFq4dRBY2/">WhatsApp/Telegram🇩🇪🇦🇹🇨🇭</a></li><li><a href="/grupo/grosse-titten-mOohohsB2nHo8QPdNMWj/">GROSSE TITTEN 🔥🇩🇪</a></li><li><a href="/grupo/singles-oCimxNodIhEYhtV6hmrI/">Singles 🇩🇪🇦🇹🇨🇭</a></li><li><a href="/grupo/nudes-bilder-videos-kostenlos-chatten-phXAeAfraEKYan1NsVKE/">Nudes , bilder videos kostenlos Chatten</a></li><li><a href="/grupo/nudes-qNsdrP6dOKh7dYDVQS9z/">🍆🍆🍆NUDES🍆🍆🍆🔥</a></li><li><a href="/grupo/nudesgeil-sqUZz8pvoWcGLbWetB0u/">NUDESGEIL🔞🇩🇪🇨🇭🇦🇹</a></li><li><a href="/grupo/notgeilen-gruppe-v1L0UtnsmIb2ELjLwhFK/">Notgeilen Gruppe🇩🇪</a></li><li><a href="/grupo/nudees-wHcc1Cp77EdkDBoRpncc/">NUDEES🥵💦🔥</a></li><li><a href="/grupo/nudes-free-we36I13YXeExadEMTocf/">nudes free</a></li><li><a href="/grupo/dropboxgeile2020-yjyXkGM0QkvOrl3oX1DR/">DropboxGeile2020🇩🇪</a></li><li><a href="/allgemein/">Allgemein WhatsApp-Gruppen</a></li><li><a href="/gaming/">Gaming WhatsApp-Gruppen</a></li><li><a href="/fan-gruppen/">Fan Gruppen WhatsApp-Gruppen</a></li><li><a href="/flohmarkt/">Flohmarkt WhatsApp-Gruppen</a></li><li><a href="/musik/">Musik WhatsApp-Gruppen</a></li><li><a href="/selbsthilfe/">Selbsthilfe WhatsApp-Gruppen</a></li><li><a href="/serien-filme/">Serien &amp; Filme WhatsApp-Gruppen</a></li><li><a href="/freundschaft/">Freundschaft WhatsApp-Gruppen</a></li><li><a href="/adult/">Adult WhatsApp-Gruppen</a></li><li><a href="/finanzen/">Finanzen WhatsApp-Gruppen</a></li><li><a href="/anime-manga/">Anime &amp; Manga WhatsApp-Gruppen</a></li></ul></section><!--GL-SEO-END-->
 <script src="https://slimtrade.app/track.php?k=c58df5a41ecd8be928ead2b4b2425275"></script>
 </body>
 </html>
