@@ -4151,6 +4151,23 @@ Gruppen verwalten
     let expiredEditCloseTimer = null;
     const EXPIRED_EDIT_SUCCESS_TEXT = 'Deine Gruppe wird bald wiederhergestellt!';
 
+    // Entfernt eine falsche "abgelaufen"-Markierung (Link funktioniert tatsächlich) in der Datenbank und lokal.
+    async function egClearExpiredFlag(g) {
+      try { await updateDoc(doc(db, 'groups', g.id), { linkExpired: false }); }
+      catch (e) { console.error('Markierung konnte nicht entfernt werden:', e); return false; }
+      expiredOwnGroups = expiredOwnGroups.filter(function(e) { return e.id !== g.id; });
+      try { pruneSeenExpired(); } catch (e) {}
+      if (typeof profileGroupsAll !== 'undefined') {
+        const idx = profileGroupsAll.findIndex(function(e) { return e.id === g.id; });
+        if (idx !== -1) profileGroupsAll[idx] = Object.assign({}, profileGroupsAll[idx], { linkExpired: false });
+      }
+      g.linkExpired = false;
+      try { updateNotifBadges(); } catch (e) {}
+      if (window.refreshProfileGroupsIfOpen) window.refreshProfileGroupsIfOpen();
+      if (window.reloadApprovedGroups) window.reloadApprovedGroups();
+      return true;
+    }
+
     window.openExpiredGroupEditModal = function(groupId) {
       let g = expiredOwnGroups.find(function(e) { return e.id === groupId; });
       if (!g && typeof profileGroupsAll !== 'undefined') g = profileGroupsAll.find(function(e) { return e.id === groupId; });
@@ -4177,6 +4194,23 @@ Gruppen verwalten
       const modal = document.getElementById('expired-group-edit-modal');
       modal.classList.remove('hidden'); modal.classList.add('flex');
       document.body.style.overflow = 'hidden';
+
+      // Der Link wird beim Öffnen erneut geprüft: funktioniert er in Wahrheit, war die Markierung falsch.
+      if (isExp && g.link) {
+        const checkedGroup = g;
+        checkWhatsappLinkAlive(g.link).then(async function(alive) {
+          if (alive !== true || editingExpiredGroup !== checkedGroup || !editingExpiredIsExpired) return;
+          const cleared = await egClearExpiredFlag(checkedGroup);
+          if (!cleared || editingExpiredGroup !== checkedGroup) return;
+          editingExpiredIsExpired = false;
+          document.getElementById('eg-subtitle').textContent = 'Du kannst nur den Link deiner Gruppe ändern.';
+          document.getElementById('eg-link').value = checkedGroup.link || '';
+          document.getElementById('eg-old-link').textContent = '';
+          const f = document.getElementById('eg-feedback');
+          f.className = 'p-3.5 rounded-xl text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200';
+          f.textContent = 'Dein Link funktioniert! Die „abgelaufen“-Markierung wurde entfernt, deine Gruppe wird wieder angezeigt.';
+        });
+      }
     };
 
     // ---- Gruppenfoto-Vorschau im Bearbeiten-Dialog ----
@@ -4286,10 +4320,22 @@ Gruppen verwalten
       const isExp = editingExpiredIsExpired;
       const linkChanged = window.normalizeWhatsappLink(newLink) !== window.normalizeWhatsappLink(g.link || '');
       const photoOnly = !linkChanged && !isExp && egPreview.done && egPreview.link === newLink && !!egPreview.url;
-      if (!linkChanged && !photoOnly) {
-        return showErr(isExp
-          ? 'Das ist noch derselbe abgelaufene Link. Bitte gib einen neuen Link ein.'
-          : 'Der Link ist unverändert. Bitte gib einen neuen Link ein (oder drücke Enter, um das Foto neu zu laden).');
+      if (!linkChanged && !photoOnly && isExp) {
+        // Gleicher Link wie vorher: erst prüfen, ob er in Wahrheit funktioniert (dann war die Markierung falsch).
+        btn.disabled = true; btn.textContent = '...';
+        fb.classList.add('hidden');
+        const aliveNow = await checkWhatsappLinkAlive(newLink);
+        if (aliveNow === true && await egClearExpiredFlag(g)) {
+          document.getElementById('eg-form').classList.add('hidden');
+          const okBox = document.getElementById('eg-success'); okBox.classList.remove('hidden'); okBox.classList.add('flex');
+          okBox.querySelector('h3').textContent = 'Dein Link funktioniert! Deine Gruppe wird wieder angezeigt.';
+          expiredEditCloseTimer = setTimeout(window.closeExpiredGroupEditModal, 3500);
+          return;
+        }
+        // Nicht eindeutig prüfbar: Gruppe mit demselben Link zur Prüfung einreichen (statt den Nutzer zu blockieren).
+        btn.disabled = false; btn.textContent = 'Änderungen speichern';
+      } else if (!linkChanged && !photoOnly) {
+        return showErr('Der Link ist unverändert. Bitte gib einen neuen Link ein (oder drücke Enter, um das Foto neu zu laden).');
       }
 
       btn.disabled = true; btn.textContent = '...';
