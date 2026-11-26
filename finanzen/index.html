@@ -6923,8 +6923,15 @@ Gruppen verwalten
     // damit im System-Teilen-Dialog das echte Gruppenbild statt des App-Icons erscheint.
     // descText (optional): kurze Beschreibung für die Linkvorschau-Karte (Telegram/WhatsApp).
     async function shareGroupByTitle(title, iconEl, imageUrl, descText, groupId) {
-      const realUrl = groupId
-        ? SHARE_BASE_URL.replace(/\/$/, '') + window.glJoinPath(title, groupId)
+      // Gruppen-ID bestimmen: übergebene ID > Adresse /group/join/<name>-<id> > ?grupo=<id> > gemerkter Zustand
+      let gid = groupId || '';
+      try {
+        if (!gid && window.glGidFromPath) gid = window.glGidFromPath();
+        if (!gid) gid = new URLSearchParams(window.location.search).get('grupo') || '';
+        if (!gid && window.history.state && window.history.state.groupId) gid = window.history.state.groupId;
+      } catch (e) {}
+      const realUrl = gid
+        ? SHARE_BASE_URL.replace(/\/$/, '') + window.glJoinPath(title, gid)
         : SHARE_BASE_URL + '?gruppe=' + encodeURIComponent(slugify(title));
 
       // Wenn eine Gruppenbild-URL vorhanden ist UND der Vorschau-Worker konfiguriert wurde,
