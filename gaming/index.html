@@ -290,6 +290,13 @@
   };
   window.glJoinPath = function (title, id) { return '/group/join/' + window.glJoinSlug(title) + '-' + id; };
   window.glCatPath = function (cat) { return cat ? '/groups/' + window.glCatSlug(cat) : '/'; };
+  // Chatroom-URL: gruppenlink.de/chatrooms/<stadt>  (z. B. /chatrooms/berlin)
+  window.glChatRoomFromPath = function () {
+    try {
+      var m = window.location.pathname.match(/^\/chatrooms\/([a-z0-9-]+)\/?$/i);
+      return m ? m[1].toLowerCase() : '';
+    } catch (e) { return ''; }
+  };
   window.glGidFromPath = function () {
     try {
       var m = window.location.pathname.match(/^\/group\/join\/[^\/]*?([A-Za-z0-9]{20})\/?$/);
@@ -315,7 +322,7 @@
   };
   window.GL_PROFILE_PATH = window.glProfileFromPath();
   // Basispfad der Startseite (bei direkt geöffnetem Profil-Link ist das "/")
-  window.GL_BASE_PATH = (window.GL_PROFILE_PATH || window.glCategoryFromPath()) ? '/' : window.location.pathname;
+  window.GL_BASE_PATH = (window.GL_PROFILE_PATH || window.glCategoryFromPath() || window.glChatRoomFromPath()) ? '/' : window.location.pathname;
   window.GL_BASE_TITLE = document.title;
 </script>
 <style>
@@ -2718,7 +2725,7 @@ Gruppen verwalten
       try {
         var _pm = document.getElementById('profile-page-modal');
         if (!document.documentElement.classList.contains('group-view') && !(_pm && !_pm.classList.contains('hidden'))) {
-          window.__glPreCommUrl = (window.glCategoryFromPath && window.glCategoryFromPath() === 'Chatrooms')
+          window.__glPreCommUrl = ((window.glCategoryFromPath && window.glCategoryFromPath() === 'Chatrooms') || (window.glChatRoomFromPath && window.glChatRoomFromPath()))
             ? '/' : (window.location.pathname + window.location.search + window.location.hash);
           history.replaceState(history.state, '', '/chatrooms');
         }
@@ -2787,7 +2794,16 @@ Gruppen verwalten
       if (!CHAT_ROOM_NAMES[roomId]) return;
       var roomName = CHAT_ROOM_NAMES[roomId];
       currentRoomId = roomId;
+      var _pmEl = document.getElementById('profile-page-modal');
+      var _urlOk = !document.documentElement.classList.contains('group-view') && !(_pmEl && !_pmEl.classList.contains('hidden'));
       closeCommunityModal();
+      if (_urlOk) {
+        try {
+          var _prev = window.location.pathname + window.location.search + window.location.hash;
+          window.__glPreRoomUrl = /^\/chatrooms/i.test(_prev) ? '/' : _prev;
+          history.replaceState(history.state, '', '/chatrooms/' + encodeURIComponent(roomId));
+        } catch (e) {}
+      }
       document.getElementById('chat-room-title').textContent = roomName;
       document.getElementById('chat-room-avatar').textContent = roomName.charAt(0);
       startPresenceTracking();
@@ -2825,6 +2841,10 @@ Gruppen verwalten
       if (unsubscribeCurrentRoom) { unsubscribeCurrentRoom(); unsubscribeCurrentRoom = null; }
       if (window.leaveChatRoomPresence) window.leaveChatRoomPresence();
       currentRoomId = null;
+      if (window.__glPreRoomUrl) {
+        try { history.replaceState(history.state, '', window.__glPreRoomUrl); } catch (e) {}
+        window.__glPreRoomUrl = null;
+      }
     };
 
     window.backToCommunity = function() {
@@ -7451,6 +7471,22 @@ Gruppen verwalten
       if (cat === 'Chatrooms') { if (window.openCommunityModal) window.openCommunityModal(); return; }
       applyCategory(cat, false);
       document.title = cat + ' – GruppenLink';
+    })();
+
+    // gruppenlink.de/chatrooms/<stadt>: Chatroom direkt öffnen (ohne Registrierung erscheint der Hinweis)
+    (function openChatRoomFromPath() {
+      const rid = window.glChatRoomFromPath();
+      if (!rid) return;
+      let tries = 0;
+      (function waitReady() {
+        if (window.openCommunityModal && window.handleRoomClick && window.listenCommunityChatRoom) {
+          window.openCommunityModal();
+          window.handleRoomClick(rid);
+          return;
+        }
+        if (++tries < 100) setTimeout(waitReady, 100);
+        else if (window.openCommunityModal) window.openCommunityModal();
+      })();
     })();
 
     // ---------- GETEILTEN GRUPPEN-LINK DIREKT ÖFFNEN ----------
