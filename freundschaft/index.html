@@ -7394,6 +7394,8 @@ Gruppen verwalten
     if (mainLogoLink) {
       mainLogoLink.addEventListener('click', function(e) {
         e.preventDefault();
+        // Auf /groups/<kategorie>, /<kategorie>/, /group/join/... usw.: direkt zur Startseite https://gruppenlink.de/
+        if (window.location.pathname !== '/') { window.location.assign('/'); return; }
         if (window.glReleaseOverlays) window.glReleaseOverlays();
         if (desktopSearch) desktopSearch.value = '';
         if (mobileSearch) mobileSearch.value = '';
