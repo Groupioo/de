@@ -52,7 +52,7 @@ async function loadGroups() {
 }
 
 // ---------- Plantillas ----------
-const block = (h2, links) => `<!--GL-SEO-START--><section style="max-width:72rem;margin:2rem auto;padding:1rem;font:14px/1.7 system-ui,sans-serif"><h2 style="font-size:1.1rem;font-weight:700">${esc(h2)}</h2><ul style="list-style:none;padding:0;display:flex;flex-wrap:wrap;gap:.4rem 1.2rem">${links.map(([h, t]) => `<li><a href="${h}">${esc(t)}</a></li>`).join('')}</ul></section><!--GL-SEO-END-->`;
+const block = (h2, links) => `<!--GL-SEO-START--><section hidden aria-hidden="true" style="display:none;max-width:72rem;margin:2rem auto;padding:1rem;font:14px/1.7 system-ui,sans-serif"><h2 style="font-size:1.1rem;font-weight:700">${esc(h2)}</h2><ul style="list-style:none;padding:0;display:flex;flex-wrap:wrap;gap:.4rem 1.2rem">${links.map(([h, t]) => `<li><a href="${h}">${esc(t)}</a></li>`).join('')}</ul></section><!--GL-SEO-END-->`;
 const catLinks = CATEGORIES.map(c => ['/' + catSlug(c) + '/', c + ' WhatsApp-Gruppen']);
 
 function groupPage(g, same) {
